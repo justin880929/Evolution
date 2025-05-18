@@ -7,6 +7,7 @@ import { Routes, RouterModule } from '@angular/router';
 import { BackSystemComponent } from './back-system/back-system.component';
 import { FormsModule } from '@angular/forms';
 import { HomeComponent } from './pages/home/home.component';
+import { LoginComponent } from './pages/login/login.component';
 const routes: Routes = [
   {
     path: 'back-system',
@@ -31,7 +32,8 @@ const routes: Routes = [
   declarations: [
     AppComponent,
     BackSystemComponent,
-    HomeComponent
+    HomeComponent,
+    LoginComponent
   ],
   imports: [
     FormsModule,
