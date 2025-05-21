@@ -4,35 +4,52 @@ import { Component, OnInit, Renderer2, ViewEncapsulation } from '@angular/core';
   selector: 'app-back-system',
   templateUrl: './back-system.component.html',
   styleUrls: ['./back-system.component.css'],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
 })
 export class BackSystemComponent implements OnInit {
   private scripts: HTMLScriptElement[] = [];
-  constructor(private renderer: Renderer2) { }
+  constructor(private renderer: Renderer2) {}
 
   ngOnInit(): void {
-
     this.loadScript('assets/BackSystem/js/config.js');
     this.loadScript('assets/BackSystem/js/helpers.js');
     this.loadScript('assets/BackSystem/js/jquery/jquery.js');
     this.loadScript('assets/BackSystem/js/popper/popper.js');
     this.loadScript('assets/BackSystem/js/bootstrap.js');
-    this.loadScript('assets/BackSystem/libs/perfect-scrollbar/perfect-scrollbar.js');
+    this.loadScript(
+      'assets/BackSystem/libs/perfect-scrollbar/perfect-scrollbar.js'
+    );
     this.loadScript('assets/BackSystem/js/menu.js');
     this.loadScript('assets/BackSystem/libs/apex-charts/apexcharts.js');
     this.loadScript('assets/BackSystem/js/main.js');
     this.loadScript('assets/BackSystem/js/dashboards-analytics.js');
   }
-  readonly menuItems = [
-    { label: '課程總覽', link: 'course-list' },
-    { label: '建立課程', link: 'create-course' },
-    { label: '課程章節管理', link: 'course-manage' },
-    { label: '測驗管理', link: 'quizzes-manage' },
-    { label: '標籤管理', link: 'hash-tag-manage' },
-    { label: '課程目標設定', link: 'course-goals' },
-    { label: '員工權限管理', link: 'emp-permissions' }
-
-  ];
+  readonly menuItems = {
+    course: [
+      { label: '課程總覽', link: 'course-list' },
+      { label: '建立課程', link: 'create-course' },
+      { label: '課程章節管理', link: 'course-manage' },
+      { label: '測驗管理', link: 'quizzes-manage' },
+      { label: '標籤管理', link: 'hash-tag-manage' },
+      { label: '課程目標設定', link: 'course-goals' },
+      { label: '課程權限管理', link: 'emp-permissions' },
+    ],
+    EmpDep: [
+      { label: '部門管理', link: 'dep-manage' },
+      { label: '建立部門', link: 'create-dep' },
+      { label: '員工管理', link: 'emp-manage' },
+      { label: '建立員工帳號', link: 'create-emp' },
+    ],
+  };
+  // readonly menuItems = [
+  //   { label: '課程總覽', link: 'course-list' },
+  //   { label: '建立課程', link: 'create-course' },
+  //   { label: '課程章節管理', link: 'course-manage' },
+  //   { label: '測驗管理', link: 'quizzes-manage' },
+  //   { label: '標籤管理', link: 'hash-tag-manage' },
+  //   { label: '課程目標設定', link: 'course-goals' },
+  //   { label: '課程權限管理', link: 'emp-permissions' },
+  // ];
   //   ✅ 儀表板
   // 總覽（可視品牌與公司看到不同 KPI、登入紀錄等）
 
@@ -60,10 +77,6 @@ export class BackSystemComponent implements OnInit {
 
   // 建立員工帳號
 
-  // 權限設定
-
-  // 員工目標完成度
-
   // ✅ 統計分析
   // 課程學習率分析
 
@@ -80,7 +93,6 @@ export class BackSystemComponent implements OnInit {
 
   // 系統通知 / 消息推播
 
-
   loadScript(src: string): void {
     const script = this.renderer.createElement('script');
     script.src = src;
@@ -92,7 +104,7 @@ export class BackSystemComponent implements OnInit {
 
   ngOnDestroy(): void {
     // 清除動態 script 標籤
-    this.scripts.forEach(script => {
+    this.scripts.forEach((script) => {
       if (script.parentNode) {
         script.parentNode.removeChild(script);
       }

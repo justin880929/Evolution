@@ -1,4 +1,9 @@
-import { Component, AfterViewInit, OnDestroy, ViewEncapsulation } from '@angular/core';
+import {
+  Component,
+  AfterViewInit,
+  OnDestroy,
+  ViewEncapsulation,
+} from '@angular/core';
 import AOS from '../../../assets/FrontSystem/vendor/aos/aos.js';
 import GLightbox from '../../../assets/FrontSystem/vendor/glightbox/js/glightbox.js';
 import PureCounter from '../../../assets/FrontSystem/vendor/purecounter/purecounter_vanilla.js';
@@ -9,7 +14,7 @@ import Isotope from '../../../assets/FrontSystem/vendor/isotope-layout/isotope.p
   selector: 'app-home',
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css'],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
 })
 export class HomeComponent implements AfterViewInit, OnDestroy {
   private scrollHandler = this.toggleScrolled.bind(this);
@@ -48,7 +53,8 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     const header = document.querySelector('#header');
     if (!body || !header) return;
 
-    const isSticky = header.classList.contains('scroll-up-sticky') ||
+    const isSticky =
+      header.classList.contains('scroll-up-sticky') ||
       header.classList.contains('sticky-top') ||
       header.classList.contains('fixed-top');
 
@@ -89,7 +95,9 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   // === 手機版導覽列 ===
   private initMobileNav(): void {
-    const toggleBtn = document.querySelector('.mobile-nav-toggle') as HTMLElement;
+    const toggleBtn = document.querySelector(
+      '.mobile-nav-toggle'
+    ) as HTMLElement;
     if (toggleBtn) {
       toggleBtn.addEventListener('click', () => {
         document.body.classList.toggle('mobile-nav-active');
@@ -106,16 +114,21 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       });
     });
 
-    document.querySelectorAll('.navmenu .toggle-dropdown').forEach((dropdown) => {
-      dropdown.addEventListener('click', function (this: HTMLElement, e: Event) {
-        e.preventDefault();
-        const parent = this.parentElement;
-        const nextSibling = parent?.nextElementSibling;
-        parent?.classList.toggle('active');
-        nextSibling?.classList.toggle('dropdown-active');
-        e.stopImmediatePropagation();
+    document
+      .querySelectorAll('.navmenu .toggle-dropdown')
+      .forEach((dropdown) => {
+        dropdown.addEventListener(
+          'click',
+          function (this: HTMLElement, e: Event) {
+            e.preventDefault();
+            const parent = this.parentElement;
+            const nextSibling = parent?.nextElementSibling;
+            parent?.classList.toggle('active');
+            nextSibling?.classList.toggle('dropdown-active');
+            e.stopImmediatePropagation();
+          }
+        );
       });
-    });
   }
 
   // === AOS ===
@@ -124,7 +137,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       duration: 600,
       easing: 'ease-in-out',
       once: true,
-      mirror: false
+      mirror: false,
     });
   }
 
@@ -156,12 +169,14 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
             itemSelector: '.isotope-item',
             layoutMode,
             filter,
-            sortBy
+            sortBy,
           });
 
           layout.querySelectorAll('.isotope-filters li').forEach((li) => {
             li.addEventListener('click', () => {
-              layout.querySelector('.filter-active')?.classList.remove('filter-active');
+              layout
+                .querySelector('.filter-active')
+                ?.classList.remove('filter-active');
               li.classList.add('filter-active');
               iso.arrange({ filter: li.getAttribute('data-filter') });
               this.initAOS(); // 重新觸發動畫
