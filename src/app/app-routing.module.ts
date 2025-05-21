@@ -17,7 +17,7 @@ const routes: Routes = [
   },
   {
     path: '',
-    redirectTo: '/home',
+    redirectTo: 'home',
     pathMatch: 'full',
   },
 ];
@@ -27,4 +27,4 @@ const routes: Routes = [
   exports: [RouterModule],
   providers: [{ provide: LocationStrategy, useClass: HashLocationStrategy }],
 })
-export class AppRoutingModule {}
+export class AppRoutingModule { }
