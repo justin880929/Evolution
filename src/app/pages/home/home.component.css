@@ -4,6 +4,19 @@
 @import url("../../../assets/FrontSystem/vendor/glightbox/css/glightbox.min.css");
 @import url("../../../assets/FrontSystem/vendor/swiper/swiper-bundle.min.css");
 @import url("../../../assets/FrontSystem/css/main.css");
+/*
+@import url("../../../assets/BackSystem/boxicons/boxicons.css");
+@import url("../../../assets/BackSystem/core/core.css");
+@media (min-width: 1200px) {
+  .navmenu .dropdown ul a {
+    justify-content: start;
+  }
+} */
+
+/* @import url("../../../assets/BackSystem/core/theme-default.css"); */
+/* @import url("../../../assets/BackSystem/demo.css"); */
+/* @import url("../../../assets/BackSystem/libs/perfect-scrollbar/perfect-scrollbar.css"); */
+/* @import url("../../../assets/BackSystem/libs/apex-charts/apex-charts.css"); */
 /* ,
               // "src/assets/FrontSystem/vendor/bootstrap/css/bootstrap.min.css",
               // "src/assets/FrontSystem/vendor/bootstrap-icons/bootstrap-icons.min.css",
