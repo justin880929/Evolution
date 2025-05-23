@@ -1,1 +1,58 @@
-<p>forgot works!</p>
+<div class="login-wrapper">
+  <!-- SVG 背景放這裡，避免擋到內容 -->
+  <div class="svg-background"></div>
+
+  <div class="authentication-wrapper authentication-basic container-p-y">
+    <div class="authentication-inner">
+      <!-- 登入卡片 -->
+      <div class="card shadow login-box">
+        <div class="card-body">
+          <!-- Logo -->
+          <div class="m-0 app-brand justify-content-center">
+            <a href="index.html" class="app-brand-link gap-2">
+              <span class="app-brand-logo demo">
+                <img src="../../../assets/img/EvolutionLogo.png" alt="Evolution Logo" width="200" class="logo-img m-0" />
+              </span>
+            </a>
+          </div>
+          <!-- /Logo -->
+          <h4 class="mb-2">忘記密碼? 🔒</h4>
+          <p class="mb-4">請輸入您的信箱，協助您重啟進化旅程的密碼已在路上</p>
+          <form [formGroup]="forgotForm" (ngSubmit)="onSubmit()" class="mb-3">
+            <div class="mb-3">
+              <label for="email" class="form-label">Email</label>
+              <input type="email" class="form-control custom-input" id="email" formControlName="email"
+                placeholder="請輸入信箱" />
+              <div class="text-danger mt-1"
+                *ngIf="forgotForm.get('email')?.invalid && forgotForm.get('email')?.touched">
+                請輸入正確的信箱格式
+              </div>
+            </div>
+
+            <button class="btn btn-evolution d-grid w-100 btn-float" type="submit">
+              寄送重設密碼信
+            </button>
+          </form>
+
+          <!-- 顯示後端傳回訊息 -->
+          <div *ngIf="message" class="login-success-animation">
+            <div class="success-icon fly-in">
+              <i class="bx bx-envelope bx-sm"></i>
+            </div>
+            <div class="success-text">{{ message }}</div>
+          </div>
+
+
+
+          <div class="text-center">
+            <a [routerLink]="['/login']" class="d-flex align-items-center justify-content-center link-evolution">
+              <i class="bx bx-chevron-left scaleX-n1-rtl bx-sm"></i>
+              返回登入
+            </a>
+          </div>
+        </div>
+      </div>
+      <!-- /Forgot Password -->
+    </div>
+  </div>
+</div>

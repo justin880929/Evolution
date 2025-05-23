@@ -1,1 +1,90 @@
-<p>login works!</p>
+<div class=" login-wrapper">
+  <!-- SVG 背景放這裡，避免擋到內容 -->
+  <div class="svg-background"></div>
+
+  <div class="authentication-wrapper authentication-basic container-p-y">
+    <div class="authentication-inner">
+      <!-- 登入卡片 -->
+      <div class="card shadow login-box">
+        <div class="card-body">
+          <!-- Logo -->
+          <div class="m-0 app-brand justify-content-center">
+            <a href="index.html" class="app-brand-link gap-2">
+              <span class="app-brand-logo demo">
+                <img src="../../../assets/img/EvolutionLogo.png" alt="Evolution Logo" width="200" class="logo-img m-0" />
+              </span>
+            </a>
+          </div>
+
+          <h4 class="mb-2">
+            歡迎來到 <span style="font-family: 'Segoe UI', 'Helvetica Neue', sans-serif;">Evolution</span>！👋
+          </h4>
+          <p class="mb-4">登入帳號，一起邁向知識進化的新時代</p>
+
+          <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="mb-3" autocomplete="on">
+            <div class="mb-3">
+              <label for="email" class="form-label">帳號或 Email</label>
+              <input type="text" class="form-control custom-input" id="email" placeholder="請輸入帳號或 Email"
+                formControlName="email" autocomplete="username" autofocus />
+              <div class="text-danger mt-1" *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched">
+                請輸入帳號或 Email
+              </div>
+            </div>
+
+            <div class="mb-3 form-password-toggle">
+              <div class="d-flex justify-content-between">
+                <label class="form-label" for="password">密碼</label>
+                <a class="custom-forgot-link" [routerLink]="['/forgot']">
+                  <small>忘記密碼？</small>
+                </a>
+              </div>
+              <div class="input-group input-group-merge">
+                <input type="password" id="password" class="form-control" placeholder="請輸入密碼" formControlName="password"
+                  autocomplete="current-password" aria-describedby="password" />
+                <span class="input-group-text cursor-pointer custom-eye-color">
+                  <i class="bx bx-hide"></i>
+                </span>
+              </div>
+              <div class="text-danger mt-1"
+                *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
+                請輸入密碼
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <div class="form-check">
+                <input class="form-check-input custom-input" type="checkbox" id="remember-me" />
+                <label class="form-check-label" for="remember-me"> 記住我的資訊 </label>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <button class="btn btn-evolution d-grid w-100 btn-float mb-5" type="submit">
+                登入
+              </button>
+            </div>
+
+            <div class="text-center mt-3">
+              <a [routerLink]="['/']" class="d-flex align-items-center justify-content-center link-evolution">
+                <i class="bx bx-chevron-left scaleX-n1-rtl bx-sm"></i> 返回首頁
+              </a>
+            </div>
+            <!-- 登入失敗錯誤提示 -->
+            <div *ngIf="loginError" class="text-danger text-center mt-2">
+              {{ loginError }}
+            </div>
+          </form>
+
+          <!-- 新增動畫 -->
+          <div *ngIf="loginSuccess" class="login-success-animation">
+  <div class="success-icon">
+    <i class="bx bx-check-circle"></i>
+  </div>
+  <div class="success-text">{{ username }}，歡迎你繼續進化的旅程！</div>
+          </div>
+        </div>
+      </div>
+      <!-- /登入卡片 -->
+    </div>
+  </div>
+</div>

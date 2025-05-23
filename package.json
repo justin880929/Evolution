@@ -19,8 +19,11 @@
     "@angular/platform-browser-dynamic": "^16.2.0",
     "@angular/router": "^16.2.0",
     "@srexi/purecounterjs": "^1.5.0",
+    "bootstrap": "^5.3.6",
+    "boxicons": "^2.1.4",
     "ev-emitter": "^2.1.2",
     "jquery": "^3.7.1",
+    "jwt-decode": "^4.0.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.13.0"
