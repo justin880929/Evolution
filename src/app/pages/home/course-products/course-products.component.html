@@ -1,1 +1,36 @@
-<p>course-products works!</p>
+<!-- 搜尋列 sticky 在 header 下方 -->
+<div class="sticky-search-wrapper">
+  <div class="pretty-search-bar">
+    <input
+      type="text"
+      class="form-control pretty-input"
+      placeholder="輸入關鍵字搜尋課程"
+      [(ngModel)]="searchText"
+    >
+    <button
+      class="btn pretty-button"
+      (click)="onSearch()"
+    >
+      搜尋
+    </button>
+  </div>
+</div>
+
+<!-- 搜尋結果 -->
+<div class="course-list">
+  <app-course-card
+    *ngFor="let course of filteredCourses"
+    [course]="course"
+  ></app-course-card>
+</div>
+
+<!-- ✅ 占位補高度，避免固定搜尋列蓋到下面的內容 -->
+<div class="search-bar-spacer"></div>
+
+<!-- 🎯 卡片區塊 -->
+<div class="course-list">
+  <app-course-card
+    *ngFor="let course of filteredCourses"
+    [course]="course"
+  ></app-course-card>
+</div>
