@@ -8,3 +8,6 @@
 @import url("../../assets/BackSystem/demo.css");
 @import url("../../assets/BackSystem/libs/perfect-scrollbar/perfect-scrollbar.css");
 @import url("../../assets/BackSystem/libs/apex-charts/apex-charts.css");
+.app-brand-logo img {
+  max-height: 80px;
+}
