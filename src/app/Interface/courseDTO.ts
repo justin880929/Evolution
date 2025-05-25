@@ -1,4 +1,4 @@
-export interface Course {
+export interface courseDTO {
   id: number;             // 課程 ID
   title: string;          // 課程名稱
   description: string;    // 課程介紹
