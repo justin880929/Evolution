@@ -11,7 +11,7 @@ import { RouterModule } from '@angular/router';
 import { LoginComponent } from './pages/login/login.component';
 import { HttpClientModule } from '@angular/common/http';
 import { CourseProductPipe } from './Pipe/course-product.pipe';
-
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 @NgModule({
   declarations: [AppComponent, ForgotComponent, ResetPasswordComponent, LoginComponent, CourseProductPipe],
   imports: [
@@ -21,7 +21,8 @@ import { CourseProductPipe } from './Pipe/course-product.pipe';
     ReactiveFormsModule,
     RouterModule,
     HttpClientModule,
+    BrowserAnimationsModule
   ],
   bootstrap: [AppComponent],
 })
-export class AppModule {}
+export class AppModule { }
