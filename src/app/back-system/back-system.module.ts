@@ -17,6 +17,9 @@ import { DepManageComponent } from './dep-manage/dep-manage.component';
 import { CreateDepComponent } from './create-dep/create-dep.component';
 import { EmpManageComponent } from './emp-manage/emp-manage.component';
 import { CreateEmpComponent } from './create-emp/create-emp.component';
+import { TableModule } from 'primeng/table';
+import { TagModule } from 'primeng/tag';
+import { StatusToTagPipe } from '../Pipe/emp.pipe';
 
 @NgModule({
   declarations: [
@@ -35,6 +38,6 @@ import { CreateEmpComponent } from './create-emp/create-emp.component';
     EmpManageComponent,
     CreateEmpComponent,
   ],
-  imports: [CommonModule, BackSystemRoutingModule, RouterModule, FormsModule],
+  imports: [CommonModule, BackSystemRoutingModule, RouterModule, FormsModule,TableModule, TagModule, StatusToTagPipe],
 })
 export class BackSystemModule {}

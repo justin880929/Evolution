@@ -11,7 +11,7 @@ import { RouterModule } from '@angular/router';
 import { LoginComponent } from './pages/login/login.component';
 import { HttpClientModule } from '@angular/common/http';
 import { CourseProductPipe } from './Pipe/course-product.pipe';
-
+import { StatusToTagPipe } from './Pipe/emp.pipe';
 @NgModule({
   declarations: [AppComponent, ForgotComponent, ResetPasswordComponent, LoginComponent, CourseProductPipe],
   imports: [
@@ -21,6 +21,10 @@ import { CourseProductPipe } from './Pipe/course-product.pipe';
     ReactiveFormsModule,
     RouterModule,
     HttpClientModule,
+    StatusToTagPipe
+  ],
+   exports: [
+    StatusToTagPipe // 匯出給其他模組使用（如 BackSystemModule）
   ],
   bootstrap: [AppComponent],
 })

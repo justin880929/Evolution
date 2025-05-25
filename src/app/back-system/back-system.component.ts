@@ -10,20 +10,48 @@ export class BackSystemComponent implements OnInit {
   private scripts: HTMLScriptElement[] = [];
   constructor(private renderer: Renderer2) {}
 
-  ngOnInit(): void {
-    this.loadScript('assets/BackSystem/js/config.js');
-    this.loadScript('assets/BackSystem/js/helpers.js');
-    this.loadScript('assets/BackSystem/js/jquery/jquery.js');
-    this.loadScript('assets/BackSystem/js/popper/popper.js');
-    this.loadScript('assets/BackSystem/js/bootstrap.js');
-    this.loadScript(
-      'assets/BackSystem/libs/perfect-scrollbar/perfect-scrollbar.js'
-    );
-    this.loadScript('assets/BackSystem/js/menu.js');
-    this.loadScript('assets/BackSystem/libs/apex-charts/apexcharts.js');
-    this.loadScript('assets/BackSystem/js/main.js');
-    this.loadScript('assets/BackSystem/js/dashboards-analytics.js');
+  // ngOnInit(): void {
+  //   this.loadScript('assets/BackSystem/js/config.js');
+  //   this.loadScript('assets/BackSystem/js/helpers.js');
+  //   this.loadScript('assets/BackSystem/js/jquery/jquery.js');
+  //   this.loadScript('assets/BackSystem/js/popper/popper.js');
+  //   this.loadScript('assets/BackSystem/js/bootstrap.js');
+  //   this.loadScript(
+  //     'assets/BackSystem/libs/perfect-scrollbar/perfect-scrollbar.js'
+  //   );
+  //   this.loadScript('assets/BackSystem/js/menu.js');
+  //   this.loadScript('assets/BackSystem/libs/apex-charts/apexcharts.js');
+  //   this.loadScript('assets/BackSystem/js/main.js');
+  //   this.loadScript('assets/BackSystem/js/dashboards-analytics.js');
+  // }
+
+  async ngOnInit(): Promise<void> {
+  try {
+    // 1. 初始化設定與輔助工具
+    await this.loadScript('assets/BackSystem/js/config.js');
+    await this.loadScript('assets/BackSystem/js/helpers.js');
+
+    // 2. 基本核心庫
+    await this.loadScript('assets/BackSystem/js/jquery/jquery.js');
+    await this.loadScript('assets/BackSystem/js/popper/popper.js');
+    await this.loadScript('assets/BackSystem/js/bootstrap.js');
+
+    // 3. UI 擴充組件
+    await this.loadScript('assets/BackSystem/libs/perfect-scrollbar/perfect-scrollbar.js');
+    await this.loadScript('assets/BackSystem/js/menu.js');
+
+    // 4. ApexCharts → 先載入核心 lib
+    await this.loadScript('assets/BackSystem/libs/apex-charts/apexcharts.js');
+
+    // 5. 主要行為與儀表板
+    await this.loadScript('assets/BackSystem/js/main.js');
+    await this.loadScript('assets/BackSystem/js/dashboards-analytics.js');
+
+    console.log('✅ 所有腳本載入完成');
+  } catch (err) {
+    console.error('❌ Script loading error:', err);
   }
+}
   readonly menuItems = {
     course: [
       { label: '課程總覽', link: 'course-list' },
@@ -93,14 +121,41 @@ export class BackSystemComponent implements OnInit {
 
   // 系統通知 / 消息推播
 
+  // loadScript(src: string): void {
+  //   const script = this.renderer.createElement('script');
+  //   script.src = src;
+  //   script.type = 'text/javascript';
+  //   script.defer = true;
+  //   this.renderer.appendChild(document.body, script);
+  //   this.scripts.push(script); // 儲存起來ㄏㄠ
+  // }
+
   loadScript(src: string): void {
-    const script = this.renderer.createElement('script');
-    script.src = src;
-    script.type = 'text/javascript';
-    script.defer = true;
-    this.renderer.appendChild(document.body, script);
-    this.scripts.push(script); // 儲存起來
+  // 檢查是否已經加載過相同 script（避免重複加載）
+  if (document.querySelector(`script[src="${src}"]`)) {
+    console.warn(`Script already loaded: ${src}`);
+    return;
   }
+
+  const script = this.renderer.createElement('script');
+  script.src = src;
+  script.type = 'text/javascript';
+  script.defer = true;
+
+  // 當 script 載入完成時觸發
+  script.onload = () => {
+    console.log(`✅ Script loaded: ${src}`);
+  };
+
+  // 若載入失敗，可提示
+  script.onerror = () => {
+    console.error(`❌ Failed to load script: ${src}`);
+  };
+
+  this.renderer.appendChild(document.body, script);
+  this.scripts.push(script); // 儲存以便 onDestroy 時移除
+}
+
 
   ngOnDestroy(): void {
     // 清除動態 script 標籤
