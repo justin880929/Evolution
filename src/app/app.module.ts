@@ -10,9 +10,10 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { LoginComponent } from './pages/login/login.component';
 import { HttpClientModule } from '@angular/common/http';
+import { CourseProductPipe } from './Pipe/course-product.pipe';
 
 @NgModule({
-  declarations: [AppComponent, ForgotComponent, ResetPasswordComponent, LoginComponent],
+  declarations: [AppComponent, ForgotComponent, ResetPasswordComponent, LoginComponent, CourseProductPipe],
   imports: [
     BrowserModule,
     FormsModule,
