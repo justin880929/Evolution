@@ -1,8 +1,11 @@
 .course-list {
   display: grid;
-  grid-template-columns: repeat(4, 280px); /* ✅ 固定 4 欄 */
-  gap: 8px; /* ✅ 每格間距 */
-  justify-content: center; /* ✅ 整列置中 */
+  grid-template-columns: repeat(4, 280px);
+  /* ✅ 固定 4 欄 */
+  gap: 8px;
+  /* ✅ 每格間距 */
+  justify-content: center;
+  /* ✅ 整列置中 */
   padding: 24px 8px;
   margin: 0 auto;
 }
@@ -11,8 +14,10 @@
 /* 🔒 搜尋列固定在導覽列下方 */
 .sticky-search-wrapper {
   position: sticky;
-  top: 130px; /* ✅ 根據你的導覽列實際高度 */
-  z-index: 1010; /* ✅ 要低於導覽列 z-index: 1020 */
+  top: 130px;
+  /* ✅ 根據你的導覽列實際高度 */
+  z-index: 99;
+  /* ✅ 要低於導覽列 z-index: 1020 */
   background-color: #e8f5e9;
   padding: 12px 0;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
@@ -20,7 +25,8 @@
 
 /* ⚠️ 必須補高度避免卡片被遮住 */
 .search-bar-spacer {
-  height: 72px; /* ❗此值 = .fixed-search-wrapper 的高度，請保持一致 */
+  height: 72px;
+  /* ❗此值 = .fixed-search-wrapper 的高度，請保持一致 */
 }
 
 /* 🔍 美化搜尋列區塊 */
@@ -79,7 +85,8 @@
 /* 手機：1 張 */
 @media screen and (max-width: 576px) {
   .course-list {
-    grid-template-columns: 1fr; /* 滿版顯示 */
+    grid-template-columns: 1fr;
+    /* 滿版顯示 */
     padding: 16px;
   }
 }
