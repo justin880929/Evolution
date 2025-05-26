@@ -21,13 +21,17 @@ export class CourseProductsComponent implements OnInit {
     });
   }
 
+  ngAfterViewInit(): void {
+    window.scrollTo({ top: 0 });
+  }
+
   onSearch(): void {
     const keyword = this.searchText.toLowerCase().trim();
 
     this.filteredCourses = this.courses.filter(course =>
       course.title.toLowerCase().includes(keyword) ||
       course.description.toLowerCase().includes(keyword) ||
-      course.company.toLowerCase().includes(keyword)
+      course.companyName?.toLowerCase().includes(keyword)
     );
   }
 }

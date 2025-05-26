@@ -14,8 +14,7 @@ export class CourseCardComponent {
   constructor(private router: Router) { }
 
   goToDetail(): void {
-    sessionStorage.setItem('selectedCourse', JSON.stringify(this.course));
-    this.router.navigate(['/home/course-products/detail']);
+    this.router.navigate(['/home/course-products/detail', this.course.id]);
   }
 
 

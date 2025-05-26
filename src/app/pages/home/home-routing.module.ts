@@ -13,7 +13,7 @@ const routes: Routes = [
       { path: '', redirectTo: 'description', pathMatch: 'full' },
       { path: 'description', component: DescriptionComponent },
       { path: 'course-products', component: CourseProductsComponent },
-      { path: 'course-products/detail', component: CourseDetailComponent }, // ⬅️ 新增這行
+      { path: 'course-products/detail/:id', component: CourseDetailComponent }, // ⬅️ 新增這行
 
       { path: '**', redirectTo: 'description' }
     ]
