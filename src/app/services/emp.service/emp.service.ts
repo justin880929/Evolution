@@ -4,6 +4,7 @@ import { Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { empDTO } from '../../Interface/empDTO';
 import { MOCK_EMPLOYEES } from '../../mock/mock-emp';
+import { FilterMetadata } from 'primeng/api';
 
 @Injectable({
   providedIn: 'root',
@@ -30,13 +31,6 @@ export class EmpService {
   }
 
   /**
-   * ✅ 取得前五筆
-   */
-  getTop5(): Observable<empDTO[]> {
-    return this.fetchData().pipe(map(data => data.slice(0, 5)));
-  }
-
-  /**
    * ✅ 依 ID 查單筆資料
    */
   getById(id: number): Observable<empDTO | undefined> {
@@ -48,21 +42,62 @@ export class EmpService {
    * @param startIndex 分頁起始索引（例如第2頁開始就是 10）
    * @param pageSize 每頁資料筆數
    */
-  getPaged(startIndex: number, pageSize: number): Observable<empDTO[]> {
-    if (this.useMock) {
-      const page = MOCK_EMPLOYEES.slice(startIndex, startIndex + pageSize);
-      return of(page);
-    } else {
-      // ⚠️ 未來串 API 請改成呼叫對應分頁 API
-      const url = `https://your-api/employees?start=${startIndex}&size=${pageSize}`;
-      return this.http.get<empDTO[]>(url);
+
+  getPagedResult(
+    startIndex: number,
+    pageSize: number,
+    sortField: string,
+    sortOrder: number,
+    filters: { [s: string]: FilterMetadata | FilterMetadata[] | undefined }
+  ): Observable<{ data: empDTO[]; total: number }> {
+    let result = [...MOCK_EMPLOYEES];
+
+    // ✅ 加入 statusLabel 欄位 → 讓它能被篩選與排序
+    result = result.map(emp => ({
+      ...emp,
+      statusLabel: emp.isEmailConfirmed ? '已驗證' : '未驗證'
+    }));
+
+
+    // 🔍 搜尋處理
+    for (const field in filters) {
+      const meta = filters[field];
+      const rawValue = Array.isArray(meta) ? meta[0]?.value : meta?.value;
+
+      const filterValue = Array.isArray(rawValue)
+        ? rawValue[0]?.toLowerCase()
+        : rawValue?.toLowerCase();
+
+      if (filterValue) {
+        result = result.filter(emp => {
+          const val = (emp as any)[field]?.toString().toLowerCase();
+          return val?.includes(filterValue);
+        });
+      }
     }
+
+    const total = result.length;
+
+    // ✅ 先加上 statusLabel 欄位（讓它也能排序）
+    result = result.map(emp => ({
+      ...emp,
+      statusLabel: emp.isEmailConfirmed ? '已驗證' : '未驗證'
+    }));
+
+    // ✅ 所有欄位皆可排序（包含 statusLabel）
+    if (sortField) {
+      result.sort((a, b) => {
+        const valA = (a as any)[sortField];
+        const valB = (b as any)[sortField];
+        if (valA == null || valB == null) return 0;
+        return sortOrder * (valA > valB ? 1 : valA < valB ? -1 : 0);
+      });
+    }
+
+    // 📄 分頁
+    const page = result.slice(startIndex, startIndex + pageSize);
+
+    return of({ data: page, total });
   }
 
-  /**
-   * ✅ 回傳總筆數（提供給 table.totalRecords）
-   */
-  getTotalCount(): number {
-    return MOCK_EMPLOYEES.length;
-  }
 }

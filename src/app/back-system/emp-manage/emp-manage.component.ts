@@ -24,10 +24,7 @@ export class EmpManageComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    this.totalRecords = 30; // 🔧 這裡手動寫死，未來串接 API 應從後端取得
     this.loading = true;
-
-    // 🔹 初始載入前10筆
     setTimeout(() => {
       this.loadLazyData({ first: 0, rows: 10 });
     }, 100);
@@ -41,17 +38,30 @@ export class EmpManageComponent implements OnInit {
     const first = event.first ?? 0;
     const rows = event.rows ?? 10;
 
+    let sortFieldRaw = event.sortField;
+    const sortField: string = Array.isArray(sortFieldRaw)
+      ? sortFieldRaw[0] ?? ''
+      : sortFieldRaw ?? '';
+
+    const sortOrder = event.sortOrder ?? 1;
+    const filters = event.filters ?? {};
+
     this.loading = true;
     this.first = first;
 
-    this.empService.getPaged(first, rows).subscribe((data: empDTO[]) => {
-      this.empList = data.map(emp => ({
-        ...emp,
-        statusLabel: emp.isEmailConfirmed ? '已驗證' : '未驗證'
-      }));
-      this.loading = false;
-    });
+    this.empService
+      .getPagedResult(first, rows, sortField, sortOrder, filters)
+      .subscribe(res => {
+        this.empList = res.data.map(emp => ({
+          ...emp,
+          statusLabel: emp.isEmailConfirmed ? '已驗證' : '未驗證'
+        }));
+        this.totalRecords = res.total;
+        this.loading = false;
+      });
   }
+
+
 
   /**
    * ✅ 欄位搜尋處理邏輯
