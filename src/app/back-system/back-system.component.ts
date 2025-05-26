@@ -1,4 +1,7 @@
-import { Component, OnInit, Renderer2, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, Renderer2, ViewEncapsulation } from '@angular/core';
+
+declare var Menu: any; // Sneat 的選單初始化函式
+declare var Helpers: any; // Sneat 的輔助初始化（可選）
 
 @Component({
   selector: 'app-back-system',
@@ -6,8 +9,10 @@ import { Component, OnInit, Renderer2, ViewEncapsulation } from '@angular/core';
   styleUrls: ['./back-system.component.css'],
   encapsulation: ViewEncapsulation.None,
 })
-export class BackSystemComponent implements OnInit {
+export class BackSystemComponent implements OnInit, OnDestroy {
   private scripts: HTMLScriptElement[] = [];
+
+
   constructor(private renderer: Renderer2) { }
 
   async ngOnInit(): Promise<void> {
@@ -23,9 +28,9 @@ export class BackSystemComponent implements OnInit {
 
       // 3. UI 擴充組件
       await this.loadScript('assets/BackSystem/libs/perfect-scrollbar/perfect-scrollbar.js');
-      await this.loadScript('assets/BackSystem/js/menu.js');
+      await this.loadScript('assets/BackSystem/js/menu.js'); // ⬅️ Menu 載入完成點
 
-      // 4. ApexCharts → 先載入核心 lib
+      // 4. ApexCharts
       await this.loadScript('assets/BackSystem/libs/apex-charts/apexcharts.js');
 
       // 5. 主要行為與儀表板
@@ -33,10 +38,24 @@ export class BackSystemComponent implements OnInit {
       await this.loadScript('assets/BackSystem/js/dashboards-analytics.js');
 
       console.log('✅ 所有腳本載入完成');
+
+      // ✅ 重點：menu.js 載入後才執行初始化
+      const globalWin = window as any;
+      if (globalWin.Menu && typeof globalWin.Menu.init === 'function') {
+        globalWin.Menu.init();
+        console.log('✅ Menu.init() 執行完成');
+      }
+
+      if (globalWin.Helpers && typeof globalWin.Helpers.initCustomOptionCheck === 'function') {
+        globalWin.Helpers.initCustomOptionCheck();
+        console.log('✅ Helpers.initCustomOptionCheck() 執行完成');
+      }
+
     } catch (err) {
       console.error('❌ Script loading error:', err);
     }
   }
+
   readonly menuItems = {
     course: [
       { label: '課程總覽', link: 'course-list' },
@@ -83,7 +102,6 @@ export class BackSystemComponent implements OnInit {
   }
 
   ngOnDestroy(): void {
-    // 清除動態 script 標籤
     this.scripts.forEach((script) => {
       if (script.parentNode) {
         script.parentNode.removeChild(script);
