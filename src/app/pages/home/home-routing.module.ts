@@ -3,8 +3,9 @@ import { RouterModule, Routes } from '@angular/router';
 import { HomeComponent } from './home.component';
 import { CourseProductsComponent } from './course-products/course-products.component';
 import { DescriptionComponent } from './description/description.component';
-import { LearningComponent } from './learning/learning.component';
 import { CourseDetailComponent } from './course-products/course-detail/course-detail.component'; // ⬅️ 記得匯入
+import { UserRepositoriesComponent } from './user-repositories/user-repositories.component';
+import { LearningComponent } from './learning/learning.component';
 
 const routes: Routes = [
   {
@@ -14,7 +15,8 @@ const routes: Routes = [
       { path: '', redirectTo: 'description', pathMatch: 'full' },
       { path: 'description', component: DescriptionComponent },
       { path: 'course-products', component: CourseProductsComponent },
-      { path: 'learning', component: LearningComponent },
+      { path: 'userrepositories', component: UserRepositoriesComponent },
+      { path: 'learning/:id', component: LearningComponent },
       { path: 'course-products/detail/:id', component: CourseDetailComponent }, // ⬅️ 新增這行
       { path: '**', redirectTo: 'description' }, // 可放在 children 裡，處理子路由找不到的情況
     ],

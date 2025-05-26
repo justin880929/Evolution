@@ -6,7 +6,6 @@ import { RouterModule } from '@angular/router';
 import { HomeComponent } from './home.component';
 import { HomeRoutingModule } from './home-routing.module';
 import { DescriptionComponent } from './description/description.component';
-import { LearningComponent } from './learning/learning.component';
 import { AvatarModule } from 'primeng/avatar';
 import { AvatarGroupModule } from 'primeng/avatargroup';
 import { CardModule } from 'primeng/card';
@@ -15,6 +14,8 @@ import { AutoCompleteModule } from 'primeng/autocomplete';
 import { CourseProductsComponent } from './course-products/course-products.component';
 import { CourseCardComponent } from './course-products/course-card/course-card.component';
 import { CourseDetailComponent } from './course-products/course-detail/course-detail.component';
+import { UserRepositoriesComponent } from './user-repositories/user-repositories.component';
+import { LearningComponent } from './learning/learning.component';
 
 @NgModule({
   declarations: [
@@ -23,6 +24,7 @@ import { CourseDetailComponent } from './course-products/course-detail/course-de
     CourseProductsComponent,
     CourseCardComponent,
     CourseDetailComponent,
+    UserRepositoriesComponent,
     LearningComponent,
   ],
   imports: [
