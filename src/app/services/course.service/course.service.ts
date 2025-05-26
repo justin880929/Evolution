@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { courseDTO } from 'src/app/Interface/courseDTO';
 import { MOCK_COURSES } from 'src/app/mock/mock-courses';
 
@@ -19,10 +19,15 @@ export class CourseService {
       : this.http.get<courseDTO[]>('https://your-api/courses');
   }
 
-  /** ✅ 取得指定課程 */
+  /** ✅ 取得指定課程（含 null 處理） */
   getCourseById(id: number): Observable<courseDTO> {
-    return this.useMock
-      ? of(MOCK_COURSES.find(c => c.id === id)!)
-      : this.http.get<courseDTO>(`https://your-api/courses/${id}`);
+    if (this.useMock) {
+      const course = MOCK_COURSES.find(c => c.id === id);
+      return course
+        ? of(course)
+        : throwError(() => new Error('找不到該課程'));
+    } else {
+      return this.http.get<courseDTO>(`https://your-api/courses/${id}`);
+    }
   }
 }

@@ -15,6 +15,7 @@ import { AutoCompleteModule } from 'primeng/autocomplete';
 import { CourseProductsComponent } from './course-products/course-products.component';
 import { CourseCardComponent } from './course-products/course-card/course-card.component';
 import { CourseDetailComponent } from './course-products/course-detail/course-detail.component';
+import { CartComponent } from './cart/cart.component';
 
 @NgModule({
   declarations: [
@@ -24,6 +25,7 @@ import { CourseDetailComponent } from './course-products/course-detail/course-de
     CourseCardComponent,
     CourseDetailComponent,
     LearningComponent,
+    CartComponent,
   ],
   imports: [
     CommonModule,
