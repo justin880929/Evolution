@@ -1,114 +1,57 @@
 <div class="card table-container">
-  <p-table
-    #dt1
-    [value]="empList"
-    (onRowSelect)="onRowSelect($event)"
-    selectionMode="single"
-    [(selection)]="selectEmp"
-    dataKey="id"
-    [tableStyle]="{ 'min-width': '50rem' }"
-    [rows]="10"
-    [paginator]="true"
-    stateStorage="session"
-    stateKey="statedemo-session"
-  >
+  <p-table #dt1 [value]="empList" [lazy]="true" (onLazyLoad)="loadLazyData($event)" [paginator]="true" [rows]="10"
+    [totalRecords]="totalRecords" [loading]="loading" [first]="first" (onRowSelect)="onRowSelect($event)"
+    selectionMode="single" [(selection)]="selectEmp" dataKey="userID" [tableStyle]="{ 'min-width': '50rem' }"
+    stateStorage="session" stateKey="emp-session">
     <!-- 🔹 表頭區 -->
     <ng-template pTemplate="header">
       <tr>
-        <th pSortableColumn="name" style="width:25%">
-          員工姓名 <p-sortIcon field="name"></p-sortIcon>
+        <th pSortableColumn="username" style="width:25%">
+          員工姓名 <p-sortIcon field="username"></p-sortIcon>
         </th>
-        <th pSortableColumn="country.name" style="width:25%">
-          員工信箱 <p-sortIcon field="country.name"></p-sortIcon>
+        <th pSortableColumn="email" style="width:25%">
+          員工信箱 <p-sortIcon field="email"></p-sortIcon>
         </th>
-        <th pSortableColumn="representative.name" style="width:25%">
-          所屬部門 <p-sortIcon field="representative.name"></p-sortIcon>
+        <th pSortableColumn="department" style="width:25%">
+          所屬部門 <p-sortIcon field="department"></p-sortIcon>
         </th>
-        <th pSortableColumn="status" style="width:25%">
-          帳號狀態 <p-sortIcon field="status"></p-sortIcon>
-        </th>
+        <th pSortableColumn="statusLabel">帳號狀態 <p-sortIcon field="statusLabel"></p-sortIcon></th>
       </tr>
       <tr>
         <th>
-          <input
-            pInputText
-            type="text"
-            (input)="onInputFilter($event, 'name', dt1)"
-            [value]="getFilterValue(dt1.filters['name'])"
-            placeholder="Search by Name"
-            class="w-full custom-input"
-          />
+          <input pInputText type="text" (input)="onInputFilter($event, 'username', dt1)"
+            [value]="getFilterValue(dt1.filters['username'])" placeholder="Search Name" class="w-full custom-input" />
         </th>
         <th>
-          <input
-            pInputText
-            type="text"
-            (input)="onInputFilter($event, 'country.name', dt1)"
-            [value]="getFilterValue(dt1.filters['country.name'])"
-            placeholder="Search by Country"
-            class="w-full custom-input"
-          />
+          <input pInputText type="text" (input)="onInputFilter($event, 'email', dt1)"
+            [value]="getFilterValue(dt1.filters['email'])" placeholder="Search Email" class="w-full custom-input" />
         </th>
         <th>
-          <input
-            pInputText
-            type="text"
-            (input)="onInputFilter($event, 'representative.name', dt1)"
-            [value]="getFilterValue(dt1.filters['representative.name'])"
-            placeholder="Search by Representative"
-            class="w-full custom-input"
-          />
+          <input pInputText type="text" (input)="onInputFilter($event, 'department', dt1)"
+            [value]="getFilterValue(dt1.filters['department'])" placeholder="Search Department"
+            class="w-full custom-input" />
         </th>
         <th>
-          <input
-            pInputText
-            type="text"
-            (input)="onInputFilter($event, 'status', dt1)"
-            [value]="getFilterValue(dt1.filters['status'])"
-            placeholder="Search by Status"
-            class="w-full custom-input"
-          />
+          <input pInputText type="text" (input)="onInputFilter($event, 'statusLabel', dt1)"
+            [value]="getFilterValue(dt1.filters['statusLabel'])" placeholder="Search Status"
+            class="w-full custom-input" />
         </th>
       </tr>
     </ng-template>
 
-    <!-- 🔸 資料區 -->
-    <ng-template pTemplate="body" let-customer>
-      <tr [pSelectableRow]="customer">
+    <!-- 🔸 資料列 -->
+    <ng-template pTemplate="body" let-emp>
+      <tr [pSelectableRow]="emp">
+        <td>{{ emp.username }}</td>
+        <td>{{ emp.email }}</td>
+        <td>{{ emp.department }}</td>
         <td>
-          <span class="p-column-title">Name</span>
-          {{ customer.name }}
-        </td>
-        <td>
-          <span class="p-column-title">Country</span>
-          <img
-            src="https://primefaces.org/cdn/primeng/images/demo/flag/flag_placeholder.png"
-            [class]="'flag flag-' + customer.country?.code"
-            style="width: 20px"
-          />
-          <span class="ml-1 vertical-align-middle">{{ customer.country?.name }}</span>
-        </td>
-        <td>
-          <span class="p-column-title">Representative</span>
-          <img
-            [alt]="customer.representative?.name"
-            src="https://primefaces.org/cdn/primeng/images/demo/avatar/{{customer.representative?.image}}"
-            width="32"
-            style="vertical-align: middle"
-          />
-          <span class="ml-1 vertical-align-middle">{{ customer.representative?.name }}</span>
-        </td>
-        <td>
-          <span class="p-column-title">Status</span>
-          <p-tag
-            [value]="customer.status"
-            [severity]="customer.status | statusToTag"
-          ></p-tag>
+          <p-tag [value]="emp.statusLabel" [severity]="emp.isEmailConfirmed ? 'success' : 'warning'"></p-tag>
         </td>
       </tr>
     </ng-template>
 
-    <!-- ⛔ 沒資料時 -->
+    <!-- ⛔ 沒資料 -->
     <ng-template pTemplate="emptymessage">
       <tr>
         <td colspan="4">No employee found.</td>

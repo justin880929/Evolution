@@ -1,23 +1,8 @@
-
-export interface Country {
-    name?: string;
-    code?: string;
-}
-
-export interface Representative {
-    name?: string;
-    image?: string;
-}
-
-export interface empDTO  {
-    id?: number;
-    name?: string;
-    country?: Country;
-    company?: string;
-    date?: string | Date;
-    status?: string;
-    activity?: number;
-    representative?: Representative;
-    verified?: boolean;
-    balance?: number;
+// src/app/interfaces/empDTO.ts
+export interface empDTO {
+  userID: number;            // 不顯示，但用來修改用
+  username: string;          // 顯示
+  email: string;             // 顯示
+  department: string;        // 顯示：會轉換 UserDep -> Dep 名稱
+  isEmailConfirmed: boolean; // 顯示（用小圖示或 Tag 顯示）
 }
