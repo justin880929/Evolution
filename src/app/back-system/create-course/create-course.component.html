@@ -1,1 +1,83 @@
-<p>create-course works!</p>
+<div class="card">
+  <p-steps [model]="steps" [activeIndex]="currentStep" [readonly]="true"></p-steps>
+</div>
+
+<!-- 步驟一：課程細節 -->
+<div *ngIf="currentStep === 0" [formGroup]="courseDetailForm" class="p-fluid p-mt-4">
+  <h3>建立課程細節</h3>
+
+  <div class="p-field">
+    <label for="title">課程標題</label>
+    <input id="title" pInputText formControlName="title" />
+  </div>
+
+  <div class="p-field">
+    <label for="description">課程介紹</label>
+    <textarea id="description" pInputTextarea formControlName="description" rows="5"></textarea>
+  </div>
+
+  <div class="p-field">
+    <label for="isPublic">是否公開</label>
+    <p-dropdown id="isPublic" [options]="publicOptions" formControlName="isPublic" placeholder="選擇是否公開"></p-dropdown>
+  </div>
+
+  <p-inputNumber formControlName="price" mode="currency" currency="TWD" locale="zh-TW" [min]="0" [maxFractionDigits]="0"
+    [useGrouping]="true" [showButtons]="false" inputId="price">
+  </p-inputNumber>
+
+
+  <div class="p-field">
+    <label for="cover">課程封面</label>
+    <p-fileUpload name="cover" mode="basic" accept=".jpg,.png" [customUpload]="true" [auto]="false"
+      [maxFileSize]="10000000" (onUpload)="onCoverUpload($event)" chooseLabel="選擇封面"></p-fileUpload>
+  </div>
+</div>
+
+<!-- 步驟二：建立章節 -->
+<div *ngIf="currentStep === 1" [formGroup]="chapterForm" class="p-fluid p-mt-4">
+  <h3>建立課程章節</h3>
+
+  <div class="p-field">
+    <label for="chapterTitle">章節標題</label>
+    <input id="chapterTitle" pInputText formControlName="title" />
+  </div>
+
+  <div class="p-field">
+    <label for="chapterContent">章節內容</label>
+    <textarea id="chapterContent" pInputTextarea formControlName="content" rows="8"
+      style="resize: vertical; overflow: auto;"></textarea>
+  </div>
+</div>
+
+<!-- 步驟三：上傳章節影片（可選） -->
+<div *ngIf="currentStep === 2" [formGroup]="videoForm" class="p-fluid p-mt-4">
+  <h3>上傳章節影片</h3>
+
+  <div class="p-field">
+    <label for="video">影片上傳</label>
+    <p-fileUpload mode="basic" accept="video/mp4" [maxFileSize]="10737418240" [customUpload]="true"
+      (uploadHandler)="onVideoUpload($event)" chooseLabel="選擇影片"></p-fileUpload>
+  </div>
+</div>
+
+<!-- 控制按鈕 -->
+<div class="p-mt-4 flex justify-content-between">
+  <button pButton label="上一步" icon="pi pi-chevron-left" (click)="goBack()" [disabled]="currentStep === 0"
+    class="p-button-secondary"></button>
+
+  <button *ngIf="showNextButton" pButton label="下一步" icon="pi pi-chevron-right" iconPos="right"
+    (click)="goNext()"></button>
+
+  <button *ngIf="showConfirmButton" pButton label="確定建立" icon="pi pi-check" class="p-button-success"
+    (click)="submitCourse()"></button>
+</div>
+
+<!-- 彈窗詢問是否新增章節/上傳影片 -->
+<p-confirmDialog></p-confirmDialog>
+<p-dialog header="新增影片？" [(visible)]="showAddVideoDialog" [modal]="true" [closable]="false">
+  <p>你是否想為章節上傳影片？</p>
+  <div class="flex justify-content-end gap-2 p-mt-3">
+    <button pButton label="是" (click)="confirmAddVideo(true)"></button>
+    <button pButton label="否" (click)="confirmAddVideo(false)"></button>
+  </div>
+</p-dialog>

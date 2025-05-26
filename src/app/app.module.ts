@@ -11,9 +11,16 @@ import { RouterModule } from '@angular/router';
 import { LoginComponent } from './pages/login/login.component';
 import { HttpClientModule } from '@angular/common/http';
 import { CourseProductPipe } from './Pipe/course-product.pipe';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 @NgModule({
-  declarations: [AppComponent, ForgotComponent, ResetPasswordComponent, LoginComponent, CourseProductPipe],
+  declarations: [
+    AppComponent,
+    ForgotComponent,
+    ResetPasswordComponent,
+    LoginComponent,
+    CourseProductPipe,
+  ],
   imports: [
     BrowserModule,
     FormsModule,
@@ -21,6 +28,7 @@ import { CourseProductPipe } from './Pipe/course-product.pipe';
     ReactiveFormsModule,
     RouterModule,
     HttpClientModule,
+    BrowserAnimationsModule,
   ],
   bootstrap: [AppComponent],
 })

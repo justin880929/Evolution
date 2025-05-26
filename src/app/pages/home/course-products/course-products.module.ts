@@ -7,14 +7,7 @@ import { CourseProductsComponent } from './course-products.component';
 import { CourseCardComponent } from './course-card/course-card.component';
 
 @NgModule({
-  declarations: [
-    CourseProductsComponent,
-    CourseCardComponent
-  ],
-  imports: [
-    CommonModule,
-    FormsModule,
-    RouterModule
-  ]
+  declarations: [CourseProductsComponent, CourseCardComponent],
+  imports: [CommonModule, FormsModule, RouterModule],
 })
 export class CourseProductsModule {}
