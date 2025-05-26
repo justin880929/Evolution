@@ -1,6 +1,6 @@
 .course-list {
   display: grid;
-  grid-template-columns: repeat(4, 280px);
+  grid-template-columns: repeat(4, 263px);
   /* ✅ 固定 4 欄 */
   gap: 8px;
   /* ✅ 每格間距 */
@@ -66,7 +66,7 @@
 .custom-card .course-price {
   font-size: 1rem;
   font-weight: bold;
-  color: #00C853;
+  color: #00c853;
   margin-top: 0.5rem;
 }
 
@@ -88,12 +88,11 @@
 .search-bar button {
   padding: 8px 16px;
   border: none;
-  background-color: #00C853;
+  background-color: #00c853;
   color: white;
   border-radius: 8px;
   cursor: pointer;
 }
-
 
 @media screen and (max-width: 1199px) {
   .course-list {

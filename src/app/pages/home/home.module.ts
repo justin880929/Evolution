@@ -16,7 +16,9 @@ import { CourseCardComponent } from './course-products/course-card/course-card.c
 import { CourseDetailComponent } from './course-products/course-detail/course-detail.component';
 import { UserRepositoriesComponent } from './user-repositories/user-repositories.component';
 import { LearningComponent } from './learning/learning.component';
-
+import { TabViewModule } from 'primeng/tabview';
+import { StepsModule } from 'primeng/steps';
+import { ButtonModule } from 'primeng/button';
 @NgModule({
   declarations: [
     HomeComponent,
@@ -36,6 +38,9 @@ import { LearningComponent } from './learning/learning.component';
     AvatarGroupModule,
     CardModule,
     AutoCompleteModule,
+    TabViewModule,
+    StepsModule,
+    ButtonModule
   ],
 })
-export class HomeModule {}
+export class HomeModule { }

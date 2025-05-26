@@ -1,1 +1,36 @@
-<p>learning works!</p>
+<div class="container">
+  <p-tabView [(activeIndex)]="activeTabIndex">
+    <!-- 上課內容分頁 -->
+    <p-tabPanel header="上課內容" leftIcon="pi pi-book">
+      <!-- 步驟條 -->
+      <p-steps [model]="steps" [activeIndex]="currentStepIndex" [readonly]="true" class="mb-4"></p-steps>
+
+      <!-- 步驟內容 -->
+      <div class="lesson-content p-4 border rounded">
+        <ng-container *ngIf="currentStep.type === 'chapter'">
+          <h4>{{ currentStep.data.title }}</h4>
+          <p>{{ currentStep.data.content }}</p>
+        </ng-container>
+
+        <ng-container *ngIf="currentStep.type === 'video'">
+          <video width="100%" height="400" controls [src]="currentStep.data.videoUrl"></video>
+        </ng-container>
+      </div>
+
+      <!-- 控制按鈕 -->
+      <div class="d-flex justify-content-between mt-3">
+        <button pButton label="上一步" icon="pi pi-chevron-left" (click)="prevStep()"
+          [disabled]="currentStepIndex === 0"></button>
+        <button *ngIf="!isLastStep()" pButton label="下一步" icon="pi pi-chevron-right" iconPos="right"
+          (click)="nextStep()"></button>
+        <button *ngIf="isLastStep()" pButton label="前往測驗" icon="pi pi-check" class="p-button-success"
+          (click)="goToQuiz()"></button>
+      </div>
+    </p-tabPanel>
+
+    <!-- 課程測驗分頁 -->
+    <p-tabPanel header="課程測驗" leftIcon="pi pi-file-edit">
+      <!-- 你的測驗內容區塊 -->
+    </p-tabPanel>
+  </p-tabView>
+</div>
