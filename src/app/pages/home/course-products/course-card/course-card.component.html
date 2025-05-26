@@ -1,9 +1,7 @@
 <div class="card custom-card">
   <a [routerLink]="['/home/course', course.id]">
-    <img [src]="course.imageUrl"
-         class="card-img-top"
-         [alt]="course.title"
-         (error)="course.imageUrl = 'assets/img/EvolutionLogo.png'">
+    <img [src]="course.imageUrl" class="card-img-top" [alt]="course.title"
+      (error)="course.imageUrl = 'assets/img/EvolutionLogo.png'">
 
     <div class="card-body">
       <h5 class="course-title">{{ course.title }}</h5>

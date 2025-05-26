@@ -28,8 +28,8 @@
 
   <div class="p-field">
     <label for="cover">課程封面</label>
-    <p-fileUpload mode="basic" accept=".jpg,.png" [maxFileSize]="10000000" [customUpload]="true"
-      (uploadHandler)="onCoverUpload($event)" chooseLabel="選擇封面"></p-fileUpload>
+    <p-fileUpload name="cover" mode="basic" accept=".jpg,.png" [customUpload]="true" [auto]="false"
+      [maxFileSize]="10000000" (onUpload)="onCoverUpload($event)" chooseLabel="選擇封面"></p-fileUpload>
   </div>
 </div>
 
