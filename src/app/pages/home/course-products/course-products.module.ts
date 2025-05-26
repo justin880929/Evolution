@@ -5,11 +5,13 @@ import { RouterModule } from '@angular/router';
 
 import { CourseProductsComponent } from './course-products.component';
 import { CourseCardComponent } from './course-card/course-card.component';
+import { CourseDetailComponent } from './course-detail/course-detail.component';
 
 @NgModule({
   declarations: [
     CourseProductsComponent,
-    CourseCardComponent
+    CourseCardComponent,
+    CourseDetailComponent,
   ],
   imports: [
     CommonModule,
@@ -17,4 +19,4 @@ import { CourseCardComponent } from './course-card/course-card.component';
     RouterModule
   ]
 })
-export class CourseProductsModule {}
+export class CourseProductsModule { }

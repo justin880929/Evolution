@@ -5,6 +5,8 @@ import { RouterModule } from '@angular/router';
 import { HomeComponent } from './home.component';
 import { HomeRoutingModule } from './home-routing.module';
 import { DescriptionComponent } from './description/description.component';
+import { CourseProductsComponent } from './course-products/course-products.component';
+import { CourseProductsModule } from './course-products/course-products.module';
 
 @NgModule({
   declarations: [
@@ -15,7 +17,8 @@ import { DescriptionComponent } from './description/description.component';
     CommonModule,
     FormsModule,
     RouterModule,
-    HomeRoutingModule
+    HomeRoutingModule,
+    CourseProductsModule
   ]
 })
-export class HomeModule {}
+export class HomeModule { }

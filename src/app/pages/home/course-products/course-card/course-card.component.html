@@ -1,15 +1,11 @@
-<div class="card custom-card">
-  <a [routerLink]="['/home/course', course.id]">
-    <img [src]="course.imageUrl"
-         class="card-img-top"
-         [alt]="course.title"
-         (error)="course.imageUrl = 'assets/img/EvolutionLogo.png'">
+<div class="card custom-card" (click)="goToDetail()" style="cursor: pointer;">
+  <img [src]="course.imageUrl" class="card-img-top" [alt]="course.title"
+    (error)="course.imageUrl = 'assets/img/EvolutionLogo.png'">
 
-    <div class="card-body">
-      <h5 class="course-title">{{ course.title }}</h5>
-      <p class="course-company">發布單位：{{ course.company }}</p>
-      <p class="course-description">{{ course.description }}</p>
-      <p class="course-price">NT$ {{ course.price | number:'1.0-0' }}</p>
-    </div>
-  </a>
+  <div class="card-body">
+    <h5 class="course-title">{{ course.title }}</h5>
+    <p class="course-company">發布單位：{{ course.company }}</p>
+    <p class="course-description">{{ course.description }}</p>
+    <p class="course-price">NT$ {{ course.price | number:'1.0-0' }}</p>
+  </div>
 </div>
