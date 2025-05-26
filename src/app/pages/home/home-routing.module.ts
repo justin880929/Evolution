@@ -15,17 +15,8 @@ const routes: Routes = [
       { path: 'description', component: DescriptionComponent },
       { path: 'course-products', component: CourseProductsComponent },
       { path: 'learning', component: LearningComponent },
-      { path: '**', redirectTo: 'description' }, // 可放在 children 裡，處理子路由找不到的情況
-      {
-        path: 'course-products',
-        loadChildren: () =>
-          import('./course-products/course-products.module').then(
-            (m) => m.CourseProductsModule
-          ),
-      },
       { path: 'course-products/detail/:id', component: CourseDetailComponent }, // ⬅️ 新增這行
-
-      { path: '**', redirectTo: 'description' },
+      { path: '**', redirectTo: 'description' }, // 可放在 children 裡，處理子路由找不到的情況
     ],
   },
 ];

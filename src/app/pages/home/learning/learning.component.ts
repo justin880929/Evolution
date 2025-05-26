@@ -26,7 +26,7 @@ export class LearningComponent implements OnInit {
       (course) =>
         course.title.toLowerCase().includes(keyword) ||
         course.description.toLowerCase().includes(keyword) ||
-        course.company.toLowerCase().includes(keyword)
+        course.companyName?.toLowerCase().includes(keyword)
     );
   }
 }
