@@ -4,13 +4,13 @@ import { HomeComponent } from './home.component';
 import { CourseProductsComponent } from './course-products/course-products.component';
 import { DescriptionComponent } from './description/description.component';
 import { LearningComponent } from './learning/learning.component';
+import { CourseDetailComponent } from './course-products/course-detail/course-detail.component'; // ⬅️ 記得匯入
 
 const routes: Routes = [
   {
     path: '',
     component: HomeComponent,
     children: [
-      //課程總覽
       { path: '', redirectTo: 'description', pathMatch: 'full' },
       { path: 'description', component: DescriptionComponent },
       { path: 'course-products', component: CourseProductsComponent },
@@ -23,6 +23,9 @@ const routes: Routes = [
             (m) => m.CourseProductsModule
           ),
       },
+      { path: 'course-products/detail/:id', component: CourseDetailComponent }, // ⬅️ 新增這行
+
+      { path: '**', redirectTo: 'description' },
     ],
   },
 ];

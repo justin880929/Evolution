@@ -13,6 +13,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { CourseProductPipe } from './Pipe/course-product.pipe';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
+import { StatusToTagPipe } from './Pipe/emp.pipe';
 @NgModule({
   declarations: [
     AppComponent,
@@ -29,6 +30,10 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
     RouterModule,
     HttpClientModule,
     BrowserAnimationsModule,
+    StatusToTagPipe,
+  ],
+  exports: [
+    StatusToTagPipe, // 匯出給其他模組使用（如 BackSystemModule）
   ],
   bootstrap: [AppComponent],
 })

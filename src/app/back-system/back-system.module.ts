@@ -17,6 +17,9 @@ import { DepManageComponent } from './dep-manage/dep-manage.component';
 import { CreateDepComponent } from './create-dep/create-dep.component';
 import { EmpManageComponent } from './emp-manage/emp-manage.component';
 import { CreateEmpComponent } from './create-emp/create-emp.component';
+import { TableModule } from 'primeng/table';
+import { TagModule } from 'primeng/tag';
+import { StatusToTagPipe } from '../Pipe/emp.pipe';
 
 import { StepsModule } from 'primeng/steps';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
@@ -43,9 +46,10 @@ import { InputNumberModule } from 'primeng/inputnumber';
     DepManageComponent,
     CreateDepComponent,
     EmpManageComponent,
-    CreateEmpComponent
+    CreateEmpComponent,
   ],
-  imports: [CommonModule,
+  imports: [
+    CommonModule,
     BackSystemRoutingModule,
     RouterModule,
     FormsModule,
@@ -59,11 +63,14 @@ import { InputNumberModule } from 'primeng/inputnumber';
     DropdownModule,
     ButtonModule,
     AnimateModule,
-    InputNumberModule
+    InputNumberModule,
+    TableModule,
+    TagModule,
+    StatusToTagPipe,
   ],
   providers: [
     ConfirmationService,
-    MessageService  // 如果你用到了 toast 或 growl 等通知功能，也要註冊這個
-  ]
+    MessageService, // 如果你用到了 toast 或 growl 等通知功能，也要註冊這個
+  ],
 })
-export class BackSystemModule { }
+export class BackSystemModule {}

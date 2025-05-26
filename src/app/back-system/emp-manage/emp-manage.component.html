@@ -1,1 +1,61 @@
-<p>emp-manage works!</p>
+<div class="card table-container">
+  <p-table #dt1 [value]="empList" [lazy]="true" (onLazyLoad)="loadLazyData($event)" [paginator]="true" [rows]="10"
+    [totalRecords]="totalRecords" [loading]="loading" [first]="first" (onRowSelect)="onRowSelect($event)"
+    selectionMode="single" [(selection)]="selectEmp" dataKey="userID" [tableStyle]="{ 'min-width': '50rem' }"
+    stateStorage="session" stateKey="emp-session">
+    <!-- 🔹 表頭區 -->
+    <ng-template pTemplate="header">
+      <tr>
+        <th pSortableColumn="username" style="width:25%">
+          員工姓名 <p-sortIcon field="username"></p-sortIcon>
+        </th>
+        <th pSortableColumn="email" style="width:25%">
+          員工信箱 <p-sortIcon field="email"></p-sortIcon>
+        </th>
+        <th pSortableColumn="department" style="width:25%">
+          所屬部門 <p-sortIcon field="department"></p-sortIcon>
+        </th>
+        <th pSortableColumn="statusLabel">帳號狀態 <p-sortIcon field="statusLabel"></p-sortIcon></th>
+      </tr>
+      <tr>
+        <th>
+          <input pInputText type="text" (input)="onInputFilter($event, 'username', dt1)"
+            [value]="getFilterValue(dt1.filters['username'])" placeholder="Search Name" class="w-full custom-input" />
+        </th>
+        <th>
+          <input pInputText type="text" (input)="onInputFilter($event, 'email', dt1)"
+            [value]="getFilterValue(dt1.filters['email'])" placeholder="Search Email" class="w-full custom-input" />
+        </th>
+        <th>
+          <input pInputText type="text" (input)="onInputFilter($event, 'department', dt1)"
+            [value]="getFilterValue(dt1.filters['department'])" placeholder="Search Department"
+            class="w-full custom-input" />
+        </th>
+        <th>
+          <input pInputText type="text" (input)="onInputFilter($event, 'statusLabel', dt1)"
+            [value]="getFilterValue(dt1.filters['statusLabel'])" placeholder="Search Status"
+            class="w-full custom-input" />
+        </th>
+      </tr>
+    </ng-template>
+
+    <!-- 🔸 資料列 -->
+    <ng-template pTemplate="body" let-emp>
+      <tr [pSelectableRow]="emp">
+        <td>{{ emp.username }}</td>
+        <td>{{ emp.email }}</td>
+        <td>{{ emp.department }}</td>
+        <td>
+          <p-tag [value]="emp.statusLabel" [severity]="emp.isEmailConfirmed ? 'success' : 'warning'"></p-tag>
+        </td>
+      </tr>
+    </ng-template>
+
+    <!-- ⛔ 沒資料 -->
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="4">No employee found.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
