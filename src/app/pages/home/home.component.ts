@@ -11,6 +11,7 @@ import imagesLoaded from '../../../assets/FrontSystem/vendor/imagesloaded/images
 import Isotope from '../../../assets/FrontSystem/vendor/isotope-layout/isotope.pkgd.js';
 import { Router } from '@angular/router';
 import { AuthService } from 'src/app/services/auth.service';
+import { jwtDecode } from 'jwt-decode';
 
 
 @Component({
@@ -22,11 +23,31 @@ import { AuthService } from 'src/app/services/auth.service';
 export class HomeComponent implements AfterViewInit, OnDestroy {
   private scrollHandler = this.toggleScrolled.bind(this);
   private scrollTopHandler = this.toggleScrollTop.bind(this);
+  isLoggedIn: boolean = false;
+  username: string = '';
+  userPhotoUrl = '../../../assets/img/EvolutionLogo.png'; // 預設使用者頭像
 
   constructor(
     private authService: AuthService,
     private router: Router
   ) { }
+
+  ngOnInit(): void {
+    const token = localStorage.getItem('jwt');
+    this.isLoggedIn = !!token;
+
+    if (token) {
+      try {
+        const decoded: any = jwtDecode(token);
+        this.username =
+          decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] ||
+          decoded['name'] ||
+          '使用者';
+      } catch {
+        this.username = '使用者';
+      }
+    }
+  }
 
   ngAfterViewInit(): void {
     this.initPreloader();
@@ -201,10 +222,12 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       next: () => {
         localStorage.removeItem('jwt');
         localStorage.removeItem('refreshToken');
-        this.router.navigate(['/login']); // ✅ 登出後導回登入頁
+        this.isLoggedIn = false;
+        this.username = '';
+        this.router.navigate(['/login']);
       },
       error: () => {
-        this.router.navigate(['/login']); // 即使失敗也導回
+        this.router.navigate(['/login']);
       }
     });
   }

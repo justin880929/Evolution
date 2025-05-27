@@ -48,8 +48,9 @@ export class AuthService {
         message: 'Mock 登入成功',
         statusCode: 200,
         data: {
-          accessToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.' +
-            'eyJuYW1lIjoiMockUserIiwicm9sZSI6IlVzZXIifQ.' +
+          accessToken:
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.' +
+            'eyJzdWIiOiIxIiwibmFtZWlkIjoiMSIsInVuaXF1ZV9uYW1lIjoiSm9oblVzZXIiLCJyb2xlIjoiQWRtaW4iLCJqdGkiOiJtb2NrLXRva2VuLWlkIn0.' +
             'MOCK_SIGNATURE',
           refreshToken: 'mock-refresh-token',
           expiresIn: 3600
