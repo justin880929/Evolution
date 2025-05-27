@@ -1,6 +1,6 @@
 .course-list {
   display: grid;
-  grid-template-columns: repeat(4, 263px);
+  grid-template-columns: repeat(4, 300px);
   /* ✅ 固定 4 欄 */
   gap: 8px;
   /* ✅ 每格間距 */

@@ -1,0 +1,16 @@
+.pass-color {
+  color: #3EC580;
+}
+
+.notpass-color {
+  color: #c53e3e;
+}
+
+.pass-bg-color {
+  background: #3EC580;
+}
+
+.notpass-bg-color {
+  background: #c53e3e;
+  ;
+}

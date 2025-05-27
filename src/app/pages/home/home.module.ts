@@ -19,6 +19,8 @@ import { LearningComponent } from './learning/learning.component';
 import { TabViewModule } from 'primeng/tabview';
 import { StepsModule } from 'primeng/steps';
 import { ButtonModule } from 'primeng/button';
+import { TableModule } from 'primeng/table';
+import { InputTextModule } from 'primeng/inputtext';
 @NgModule({
   declarations: [
     HomeComponent,
@@ -40,7 +42,9 @@ import { ButtonModule } from 'primeng/button';
     AutoCompleteModule,
     TabViewModule,
     StepsModule,
-    ButtonModule
+    ButtonModule,
+    TableModule,
+    InputTextModule,
   ],
 })
-export class HomeModule { }
+export class HomeModule {}
