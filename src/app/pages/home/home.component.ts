@@ -9,6 +9,9 @@ import GLightbox from '../../../assets/FrontSystem/vendor/glightbox/js/glightbox
 import PureCounter from '../../../assets/FrontSystem/vendor/purecounter/purecounter_vanilla.js';
 import imagesLoaded from '../../../assets/FrontSystem/vendor/imagesloaded/imagesloaded.pkgd.min.js';
 import Isotope from '../../../assets/FrontSystem/vendor/isotope-layout/isotope.pkgd.js';
+import { Router } from '@angular/router';
+import { AuthService } from 'src/app/services/auth.service';
+
 
 @Component({
   selector: 'app-home',
@@ -19,6 +22,11 @@ import Isotope from '../../../assets/FrontSystem/vendor/isotope-layout/isotope.p
 export class HomeComponent implements AfterViewInit, OnDestroy {
   private scrollHandler = this.toggleScrolled.bind(this);
   private scrollTopHandler = this.toggleScrollTop.bind(this);
+
+  constructor(
+    private authService: AuthService,
+    private router: Router
+  ) { }
 
   ngAfterViewInit(): void {
     this.initPreloader();
@@ -185,5 +193,19 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
         });
       });
     }, 300); // 可依據圖片載入調整延遲時間
+  }
+
+  logout(): void {
+    console.log('🔁 登出中...');
+    this.authService.logout().subscribe({
+      next: () => {
+        localStorage.removeItem('jwt');
+        localStorage.removeItem('refreshToken');
+        this.router.navigate(['/login']); // ✅ 登出後導回登入頁
+      },
+      error: () => {
+        this.router.navigate(['/login']); // 即使失敗也導回
+      }
+    });
   }
 }

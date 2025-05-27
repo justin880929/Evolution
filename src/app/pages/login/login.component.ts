@@ -55,7 +55,7 @@ export class LoginComponent implements OnInit {
             decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] || '使用者';
 
           // ✅ 1.5 秒後導向儀表板
-          setTimeout(() => this.router.navigate(['/home/description']), 1500);
+          setTimeout(() => this.router.navigate(['/home']), 1500);
         } else {
           this.loginError = res.message || '登入失敗';
         }

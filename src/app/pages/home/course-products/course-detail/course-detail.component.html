@@ -14,7 +14,7 @@
       <p class="text-muted">{{ course.companyName }}</p>
       <h4 class="text-danger">NT$ {{ course.price }}</h4>
       <p>{{ course.description }}</p>
-      <button class="btn btn-primary">加入購物車</button>
+      <button class="btn btn-primary" (click)="addToCart()">加入購物車</button>
     </div>
   </div>
 </div>
