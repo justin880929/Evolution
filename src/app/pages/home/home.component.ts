@@ -12,6 +12,8 @@ import Isotope from '../../../assets/FrontSystem/vendor/isotope-layout/isotope.p
 import { Router } from '@angular/router';
 import { AuthService } from 'src/app/services/auth.service';
 import { jwtDecode } from 'jwt-decode';
+import { NavigationEnd } from '@angular/router';
+
 
 
 @Component({
@@ -33,6 +35,16 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
+    this.checkLoginState(); // 初次載入
+
+    this.router.events.subscribe(event => {
+      if (event instanceof NavigationEnd) {
+        this.checkLoginState(); // 每次切換路由都重新檢查狀態
+      }
+    });
+  }
+
+  checkLoginState(): void {
     const token = localStorage.getItem('jwt');
     this.isLoggedIn = !!token;
 
@@ -44,8 +56,10 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
           decoded['name'] ||
           '使用者';
       } catch {
-        this.username = '使用者';
+        this.username = '訪客';
       }
+    } else {
+      this.username = '訪客';
     }
   }
 
@@ -224,10 +238,16 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
         localStorage.removeItem('refreshToken');
         this.isLoggedIn = false;
         this.username = '';
-        this.router.navigate(['/login']);
+
+        // ✅ 關鍵做法：先跳到空白頁，再跳回 home 強制刷新
+        this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
+          this.router.navigate(['/home']);
+        });
       },
       error: () => {
-        this.router.navigate(['/login']);
+        this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
+          this.router.navigate(['/home']);
+        });
       }
     });
   }

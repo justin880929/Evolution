@@ -13,11 +13,10 @@
         <li><a [routerLink]="['description']">Description</a></li>
         <li><a [routerLink]="['course-products']">CourseProduct</a></li>
         <li><a [routerLink]="['learning']">Learning</a></li>
-        <app-user-menu *ngIf="isLoggedIn"></app-user-menu>
+        <app-user-menu [isLoggedIn]="isLoggedIn" [username]="username"></app-user-menu>
       </ul>
       <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
     </nav>
-    <a class="btn-getstarted" [routerLink]="['/login']">Get Started</a>
 
     <!--/ User -->
   </div>
