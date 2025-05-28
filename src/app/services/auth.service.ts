@@ -29,7 +29,10 @@ interface ResetPasswordResponse {
   username: string;
   role: string;
 }
-
+export interface UserIdentity {
+  username: string,
+  role: string
+}
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private authUrl = 'https://localhost:7274/api/auth';       // ✅ 用於 login
@@ -38,7 +41,7 @@ export class AuthService {
 
   constructor(private http: HttpClient, private resultService: ResultService, private jwtService: JWTService) { }
 
-  login(email: string, password: string): Observable<string | null> {
+  login(email: string, password: string): Observable<UserIdentity | null> {
     return this.resultService.postResult<AuthResponseDto>(`${this.authUrl}/login`, { email, password })
       .pipe(
         tap(res => {
@@ -46,11 +49,9 @@ export class AuthService {
         }),
         map(() => {
           const user = this.jwtService.UnpackJWT();
-          console.log('解碼後 user:', user);
           return user;// 回傳解碼後的身分資料
         }),
         catchError(err => {
-          console.log(err);
           return throwError(() => err);
         })
       );

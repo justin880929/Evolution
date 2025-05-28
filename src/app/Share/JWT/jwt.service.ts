@@ -12,20 +12,24 @@ export class JWTService {
   setToken(token: string) {
     localStorage.setItem('jwt', token);
   }
-  UnpackJWT(): string | null {
+  UnpackJWT(): { role: string, username: string } | null {
     const token = this.getToken();
     if (!token) return null;
 
     const decoded: any = jwtDecode(token);
-
+    // 初始化 User 結構
+    const User: { username: string, role: string, } = { username: '', role: '' };
     // 🔍 找到 key 包含 "identity/claims/role"
     for (const key in decoded) {
+      if (key.includes('identity/claims/name')) {
+        User.username = decoded[key];
+      }
       if (key.includes('identity/claims/role')) {
-        return decoded[key]; // ⬅️ 回傳角色，例如 "Admin"
+        User.role = decoded[key]; // ⬅️ 回傳角色，例如 "Admin"
       }
     }
 
-    // 如果 role  沒取到可以依需要回傳 null 或部分值
-    return null;
+    // 如果 role 或 exp 沒取到可以依需要回傳 null 或部分值
+    return User.role && User.username ? User : null;
   }
 }

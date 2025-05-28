@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { ApiResponse } from './interface/resultDTO';
 import { Observable, throwError } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
+
 @Injectable({
   providedIn: 'root'
 })
@@ -19,13 +20,18 @@ export class ResultService {
         } else {
           throw {
             statusCode: response.statusCode,
-            message: response.message || response.errors?.join(', ') || '操作失敗'
+            message: response.message
           };
         }
       }),
       catchError(error => {
-        const errMessage = '系統錯誤';
-        const statusCode = error?.statusCode || error.status;
+        let errMessage = '系統錯誤';
+        let statusCode = 500;
+        const responseError = error?.error;
+        if (error.status !== 0) {
+          errMessage = responseError.message
+          statusCode = responseError.statusCode
+        }
         console.error('API 錯誤：', statusCode, errMessage);
         return throwError(() => ({ statusCode, message: errMessage }));
       })

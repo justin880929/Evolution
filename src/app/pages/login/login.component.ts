@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { AuthService } from 'src/app/services/auth.service';
+import { AuthService, UserIdentity } from 'src/app/services/auth.service';
 import { Router } from '@angular/router';
 import { jwtDecode } from 'jwt-decode';
 @Component({
@@ -39,13 +39,10 @@ export class LoginComponent implements OnInit {
     const { email, password } = this.loginForm.value;
 
     this.authService.login(email, password).subscribe({
-      next: (userIdentity: string | null) => {
+      next: (userIdentity: UserIdentity | null) => {
         if (userIdentity) {
-
-          console.log(userIdentity);
           this.loginError = null;
           this.loginSuccess = true;
-          alert("登入成功")
           // ✅ 1.5 秒後導向儀表板
           setTimeout(() => this.router.navigate(['/home/description']), 1500);
         } else {
@@ -54,13 +51,10 @@ export class LoginComponent implements OnInit {
       },
       error: (err) => {
         this.loginError = err.message
-        console.log(this.loginError);
-
         // 3 秒後清除錯誤訊息
-        // setTimeout(() => {
-        //   this.loginError = null;
-        // }, 3000);
-
+        setTimeout(() => {
+          this.loginError = null;
+        }, 3000);
         // 錯誤動畫（加上 shake）
         const card = document.querySelector('.login-box');
         card?.classList.add('shake');
