@@ -39,43 +39,27 @@ export class LoginComponent implements OnInit {
     const { email, password } = this.loginForm.value;
 
     this.authService.login(email, password).subscribe({
-      next: (res) => {
-        if (res.success) {
+      next: (userIdentity: string | null) => {
+        if (userIdentity) {
+
+          console.log(userIdentity);
           this.loginError = null;
-
-          // 儲存 JWT
-          localStorage.setItem('jwt', res.data.accessToken);
           this.loginSuccess = true;
-
-          // ✅ 解碼 JWT（用 .default 呼叫）
-          const decoded: any = jwtDecode(res.data.accessToken);
-
-          // ✅ 取出使用者名稱（對應 ClaimTypes.Name）
-          this.username =
-            decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] || '使用者';
-
+          alert("登入成功")
           // ✅ 1.5 秒後導向儀表板
           setTimeout(() => this.router.navigate(['/home/description']), 1500);
         } else {
-          this.loginError = res.message || '登入失敗';
+          this.loginError = '登入失敗，無法取得身分資料';
         }
       },
       error: (err) => {
-        switch (err.status) {
-          case 404:
-            this.loginError = err.error?.message || '找不到此電子郵件';
-            break;
-          case 401:
-            this.loginError = err.error?.message || '密碼錯誤';
-            break;
-          default:
-            this.loginError = '伺服器發生錯誤，請稍後再試';
-        }
+        this.loginError = err.message
+        console.log(this.loginError);
 
         // 3 秒後清除錯誤訊息
-        setTimeout(() => {
-          this.loginError = null;
-        }, 3000);
+        // setTimeout(() => {
+        //   this.loginError = null;
+        // }, 3000);
 
         // 錯誤動畫（加上 shake）
         const card = document.querySelector('.login-box');

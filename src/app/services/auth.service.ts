@@ -1,7 +1,9 @@
+import { catchError } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
-
+import { map, Observable, tap, throwError } from 'rxjs';
+import { ResultService } from "../Share/result.service";
+import { JWTService } from '../Share/JWT/jwt.service';
 interface AuthResponseDto {
   accessToken: string;
   refreshToken: string;
@@ -34,14 +36,25 @@ export class AuthService {
   private accountUrl = 'https://localhost:7274/api/account'; // ✅ 用於 reset-password 與 forgot-password
 
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private resultService: ResultService, private jwtService: JWTService) { }
 
-  login(email: string, password: string): Observable<ApiResponse<AuthResponseDto>> {
-  return this.http.post<ApiResponse<AuthResponseDto>>(`${this.authUrl}/login`, {
-    email,
-    password
-  });
-}
+  login(email: string, password: string): Observable<string | null> {
+    return this.resultService.postResult<AuthResponseDto>(`${this.authUrl}/login`, { email, password })
+      .pipe(
+        tap(res => {
+          this.jwtService.setToken(res.accessToken);
+        }),
+        map(() => {
+          const user = this.jwtService.UnpackJWT();
+          console.log('解碼後 user:', user);
+          return user;// 回傳解碼後的身分資料
+        }),
+        catchError(err => {
+          console.log(err);
+          return throwError(() => err);
+        })
+      );
+  }
 
   sendResetLink(email: string): Observable<ApiResponse<string>> {
     return this.http.post<ApiResponse<string>>(
@@ -51,8 +64,8 @@ export class AuthService {
   }
 
   resetPassword(data: ResetPasswordDTO): Observable<ApiResponse<ResetPasswordResponse>> {
-  return this.http.post<ApiResponse<ResetPasswordResponse>>(`${this.accountUrl}/reset-password`, data);
-}
+    return this.http.post<ApiResponse<ResetPasswordResponse>>(`${this.accountUrl}/reset-password`, data);
+  }
 
 
 }
