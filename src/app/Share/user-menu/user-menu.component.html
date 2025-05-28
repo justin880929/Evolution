@@ -1,0 +1,16 @@
+<div class="nav-item dropdown user-dropdown" *ngIf="isLoggedIn">
+  <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown"
+    aria-expanded="false">
+    <img [src]="userPhotoUrl" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;"
+      alt="User Photo">
+  </a>
+  <ul class="dropdown-menu dropdown-menu-end mt-2">
+    <li class="dropdown-item-text text-center fw-bold">👋 歡迎，{{ username }}</li>
+    <li><a class="dropdown-item" [routerLink]="['/home/profile']">🔧 修改個人資料</a></li>
+    <li><a class="dropdown-item" [routerLink]="['/home/cart']">🛒 我的購物車</a></li>
+    <li>
+      <hr class="dropdown-divider">
+    </li>
+    <li><a class="dropdown-item text-danger" (click)="logout()">🚪 登出</a></li>
+  </ul>
+</div>

@@ -1,0 +1,33 @@
+<div class="container mt-4">
+  <h2>🛒 購物車</h2>
+
+  <div *ngIf="cartItems.length === 0">
+    <p>購物車是空的。</p>
+  </div>
+
+  <div *ngIf="cartItems.length > 0">
+    <table class="table table-bordered table-striped">
+      <thead>
+        <tr>
+          <th>課程名稱</th>
+          <th>價格</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of cartItems">
+          <td>{{ item.title }}</td>
+          <td>NT$ {{ item.price }}</td>
+          <td>
+            <button class="btn btn-sm btn-danger" (click)="removeItem(item.id)">移除</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="d-flex justify-content-between">
+      <h4>總計：NT$ {{ getTotal() }}</h4>
+      <button class="btn btn-outline-danger" (click)="clearCart()">清空購物車</button>
+    </div>
+  </div>
+</div>

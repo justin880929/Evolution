@@ -2,7 +2,6 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-
 import { HomeComponent } from './home.component';
 import { HomeRoutingModule } from './home-routing.module';
 import { DescriptionComponent } from './description/description.component';
@@ -10,7 +9,6 @@ import { AvatarModule } from 'primeng/avatar';
 import { AvatarGroupModule } from 'primeng/avatargroup';
 import { CardModule } from 'primeng/card';
 import { AutoCompleteModule } from 'primeng/autocomplete';
-// 加入原本 CourseProductsModule 中的元件
 import { CourseProductsComponent } from './course-products/course-products.component';
 import { CourseCardComponent } from './course-products/course-card/course-card.component';
 import { CourseDetailComponent } from './course-products/course-detail/course-detail.component';
@@ -21,6 +19,10 @@ import { StepsModule } from 'primeng/steps';
 import { ButtonModule } from 'primeng/button';
 import { TableModule } from 'primeng/table';
 import { InputTextModule } from 'primeng/inputtext';
+import { CartComponent } from './cart/cart.component';
+import { UserMenuComponent } from 'src/app/Share/user-menu/user-menu.component';
+
+
 @NgModule({
   declarations: [
     HomeComponent,
@@ -30,6 +32,8 @@ import { InputTextModule } from 'primeng/inputtext';
     CourseDetailComponent,
     UserRepositoriesComponent,
     LearningComponent,
+    CartComponent,
+    UserMenuComponent,
   ],
   imports: [
     CommonModule,
@@ -47,4 +51,4 @@ import { InputTextModule } from 'primeng/inputtext';
     InputTextModule,
   ],
 })
-export class HomeModule {}
+export class HomeModule { }

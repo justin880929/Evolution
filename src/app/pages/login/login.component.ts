@@ -44,7 +44,7 @@ export class LoginComponent implements OnInit {
           this.loginError = null;
           this.loginSuccess = true;
           // ✅ 1.5 秒後導向儀表板
-          setTimeout(() => this.router.navigate(['/home/description']), 1500);
+          setTimeout(() => this.router.navigate(['/home']), 1500);
         } else {
           this.loginError = '登入失敗，無法取得身分資料';
         }

@@ -9,6 +9,12 @@ import GLightbox from '../../../assets/FrontSystem/vendor/glightbox/js/glightbox
 import PureCounter from '../../../assets/FrontSystem/vendor/purecounter/purecounter_vanilla.js';
 import imagesLoaded from '../../../assets/FrontSystem/vendor/imagesloaded/imagesloaded.pkgd.min.js';
 import Isotope from '../../../assets/FrontSystem/vendor/isotope-layout/isotope.pkgd.js';
+import { Router } from '@angular/router';
+import { AuthService } from 'src/app/services/auth.service';
+import { jwtDecode } from 'jwt-decode';
+import { NavigationEnd } from '@angular/router';
+
+
 
 @Component({
   selector: 'app-home',
@@ -19,6 +25,43 @@ import Isotope from '../../../assets/FrontSystem/vendor/isotope-layout/isotope.p
 export class HomeComponent implements AfterViewInit, OnDestroy {
   private scrollHandler = this.toggleScrolled.bind(this);
   private scrollTopHandler = this.toggleScrollTop.bind(this);
+  isLoggedIn: boolean = false;
+  username: string = '';
+  userPhotoUrl = '../../../assets/img/EvolutionLogo.png'; // 預設使用者頭像
+
+  constructor(
+    private authService: AuthService,
+    private router: Router
+  ) { }
+
+  ngOnInit(): void {
+    this.checkLoginState(); // 初次載入
+
+    this.router.events.subscribe(event => {
+      if (event instanceof NavigationEnd) {
+        this.checkLoginState(); // 每次切換路由都重新檢查狀態
+      }
+    });
+  }
+
+  checkLoginState(): void {
+    const token = localStorage.getItem('jwt');
+    this.isLoggedIn = !!token;
+
+    if (token) {
+      try {
+        const decoded: any = jwtDecode(token);
+        this.username =
+          decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] ||
+          decoded['name'] ||
+          '使用者';
+      } catch {
+        this.username = '訪客';
+      }
+    } else {
+      this.username = '訪客';
+    }
+  }
 
   ngAfterViewInit(): void {
     this.initPreloader();
@@ -185,5 +228,27 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
         });
       });
     }, 300); // 可依據圖片載入調整延遲時間
+  }
+
+  logout(): void {
+    console.log('🔁 登出中...');
+    this.authService.logout().subscribe({
+      next: () => {
+        localStorage.removeItem('jwt');
+        localStorage.removeItem('refreshToken');
+        this.isLoggedIn = false;
+        this.username = '';
+
+        // ✅ 關鍵做法：先跳到空白頁，再跳回 home 強制刷新
+        this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
+          this.router.navigate(['/home']);
+        });
+      },
+      error: () => {
+        this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
+          this.router.navigate(['/home']);
+        });
+      }
+    });
   }
 }

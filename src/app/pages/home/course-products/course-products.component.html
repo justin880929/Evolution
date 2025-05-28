@@ -10,7 +10,10 @@
 
 <!-- 搜尋結果 -->
 <div class="course-list">
-  <app-course-card *ngFor="let course of filteredCourses" [course]="course"></app-course-card>
+  <a *ngFor="let course of filteredCourses" [routerLink]="['/home/course-products/detail', course.id]"
+    style="text-decoration: none; color: inherit;">
+    <app-course-card [course]="course"></app-course-card>
+  </a>
 </div>
 
 <!-- ✅ 占位補高度，避免固定搜尋列蓋到下面的內容 -->
