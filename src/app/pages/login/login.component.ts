@@ -43,6 +43,7 @@ export class LoginComponent implements OnInit {
         if (userIdentity) {
           this.loginError = null;
           this.loginSuccess = true;
+          this.username = userIdentity.username
           // ✅ 1.5 秒後導向儀表板
           setTimeout(() => this.router.navigate(['/home']), 1500);
         } else {

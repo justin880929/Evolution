@@ -21,10 +21,10 @@ export class JWTService {
     const User: { username: string, role: string, } = { username: '', role: '' };
     // 🔍 找到 key 包含 "identity/claims/role"
     for (const key in decoded) {
-      if (key.includes('identity/claims/name')) {
+      if (key.includes('name')) {
         User.username = decoded[key];
       }
-      if (key.includes('identity/claims/role')) {
+      if (key.includes('role')) {
         User.role = decoded[key]; // ⬅️ 回傳角色，例如 "Admin"
       }
     }

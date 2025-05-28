@@ -40,24 +40,44 @@ export class AuthService {
 
   private authUrl = 'https://localhost:7274/api/auth';       // ✅ 用於 login
   private accountUrl = 'https://localhost:7274/api/account'; // ✅ 用於 reset-password 與 forgot-password
-
+  private fakeResponse: ApiResponse<AuthResponseDto> = {
+    success: true,
+    message: 'Mock 登入成功',
+    statusCode: 200,
+    data: {
+      accessToken:
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.' +
+        'eyJzdWIiOiIxIiwibmFtZWlkIjoiMSIsInVuaXF1ZV9uYW1lIjoiSm9oblVzZXIiLCJyb2xlIjoiQWRtaW4iLCJqdGkiOiJtb2NrLXRva2VuLWlkIn0.' +
+        'MOCK_SIGNATURE',
+      refreshToken: 'mock-refresh-token',
+      expiresIn: 3600
+    }
+  };
 
   constructor(private http: HttpClient, private resultService: ResultService, private jwtService: JWTService) { }
 
   login(email: string, password: string): Observable<UserIdentity | null> {
-    return this.resultService.postResult<AuthResponseDto>(`${this.authUrl}/login`, { email, password })
-      .pipe(
-        tap(res => {
-          this.jwtService.setToken(res.accessToken);
-        }),
-        map(() => {
-          const user = this.jwtService.UnpackJWT();
-          return user;// 回傳解碼後的身分資料
-        }),
-        catchError(err => {
-          return throwError(() => err);
-        })
-      );
+    if (this.useMock) {
+      this.jwtService.setToken(this.fakeResponse.data.accessToken)
+      const user = this.jwtService.UnpackJWT();
+      console.log('Mock 登入 user:', user); // ✅ 加這行檢查
+      return of(user);// 回傳解碼後的身分資料
+    } else {
+      return this.resultService.postResult<AuthResponseDto>(`${this.authUrl}/login`, { email, password })
+        .pipe(
+          tap(res => {
+            this.jwtService.setToken(res.accessToken);
+          }),
+          map(() => {
+            const user = this.jwtService.UnpackJWT();
+            return user;// 回傳解碼後的身分資料
+          }),
+          catchError(err => {
+            return throwError(() => err);
+          })
+        );
+    }
+
   }
 
   sendResetLink(email: string): Observable<ApiResponse<string>> {
