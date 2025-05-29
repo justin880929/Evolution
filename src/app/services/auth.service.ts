@@ -36,7 +36,7 @@ export interface UserIdentity {
 @Injectable({ providedIn: 'root' })
 export class AuthService {
 
-  private useMock = true; // ✅ true = 使用 mock，不呼叫後端
+  private useMock = false; // ✅ true = 使用 mock，不呼叫後端
 
   private authUrl = 'https://localhost:7274/api/auth';       // ✅ 用於 login
   private accountUrl = 'https://localhost:7274/api/account'; // ✅ 用於 reset-password 與 forgot-password
@@ -58,7 +58,7 @@ export class AuthService {
 
   login(email: string, password: string): Observable<UserIdentity | null> {
     if (this.useMock) {
-      this.jwtService.setToken(this.fakeResponse.data.accessToken)
+      this.jwtService.setToken(this.fakeResponse.data.accessToken, this.fakeResponse.data.refreshToken)
       const user = this.jwtService.UnpackJWT();
       console.log('Mock 登入 user:', user); // ✅ 加這行檢查
       return of(user);// 回傳解碼後的身分資料
@@ -66,7 +66,7 @@ export class AuthService {
       return this.resultService.postResult<AuthResponseDto>(`${this.authUrl}/login`, { email, password })
         .pipe(
           tap(res => {
-            this.jwtService.setToken(res.accessToken);
+            this.jwtService.setToken(res.accessToken, res.refreshToken);
           }),
           map(() => {
             const user = this.jwtService.UnpackJWT();
@@ -86,7 +86,15 @@ export class AuthService {
       { email }
     );
   }
-
+  refreshToken() {
+    const rt = localStorage.getItem('refresh_token')!;
+    return this.resultService
+      .postResult<AuthResponseDto>(`${this.authUrl}/refresh`, { refreshToken: rt })
+      .pipe(tap(res => {
+        // 更新新的 access & refresh token
+        this.jwtService.setToken(res.accessToken, res.refreshToken);
+      }));
+  }
   resetPassword(data: ResetPasswordDTO): Observable<ApiResponse<ResetPasswordResponse>> {
     return this.http.post<ApiResponse<ResetPasswordResponse>>(`${this.accountUrl}/reset-password`, data);
   }

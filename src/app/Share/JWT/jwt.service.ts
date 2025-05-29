@@ -9,8 +9,13 @@ export class JWTService {
   getToken(): string | null {
     return localStorage.getItem('jwt');
   }
-  setToken(token: string) {
+  setToken(token: string, refreshToken: string) {
     localStorage.setItem('jwt', token);
+    localStorage.setItem('refresh_token', refreshToken);
+  }
+  clearToken() {
+    localStorage.removeItem('jwt');
+    localStorage.removeItem('refresh_token'); // 如果有存
   }
   UnpackJWT(): { role: string, username: string } | null {
     const token = this.getToken();

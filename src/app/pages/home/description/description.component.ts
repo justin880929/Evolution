@@ -1,3 +1,4 @@
+import { AuthService } from 'src/app/services/auth.service';
 import { Component } from '@angular/core';
 
 @Component({
@@ -6,5 +7,20 @@ import { Component } from '@angular/core';
   styleUrls: ['./description.component.css']
 })
 export class DescriptionComponent {
+  constructor(private AuthService: AuthService) {
 
+  }
+  test() {
+    console.log(localStorage.getItem("refresh_token"));
+    this.AuthService.refreshToken().subscribe({
+      next: () => {
+        console.log(localStorage.getItem("refresh_token"));
+      },
+      error: (err) => {
+        console.log(err);
+
+      }
+
+    })
+  }
 }
