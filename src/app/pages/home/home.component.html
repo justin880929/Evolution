@@ -19,6 +19,7 @@
     </li>
 
 <!-- ✅ 使用者下拉選單：Sneat 樣式整合 -->
+
 <li class="nav-item navbar-dropdown dropdown-user dropdown" *ngIf="isLoggedIn">
   <a
     class="nav-link dropdown-toggle hide-arrow"
@@ -38,7 +39,7 @@
     </div>
   </a>
 
-  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenuDropdown">
+  <ul class="dropdown-menu dropdown-menu-end text-start" aria-labelledby="userMenuDropdown">
     <!-- 使用者資訊 -->
     <li class="dropdown-item-text">
       <div class="d-flex align-items-center">
@@ -54,7 +55,7 @@
         </div>
         <div class="flex-grow-1">
           <span class="fw-semibold d-block">{{ username }}</span>
-          <small class="text-muted">{{ isAdmin ? 'Admin' : 'Member' }}</small>
+          <small class="text-muted">{{ userRole }}</small>
         </div>
       </div>
     </li>
@@ -63,19 +64,22 @@
 
     <!-- Admin 專屬 -->
     <li *ngIf="isAdmin">
-      <a class="dropdown-item" [routerLink]="['/back-system']">
-        <span class="align-middle">BackSystem</span>
+      <a class="dropdown-item d-flex align-items-center justify-content-start" [routerLink]="['/back-system']">
+        <i class="bx bx-desktop me-2"></i>
+        <span class="align-middle">後台管理</span>
       </a>
     </li>
 
     <li>
-      <a class="dropdown-item" [routerLink]="['learning']">
+      <a class="dropdown-item d-flex align-items-center justify-content-start" [routerLink]="['learning']">
+        <i class="bx bxs-book-reader me-2"></i>
         <span class="align-middle">Learning</span>
       </a>
     </li>
     <li>
-      <a class="dropdown-item" [routerLink]="['/home/profile']">
-        <span class="align-middle">修改個人資料</span>
+      <a class="dropdown-item d-flex align-items-center justify-content-start" [routerLink]="['/home/profile']">
+        <i class="bx bx-user me-2"></i>
+        <span class="align-middle">個人資料</span>
       </a>
     </li>
 
@@ -83,11 +87,12 @@
 
     <li>
       <a
-        class="dropdown-item text-danger"
+        class="dropdown-item d-flex align-items-center justify-content-start text-danger"
         href="#"
         (click)="logout($event)"
         style="cursor: pointer;"
       >
+        <i class="bx bx-power-off me-2"></i>
         <span class="align-middle">登出</span>
       </a>
     </li>
@@ -95,11 +100,9 @@
 </li>
 
     <!-- 未登入的 Get Started -->
-    <li class="nav-item" *ngIf="!isLoggedIn">
-      <a routerLink="/login" class="btn btn-primary btn-getstarted">
-        Get Started
-      </a>
-    </li>
+    <a *ngIf="!isLoggedIn" routerLink="/login" class="btn btn-primary btn-getstarted">
+      Get Started
+    </a>
   </ul>
   <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
 </nav>
