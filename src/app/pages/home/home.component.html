@@ -7,20 +7,103 @@
       <h1 class="sitename">Evolution</h1>
     </a>
 
-    <nav id="navmenu" class="navmenu">
-      <ul>
-        <li><a [routerLink]="['/back-system']" class="active">BackSystem</a></li>
-        <li><a [routerLink]="['description']">Description</a></li>
-        <li><a [routerLink]="['course-products']">CourseProduct</a></li>
-        <li><a [routerLink]="['learning']">Learning</a></li>
-        <li><app-user-menu [isLoggedIn]="isLoggedIn" [username]="username"></app-user-menu></li>
-        <li class="nav-item ms-auto" *ngIf="!isLoggedIn">
-          <a [routerLink]="['/login']" class="btn-getstarted">Get Started</a>
-        </li>
-        <!-- <a class="btn-getstarted" [routerLink]="['/login']">Get Started</a> -->
-      </ul>
-      <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
-    </nav>
+    <!-- 導覽列 start -->
+   <nav id="navmenu" class="navmenu">
+  <ul>
+    <li><a [routerLink]="['description']">Description</a></li>
+    <li><a [routerLink]="['course-products']">CourseProduct</a></li>
+
+    <!-- 已登入才顯示的購物車 -->
+    <li class="nav-item" *ngIf="isLoggedIn">
+      <a routerLink="/home/cart" class="nav-link">我的購物車</a>
+    </li>
+
+<!-- ✅ 使用者下拉選單：Sneat 樣式整合 -->
+<li class="nav-item navbar-dropdown dropdown-user dropdown" *ngIf="isLoggedIn">
+  <a
+    class="nav-link dropdown-toggle hide-arrow"
+    href="javascript:void(0);"
+    id="userMenuDropdown"
+    role="button"
+    data-bs-toggle="dropdown"
+    aria-expanded="false"
+  >
+    <div class="avatar avatar-online">
+      <img
+          [src]="userPhotoUrl"
+          class="rounded-circle"
+          style="width: 32px; height: 32px; object-fit: cover;"
+          alt="User Photo"
+        />
+    </div>
+  </a>
+
+  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenuDropdown">
+    <!-- 使用者資訊 -->
+    <li class="dropdown-item-text">
+      <div class="d-flex align-items-center">
+        <div class="flex-shrink-0 me-3">
+          <div class="avatar avatar-online">
+            <img
+          [src]="userPhotoUrl"
+          class="rounded-circle"
+          style="width: 32px; height: 32px; object-fit: cover;"
+          alt="User Photo"
+        />
+          </div>
+        </div>
+        <div class="flex-grow-1">
+          <span class="fw-semibold d-block">{{ username }}</span>
+          <small class="text-muted">{{ isAdmin ? 'Admin' : 'Member' }}</small>
+        </div>
+      </div>
+    </li>
+
+    <li><div class="dropdown-divider"></div></li>
+
+    <!-- Admin 專屬 -->
+    <li *ngIf="isAdmin">
+      <a class="dropdown-item" [routerLink]="['/back-system']">
+        <span class="align-middle">BackSystem</span>
+      </a>
+    </li>
+
+    <li>
+      <a class="dropdown-item" [routerLink]="['learning']">
+        <span class="align-middle">Learning</span>
+      </a>
+    </li>
+    <li>
+      <a class="dropdown-item" [routerLink]="['/home/profile']">
+        <span class="align-middle">修改個人資料</span>
+      </a>
+    </li>
+
+    <li><div class="dropdown-divider"></div></li>
+
+    <li>
+      <a
+        class="dropdown-item text-danger"
+        href="#"
+        (click)="logout($event)"
+        style="cursor: pointer;"
+      >
+        <span class="align-middle">登出</span>
+      </a>
+    </li>
+  </ul>
+</li>
+
+    <!-- 未登入的 Get Started -->
+    <li class="nav-item" *ngIf="!isLoggedIn">
+      <a routerLink="/login" class="btn btn-primary btn-getstarted">
+        Get Started
+      </a>
+    </li>
+  </ul>
+  <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
+</nav>
+    <!-- 導覽列 end -->
 
     <!--/ User -->
   </div>

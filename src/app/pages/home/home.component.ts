@@ -10,9 +10,11 @@ import PureCounter from '../../../assets/FrontSystem/vendor/purecounter/purecoun
 import imagesLoaded from '../../../assets/FrontSystem/vendor/imagesloaded/imagesloaded.pkgd.min.js';
 import Isotope from '../../../assets/FrontSystem/vendor/isotope-layout/isotope.pkgd.js';
 import { Router } from '@angular/router';
-import { AuthService } from 'src/app/services/auth.service';
-import { jwtDecode } from 'jwt-decode';
+import { AuthService } from '../../services/auth.service';
 import { NavigationEnd } from '@angular/router';
+import { JWTService } from '../../Share/JWT/jwt.service';
+import { Subscription } from 'rxjs';
+
 
 
 
@@ -23,44 +25,50 @@ import { NavigationEnd } from '@angular/router';
   encapsulation: ViewEncapsulation.None,
 })
 export class HomeComponent implements AfterViewInit, OnDestroy {
+
   private scrollHandler = this.toggleScrolled.bind(this);
   private scrollTopHandler = this.toggleScrollTop.bind(this);
-  isLoggedIn: boolean = false;
-  username: string = '';
-  userPhotoUrl = '../../../assets/img/EvolutionLogo.png'; // 預設使用者頭像
+
+  isLoggedIn = false;
+  username = '';
+  userPhotoUrl = '../../../assets/img/NoprofilePhoto.png.png';
+  userRole = '';
+  isAdmin = false;
+
+  private loginSub!: Subscription;
+  private routerSub!: Subscription;
+
 
   constructor(
     private authService: AuthService,
+    private jwtService: JWTService,
     private router: Router
   ) { }
 
   ngOnInit(): void {
-    this.checkLoginState(); // 初次載入
-
-    this.router.events.subscribe(event => {
-      if (event instanceof NavigationEnd) {
-        this.checkLoginState(); // 每次切換路由都重新檢查狀態
+    // 1. 訂閱 AuthService 登入狀態
+    this.loginSub = this.authService.isLoggedIn$.subscribe(flag => {
+      this.isLoggedIn = flag;
+      if (flag) {
+        // 從 JWTService 拿到解析後的身分資料
+        const user = this.jwtService.UnpackJWT();
+        this.username = user?.username ?? '使用者';
+        this.userRole = user?.role ?? '';
+        this.isAdmin = this.userRole.toLowerCase() === 'admin';
+      } else {
+        this.username = '';
+        this.userRole = '';
+        this.isAdmin = false;
       }
     });
-  }
 
-  checkLoginState(): void {
-    const token = localStorage.getItem('jwt');
-    this.isLoggedIn = !!token;
-
-    if (token) {
-      try {
-        const decoded: any = jwtDecode(token);
-        this.username =
-          decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] ||
-          decoded['name'] ||
-          '使用者';
-      } catch {
-        this.username = '訪客';
+     // 2. 每次 route 變更時，強制重新檢查（若你希望在不同頁面手動更新可保留）
+    this.routerSub = this.router.events.subscribe(event => {
+      if (event instanceof NavigationEnd) {
+        // 這裡我們直接從 BehaviorSubject 再推一次目前狀態
+        this.authService.isLoggedIn$.pipe().subscribe();
       }
-    } else {
-      this.username = '訪客';
-    }
+    });
   }
 
   ngAfterViewInit(): void {
@@ -79,6 +87,9 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     document.removeEventListener('scroll', this.scrollHandler);
     document.removeEventListener('scroll', this.scrollTopHandler);
     window.removeEventListener('load', this.scrollHandler);
+
+    this.loginSub?.unsubscribe();
+    this.routerSub?.unsubscribe();
   }
 
   // === Preloader ===
@@ -230,25 +241,24 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     }, 300); // 可依據圖片載入調整延遲時間
   }
 
-  logout(): void {
-    console.log('🔁 登出中...');
+  logout(event: Event): void {
+    event.preventDefault();
     this.authService.logout().subscribe({
       next: () => {
-        localStorage.removeItem('jwt');
-        localStorage.removeItem('refreshToken');
-        this.isLoggedIn = false;
-        this.username = '';
-
-        // ✅ 關鍵做法：先跳到空白頁，再跳回 home 強制刷新
-        this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
-          this.router.navigate(['/home']);
-        });
+        // 登出後切換到登入頁或首頁
+        this.router.navigateByUrl('**');
       },
       error: () => {
-        this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
-          this.router.navigate(['/home']);
-        });
-      }
+        this.router.navigateByUrl('**');
+      },
     });
+  }
+
+  toggleSubmenu(event: MouseEvent) {
+    event.preventDefault();
+    const target = event.currentTarget as HTMLElement;
+    const parent = target.parentElement;
+    const submenu = parent?.querySelector('.dropdown-menu');
+    submenu?.classList.toggle('show');
   }
 }

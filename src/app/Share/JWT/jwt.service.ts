@@ -18,18 +18,23 @@ export class JWTService {
 
     const decoded: any = jwtDecode(token);
     // 初始化 User 結構
-    const User: { username: string, role: string, } = { username: '', role: '' };
+    const user: { id: number, username: string, role: string } = {
+    id: 0,
+    username: '',
+    role: ''
+  };
     // 🔍 找到 key 包含 "identity/claims/role"
-    for (const key in decoded) {
-      if (key.includes('name')) {
-        User.username = decoded[key];
-      }
-      if (key.includes('role')) {
-        User.role = decoded[key]; // ⬅️ 回傳角色，例如 "Admin"
-      }
-    }
+     for (const key in decoded) {
+    if (key.includes('nameidentifier')) user.id = parseInt(decoded[key]);
+    if (key.includes('name')) user.username = decoded[key];
+    if (key.includes('role')) user.role = decoded[key];
+  }
 
     // 如果 role 或 exp 沒取到可以依需要回傳 null 或部分值
-    return User.role && User.username ? User : null;
+    return user.id && user.username && user.role ? user : null;
+  }
+
+  clearToken(): void {
+    localStorage.removeItem('jwt');
   }
 }
