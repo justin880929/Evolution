@@ -30,6 +30,6 @@
 
 .p-overlay-badge .p-badge {
   /* 舉例：上移 -4px、右移 -8px */
-  top: 0px !important;
-  right: 10px !important;
+  top: 30px !important;
+  right: 17px !important;
 }
