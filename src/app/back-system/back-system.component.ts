@@ -30,7 +30,7 @@ export class BackSystemComponent implements OnInit, OnDestroy {
 
   private scripts: HTMLScriptElement[] = [];
 
-   constructor(
+  constructor(
     private renderer: Renderer2,
     private jwtService: JWTService,
     private authService: AuthService,   // ← 注入 AuthService
@@ -155,10 +155,10 @@ export class BackSystemComponent implements OnInit, OnDestroy {
     this.authService.logout().subscribe({
       next: () => {
         // 登出後切換到登入頁或首頁
-        this.router.navigateByUrl('**');
+        this.router.navigateByUrl('/home');
       },
       error: () => {
-        this.router.navigateByUrl('**');
+        this.router.navigateByUrl('/home');
       },
     });
   }

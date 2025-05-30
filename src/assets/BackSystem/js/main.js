@@ -4,7 +4,7 @@
 
 'use strict';
 
-let menu, animate;
+var menu, animate;
 
 (function () {
   // Initialize menu

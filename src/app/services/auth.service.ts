@@ -1,4 +1,4 @@
-import { catchError } from 'rxjs/operators';
+import { catchError, finalize } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { map, Observable, tap, throwError, of, BehaviorSubject } from 'rxjs';
@@ -64,6 +64,7 @@ export class AuthService {
   login(email: string, password: string): Observable<UserIdentity | null> {
     if (this.useMock) {
       this.jwtService.setToken(this.fakeResponse.data.accessToken)
+      localStorage.setItem('refreshToken', this.fakeResponse.data.refreshToken);
       this._loggedIn$$.next(true);
       const user = this.jwtService.UnpackJWT();
       console.log('Mock 登入 user:', user); // ✅ 加這行檢查
@@ -72,17 +73,16 @@ export class AuthService {
       return this.resultService.postResult<AuthResponseDto>(`${this.authUrl}/login`, { email, password })
         .pipe(
           tap(res => {
+            // 1. 存 accessToken
             this.jwtService.setToken(res.accessToken);
+            // 2. 存 refreshToken
+            localStorage.setItem('refreshToken', res.refreshToken);
+            // 3. 廣播已登入
             this._loggedIn$$.next(true);
           }),
-          map(() => {
-            const user = this.jwtService.UnpackJWT();
-            return user;// 回傳解碼後的身分資料
-          }),
-          catchError(err => {
-            return throwError(() => err);
-          })
-        );
+          map(() => this.jwtService.UnpackJWT()),
+        catchError(err => throwError(() => err))
+      );
     }
 
   }
@@ -99,14 +99,11 @@ export class AuthService {
   }
 
   /** ✅ 登出 */
- logout(): Observable<ApiResponse<string>> {
+  logout(): Observable<ApiResponse<string>> {
   if (this.useMock) {
-    // 1. 清 token
     this.jwtService.clearToken();
     localStorage.removeItem('refreshToken');
-    // 2. 廣播「已登出」
     this._loggedIn$$.next(false);
-    // 3. 回傳 mock response
     return of({
       success: true,
       message: 'Mock 登出成功',
@@ -116,21 +113,30 @@ export class AuthService {
   }
 
   const refreshToken = localStorage.getItem('refreshToken');
-  // 先把 token 清掉，不管後端怎麼回
-  this.jwtService.clearToken();
-  localStorage.removeItem('refreshToken');
-  this._loggedIn$$.next(false);
-
   if (!refreshToken) {
-    // 沒 refreshToken，就直接回一個空 Observable
-    return of();
+    // 沒有 refreshToken，就直接模擬回傳一個成功的 ApiResponse
+    this.jwtService.clearToken();
+    this._loggedIn$$.next(false);
+    return of({
+      success: true,
+      message: '無 refresh token，已本地登出',
+      statusCode: 200,
+      data: ''
+    });
   }
 
   return this.http
-    .post<ApiResponse<string>>(`${this.authUrl}/logout`, { refreshToken })
+    .post<ApiResponse<string>>(
+      `${this.authUrl}/logout`,
+      { refreshToken }
+    )
     .pipe(
-      // 再次保險性地廣播
-      tap(() => this._loggedIn$$.next(false))
+      finalize(() => {
+        // 無論成功或失敗，都清掉本地 token 並廣播登出
+        this.jwtService.clearToken();
+        localStorage.removeItem('refreshToken');
+        this._loggedIn$$.next(false);
+      })
     );
-  }
+}
 }
