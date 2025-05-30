@@ -9,32 +9,46 @@ export class JWTService {
   getToken(): string | null {
     return localStorage.getItem('jwt');
   }
-  setToken(token: string) {
+  setToken(token: string, refreshToken: string) {
     localStorage.setItem('jwt', token);
+    localStorage.setItem('refresh_token', refreshToken);
   }
-  UnpackJWT(): { role: string, username: string } | null {
+  clearToken() {
+    localStorage.removeItem('jwt');
+    localStorage.removeItem('refresh_token'); // 如果有存
+  }
+  UnpackJWT(): { role: string, username: string, exp: number } | null {
     const token = this.getToken();
     if (!token) return null;
 
     const decoded: any = jwtDecode(token);
-    // 初始化 User 結構
-    const user: { id: number, username: string, role: string } = {
-    id: 0,
-    username: '',
-    role: ''
-  };
-    // 🔍 找到 key 包含 "identity/claims/role"
-     for (const key in decoded) {
-    if (key.includes('nameidentifier')) user.id = parseInt(decoded[key]);
-    if (key.includes('name')) user.username = decoded[key];
-    if (key.includes('role')) user.role = decoded[key];
+    const User: { username: string, role: string, exp: number } = {
+      username: '',
+      role: '',
+      exp: 0
+    };
+
+    for (const key in decoded) {
+      if (key.includes('name')) {
+        User.username = decoded[key];
+      }
+      if (key.includes('role')) {
+        User.role = decoded[key];
+      }
+    }
+
+    if (typeof decoded.exp === 'number') {
+      User.exp = decoded.exp;
+    }
+    return User.username && User.role && User.exp ? User : null;
+
+  }
+  shouldRefreshTokenSoon(bufferSeconds = 60): boolean {
+    const info = this.UnpackJWT();
+    if (!info) return false;
+
+    const now = Math.floor(Date.now() / 1000);
+    return (info.exp - now) < bufferSeconds;
   }
 
-    // 如果 role 或 exp 沒取到可以依需要回傳 null 或部分值
-    return user.id && user.username && user.role ? user : null;
-  }
-
-  clearToken(): void {
-    localStorage.removeItem('jwt');
-  }
 }

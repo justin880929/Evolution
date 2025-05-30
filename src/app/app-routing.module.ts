@@ -4,10 +4,12 @@ import { LocationStrategy, HashLocationStrategy } from '@angular/common';
 import { LoginComponent } from './pages/login/login.component';
 import { ResetPasswordComponent } from './pages/reset-password/reset-password.component';
 import { ForgotComponent } from './pages/forgot/forgot.component';
+import { guardsChildGuard, guardsGuard, loginGuard } from './Share/Guards/guards.guard';
 
 const routes: Routes = [
   {
     path: 'back-system',
+    canActivate: [guardsGuard],
     loadChildren: () =>
       import('./back-system/back-system.module').then(
         (m) => m.BackSystemModule
@@ -15,11 +17,13 @@ const routes: Routes = [
   },
   {
     path: 'home',
+    canActivateChild: [guardsChildGuard],
     loadChildren: () =>
       import('./pages/home/home.module').then((m) => m.HomeModule),
   },
   {
     path: 'login',
+    canActivate: [loginGuard],
     component: LoginComponent
   },
   {

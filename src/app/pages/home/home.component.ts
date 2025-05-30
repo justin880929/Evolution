@@ -46,31 +46,31 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
-  // 1. 訂閱 AuthService 登入狀態
-  this.loginSub = this.authService.isLoggedIn$.subscribe(flag => {
-    this.isLoggedIn = flag;
-    if (flag) {
-      // 從 JWTService 拿到解析後的身分資料
-      const user = this.jwtService.UnpackJWT();
-      this.username = user?.username ?? '使用者';
-      this.userRole = user?.role ?? '';
+    // 1. 訂閱 AuthService 登入狀態
+    this.loginSub = this.authService.isLoggedIn$.subscribe(flag => {
+      this.isLoggedIn = flag;
+      if (flag) {
+        // 從 JWTService 拿到解析後的身分資料
+        const user = this.jwtService.UnpackJWT();
+        this.username = user?.username ?? '使用者';
+        this.userRole = user?.role ?? '';
 
-      // ← 修改這裡：同時判斷 admin 或 superadmin
-      const roleLower = this.userRole.toLowerCase();
-      this.isAdmin = roleLower === 'admin' || roleLower === 'superadmin';
+        // ← 修改這裡：同時判斷 admin 或 superadmin
+        const roleLower = this.userRole.toLowerCase();
+        this.isAdmin = roleLower === 'admin' || roleLower === 'superadmin';
 
-      // 如果喜歡用陣列寫法也可以：
-      // const adminRoles = ['admin', 'superadmin'];
-      // this.isAdmin = adminRoles.includes(roleLower);
-    } else {
-      this.username = '';
-      this.userRole = '';
-      this.isAdmin = false;
-    }
-  });
+        // 如果喜歡用陣列寫法也可以：
+        // const adminRoles = ['admin', 'superadmin'];
+        // this.isAdmin = adminRoles.includes(roleLower);
+      } else {
+        this.username = '';
+        this.userRole = '';
+        this.isAdmin = false;
+      }
+    });
 
 
-     // 2. 每次 route 變更時，強制重新檢查（若你希望在不同頁面手動更新可保留）
+    // 2. 每次 route 變更時，強制重新檢查（若你希望在不同頁面手動更新可保留）
     this.routerSub = this.router.events.subscribe(event => {
       if (event instanceof NavigationEnd) {
         // 這裡我們直接從 BehaviorSubject 再推一次目前狀態
@@ -254,10 +254,10 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     this.authService.logout().subscribe({
       next: () => {
         // 登出後切換到登入頁或首頁
-        this.router.navigateByUrl('**');
+        this.router.navigateByUrl('home');
       },
       error: () => {
-        this.router.navigateByUrl('**');
+        this.router.navigateByUrl('home');
       },
     });
   }
