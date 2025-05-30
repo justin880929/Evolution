@@ -1,4 +1,4 @@
-import { catchError } from 'rxjs/operators';
+import { catchError, finalize, switchMap } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { map, Observable, tap, throwError, of } from 'rxjs';
@@ -36,7 +36,7 @@ export interface UserIdentity {
 @Injectable({ providedIn: 'root' })
 export class AuthService {
 
-  private useMock = false; // ✅ true = 使用 mock，不呼叫後端
+  private useMock = true; // ✅ true = 使用 mock，不呼叫後端
 
   private authUrl = 'https://localhost:7274/api/auth';       // ✅ 用於 login
   private accountUrl = 'https://localhost:7274/api/account'; // ✅ 用於 reset-password 與 forgot-password
@@ -46,10 +46,8 @@ export class AuthService {
     statusCode: 200,
     data: {
       accessToken:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.' +
-        'eyJzdWIiOiIxIiwibmFtZWlkIjoiMSIsInVuaXF1ZV9uYW1lIjoiSm9oblVzZXIiLCJyb2xlIjoiQWRtaW4iLCJqdGkiOiJtb2NrLXRva2VuLWlkIn0.' +
-        'MOCK_SIGNATURE',
-      refreshToken: 'mock-refresh-token',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZWlkZW50aWZpZXIiOiIyIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZSI6IlRvbW15IiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiQWRtaW4iLCJqdGkiOiIyMTE3NDJkMy00OGZkLTQwMDktYmIyNS00NWVhNmFkYWRiNzYiLCJleHAiOjE3NDg2MTA2NTcsImlzcyI6Ik15TGVhcm5pbmdTaXRlIiwiYXVkIjoiTXlMZWFybmluZ1NpdGVVc2VycyJ9.S8wFpzh817DdSAGTx-e8DFeCLnOacmiBPmkUb-BceEs',
+      refreshToken: '95ee1361dbd043278b3361084d9d94f7NzG27EiuRaCIKsd8d6deuNjk6Ay/N/bSZDh7VqBEctA=',
       expiresIn: 3600
     }
   };
@@ -90,10 +88,17 @@ export class AuthService {
     const rt = localStorage.getItem('refresh_token')!;
     return this.resultService
       .postResult<AuthResponseDto>(`${this.authUrl}/refresh`, { refreshToken: rt })
-      .pipe(tap(res => {
-        // 更新新的 access & refresh token
-        this.jwtService.setToken(res.accessToken, res.refreshToken);
-      }));
+      // .postResult<AuthResponseDto>(`${this.authUrl}/refresh`, { Authorization: `Bearer ${rt}` })
+      .pipe(
+        tap(res => {
+          // 更新新的 access & refresh token
+          console.log("setNewToken");
+          this.jwtService.setToken(res.accessToken, res.refreshToken);
+        }),
+        catchError(err => {
+          return throwError(() => err)
+        })
+      );
   }
   resetPassword(data: ResetPasswordDTO): Observable<ApiResponse<ResetPasswordResponse>> {
     return this.http.post<ApiResponse<ResetPasswordResponse>>(`${this.accountUrl}/reset-password`, data);
@@ -111,12 +116,14 @@ export class AuthService {
       });
     }
 
-    const refreshToken = localStorage.getItem('refreshToken');
+    const refreshToken = localStorage.getItem('refresh_token');
     if (!refreshToken) return of(); // 無 refreshToken 也不送出請求
 
     return this.http.post<ApiResponse<string>>(`${this.authUrl}/logout`, {
       refreshToken
-    });
+    }).pipe(finalize(() => {
+      this.jwtService.clearToken();
+    }));
   }
 
 }
