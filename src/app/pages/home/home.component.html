@@ -7,20 +7,106 @@
       <h1 class="sitename">Evolution</h1>
     </a>
 
-    <nav id="navmenu" class="navmenu">
-      <ul>
-        <li><a [routerLink]="['/back-system']" class="active">BackSystem</a></li>
-        <li><a [routerLink]="['description']">Description</a></li>
-        <li><a [routerLink]="['course-products']">CourseProduct</a></li>
-        <li><a [routerLink]="['learning']">Learning</a></li>
-        <li><app-user-menu [isLoggedIn]="isLoggedIn" [username]="username"></app-user-menu></li>
-        <li class="nav-item ms-auto" *ngIf="!isLoggedIn">
-          <a [routerLink]="['/login']" class="btn-getstarted">Get Started</a>
-        </li>
-        <!-- <a class="btn-getstarted" [routerLink]="['/login']">Get Started</a> -->
-      </ul>
-      <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
-    </nav>
+    <!-- 導覽列 start -->
+   <nav id="navmenu" class="navmenu">
+  <ul>
+    <li><a [routerLink]="['description']">Description</a></li>
+    <li><a [routerLink]="['course-products']">CourseProduct</a></li>
+
+    <!-- 已登入才顯示的購物車 -->
+    <li class="nav-item" *ngIf="isLoggedIn">
+      <a routerLink="/home/cart" class="nav-link">我的購物車</a>
+    </li>
+
+<!-- ✅ 使用者下拉選單：Sneat 樣式整合 -->
+
+<li class="nav-item navbar-dropdown dropdown-user dropdown" *ngIf="isLoggedIn">
+  <a
+    class="nav-link dropdown-toggle hide-arrow"
+    href="javascript:void(0);"
+    id="userMenuDropdown"
+    role="button"
+    data-bs-toggle="dropdown"
+    aria-expanded="false"
+  >
+    <div class="avatar avatar-online">
+      <img
+          [src]="userPhotoUrl"
+          class="rounded-circle"
+          style="width: 32px; height: 32px; object-fit: cover;"
+          alt="User Photo"
+        />
+    </div>
+  </a>
+
+  <ul class="dropdown-menu dropdown-menu-end text-start" aria-labelledby="userMenuDropdown">
+    <!-- 使用者資訊 -->
+    <li class="dropdown-item-text">
+      <div class="d-flex align-items-center">
+        <div class="flex-shrink-0 me-3">
+          <div class="avatar avatar-online">
+            <img
+          [src]="userPhotoUrl"
+          class="rounded-circle"
+          style="width: 32px; height: 32px; object-fit: cover;"
+          alt="User Photo"
+        />
+          </div>
+        </div>
+        <div class="flex-grow-1">
+          <span class="fw-semibold d-block">{{ username }}</span>
+          <small class="text-muted">{{ userRole }}</small>
+        </div>
+      </div>
+    </li>
+
+    <li><div class="dropdown-divider"></div></li>
+
+    <!-- Admin 專屬 -->
+    <li *ngIf="isAdmin">
+      <a class="dropdown-item d-flex align-items-center justify-content-start" [routerLink]="['/back-system']">
+        <i class="bx bx-desktop me-2"></i>
+        <span class="align-middle">後台管理</span>
+      </a>
+    </li>
+
+    <li>
+      <a class="dropdown-item d-flex align-items-center justify-content-start" [routerLink]="['learning']">
+        <i class="bx bxs-book-reader me-2"></i>
+        <span class="align-middle">Learning</span>
+      </a>
+    </li>
+    <li>
+      <a class="dropdown-item d-flex align-items-center justify-content-start" [routerLink]="['/home/profile']">
+        <i class="bx bx-user me-2"></i>
+        <span class="align-middle">個人資料</span>
+      </a>
+    </li>
+
+    <li><div class="dropdown-divider"></div></li>
+
+    <li>
+      <a
+        class="dropdown-item d-flex align-items-center justify-content-start text-danger"
+        href="#"
+        (click)="logout($event)"
+        style="cursor: pointer;"
+      >
+        <i class="bx bx-power-off me-2"></i>
+        <span class="align-middle">登出</span>
+      </a>
+    </li>
+  </ul>
+</li>
+
+    <!-- 未登入的 Get Started -->
+    <a *ngIf="!isLoggedIn" routerLink="/login" class="btn btn-primary btn-getstarted">
+      Get Started
+    </a>
+  </ul>
+  <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
+</nav>
+    <!-- 導覽列 end -->
 
     <!--/ User -->
   </div>
@@ -50,13 +136,13 @@
     <div class="row gy-4">
       <div class="col-lg-4 col-md-6 footer-about">
         <a href="index.html" class="d-flex align-items-center">
-          <span class="sitename">eNno</span>
+          <span class="sitename">Evolution</span>
         </a>
         <div class="footer-contact pt-3">
-          <p>A108 Adam Street</p>
-          <p>New York, NY 535022</p>
+          <p>復興南路一段 390 號 2 樓</p>
+          <p>106 台北市大安區</p>
           <p class="mt-3"><strong>Phone:</strong> <span>+1 5589 55488 55</span></p>
-          <p><strong>Email:</strong> <span>infoexample.com</span></p>
+          <p><strong>Email:</strong> <span>EvolutionIspan.com</span></p>
         </div>
       </div>
 
@@ -82,7 +168,7 @@
 
       <div class="col-lg-4 col-md-12">
         <h4>Follow Us</h4>
-        <p>Cras fermentum odio eu feugiat lide par naso tierra videa magna derita valies</p>
+        <p>歡迎追蹤我們的社群平台，隨時掌握最新課程、優惠與活動資訊！</p>
         <div class="social-links d-flex">
           <a href=""><i class="bi bi-twitter-x"></i></a>
           <a href=""><i class="bi bi-facebook"></i></a>
@@ -95,7 +181,7 @@
   </div>
 
   <div class="container copyright text-center mt-4">
-    <p>© <span>Copyright</span> <strong class="px-1 sitename">eNno</strong> <span>All Rights Reserved</span></p>
+    <p>© <span>Copyright</span> <strong class="px-1 sitename">Evolution</strong> <span>All Rights Reserved</span></p>
     <div class="credits">
       <!-- All the links in the footer should remain intact. -->
       <!-- You can delete the links only if you've purchased the pro version. -->
