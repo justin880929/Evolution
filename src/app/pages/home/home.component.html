@@ -15,7 +15,16 @@
 
         <!-- 已登入才顯示的購物車 -->
         <li class="nav-item" *ngIf="isLoggedIn">
-          <a routerLink="/home/cart" class="nav-link">我的購物車</a>
+        <a
+          routerLink="/home/cart"
+          class="nav-link p-overlay-badge"
+          pBadge
+          [value]="cartCount.toString()"
+          severity="danger"
+        >
+        <i class="bx bx-cart me-2 bx-sm"></i>
+        <!-- 我的購物車 -->
+        </a>
         </li>
 
         <!-- ✅ 使用者下拉選單：Sneat 樣式整合 -->

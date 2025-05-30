@@ -14,6 +14,7 @@ import { AuthService } from '../../services/auth.service';
 import { NavigationEnd } from '@angular/router';
 import { JWTService } from '../../Share/JWT/jwt.service';
 import { Subscription } from 'rxjs';
+import { CartService } from '../../services/cart.service';
 
 
 
@@ -28,7 +29,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   private scrollHandler = this.toggleScrolled.bind(this);
   private scrollTopHandler = this.toggleScrollTop.bind(this);
-
+  cartCount = 0;
   isLoggedIn = false;
   username = '';
   userPhotoUrl = '../../../assets/img/NoprofilePhoto.png.png';
@@ -42,10 +43,14 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   constructor(
     private authService: AuthService,
     private jwtService: JWTService,
-    private router: Router
+    private router: Router,
+    private cartService: CartService,
   ) { }
 
   ngOnInit(): void {
+    this.cartService.cartCount$.subscribe(count => {
+    this.cartCount = count;
+    });
     // 1. 訂閱 AuthService 登入狀態
     this.loginSub = this.authService.isLoggedIn$.subscribe(flag => {
       this.isLoggedIn = flag;
@@ -98,6 +103,11 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
     this.loginSub?.unsubscribe();
     this.routerSub?.unsubscribe();
+  }
+
+  /** 讓外部新增完商品後，也可以呼叫這個方法同步更新 badge */
+  updateCartCount(): void {
+    this.cartCount = this.cartService.getCartCount();
   }
 
   // === Preloader ===

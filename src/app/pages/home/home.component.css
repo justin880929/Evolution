@@ -27,3 +27,9 @@
               // "src/assets/FrontSystem/vendor/glightbox/css/glightbox.min.css",
               // "src/assets/FrontSystem/vendor/swiper/swiper-bundle.min.css",
               // "src/assets/FrontSystem/css/main.css" */
+
+.p-overlay-badge .p-badge {
+  /* 舉例：上移 -4px、右移 -8px */
+  top: 0px !important;
+  right: 10px !important;
+}

@@ -39,6 +39,7 @@ export class CourseDetailComponent implements OnInit {
   addToCart(): void {
     if (this.course) {
       this.cartService.addToCart(this.course);
+      this.cartService.addToCart(this.course);
       alert('✅ 已加入購物車');
     }
   }
