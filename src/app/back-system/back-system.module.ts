@@ -32,6 +32,8 @@ import { ButtonModule } from 'primeng/button';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { AnimateModule } from 'primeng/animate';
 import { InputNumberModule } from 'primeng/inputnumber';
+import { RadioButtonModule } from 'primeng/radiobutton';
+import { ToastModule } from 'primeng/toast';
 @NgModule({
   declarations: [
     BackSystemComponent,
@@ -67,10 +69,14 @@ import { InputNumberModule } from 'primeng/inputnumber';
     TableModule,
     TagModule,
     StatusToTagPipe,
+    RadioButtonModule,
+    ToastModule
   ],
   providers: [
     ConfirmationService,
     MessageService, // 如果你用到了 toast 或 growl 等通知功能，也要註冊這個
   ],
 })
-export class BackSystemModule {}
+export class BackSystemModule { }
+
+

@@ -1,272 +1,210 @@
 import { Component, OnInit } from '@angular/core';
-import {
-  FormBuilder,
-  FormControl,
-  FormGroup,
-  Validators,
-} from '@angular/forms';
-import { MenuItem, ConfirmationService, MessageService } from 'primeng/api';
+import { FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
+import { ConfirmationService, MessageService } from 'primeng/api';
+
 @Component({
   selector: 'app-create-course',
   templateUrl: './create-course.component.html',
   styleUrls: ['./create-course.component.css'],
-  providers: [ConfirmationService, MessageService],
+  providers: [ConfirmationService, MessageService]
 })
 export class CreateCourseComponent implements OnInit {
-  steps: MenuItem[] = [];
-  currentStep: number = 0;
+  steps = [{ label: '建立課程' }, { label: '新增章節' }];
+  currentStep = 0;
 
   courseDetailForm!: FormGroup;
   chapterForm!: FormGroup;
   videoForm!: FormGroup;
 
-  showAddVideoDialog: boolean = false;
-  showNextButton: boolean = true;
-  showConfirmButton: boolean = false;
-
-  publicOptions = [
-    { label: '公開', value: true },
-    { label: '不公開', value: false },
-  ];
-
-  chapters: any[] = [];
-  uploadedCover: File | null = null;
-  uploadedVideo: File | null = null;
+  coverPreviewUrl: string | null = null;
+  selectedVideoFile: File | null = null;
 
   constructor(
     private fb: FormBuilder,
-    private confirmService: ConfirmationService,
+    private confirmationService: ConfirmationService,
     private messageService: MessageService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
-    // 預設三個步驟，章節影片也存在（可依需要隱藏）
-    this.steps = [{ label: '課程細節' }, { label: '章節內容' }];
-
-    this.initForms();
+    this.initCourseForm();
+    this.initChapterForm();
+    this.initVideoForm();
   }
 
-  initForms(): void {
+  private initCourseForm() {
     this.courseDetailForm = this.fb.group({
-      title: ['', Validators.required],
-      description: ['', Validators.required],
-      isPublic: [null, Validators.required],
-      price: [null, Validators.required], // 改 null 方便驗證
-      cover: [null, Validators.required],
+      courseTitle: ['', Validators.required],
+      courseDes: [''],
+      isPublic: ['true'],
+      coursePrice: [0, [Validators.required, Validators.min(0)]],
+      cover: [null],
+      chapters: this.fb.array([])
     });
+  }
 
+  private initChapterForm() {
     this.chapterForm = this.fb.group({
-      title: ['', Validators.required],
-      content: ['', Validators.required],
+      chapterTitle: ['', Validators.required],
+      chapterDes: ['']
     });
+  }
 
+  private initVideoForm() {
     this.videoForm = this.fb.group({
-      video: [null, Validators.required],
+      title: ['', Validators.required],
+      file: [null, Validators.required]
     });
   }
 
-  goNext(): void {
-    if (this.currentStep === 0) {
-      console.log('有進 currentStep === 0');
+  get chapters(): FormArray {
+    return this.courseDetailForm.get('chapters') as FormArray;
+  }
 
-      // 強制觸發驗證狀態
-      this.courseDetailForm.markAllAsTouched();
-      this.courseDetailForm.updateValueAndValidity();
+  onCoverSelected(event: any) {
+    const file = event.target.files[0];
+    if (!file) return;
 
-      const cover = this.courseDetailForm.get('cover')?.value;
-      console.log('封面值：', cover);
+    const reader = new FileReader();
+    reader.onload = () => this.coverPreviewUrl = reader.result as string;
+    reader.readAsDataURL(file);
 
-      if (!cover) {
-        this.messageService.add({
-          severity: 'error',
-          summary: '驗證失敗',
-          detail: '請上傳課程封面',
-        });
-        return;
-      }
+    this.courseDetailForm.patchValue({ cover: file });
+  }
 
-      if (this.courseDetailForm.valid) {
-        console.log('有進 goNext');
-        this.currentStep++;
-        console.log('currentStep:', this.currentStep);
-      } else {
-        this.messageService.add({
-          severity: 'error',
-          summary: '驗證失敗',
-          detail: '請填寫課程細節所有必填欄位',
-        });
-      }
-    } else if (this.currentStep === 1) {
-      if (this.chapterForm.valid) {
-        this.confirmService.confirm({
-          message: '是否為此章節新增影片？',
-          accept: () => {
-            this.currentStep++;
-            this.showNextButton = true;
-            this.showConfirmButton = false;
-          },
-          reject: () => {
-            this.chapters.push(this.chapterForm.value);
-            this.chapterForm.reset();
-            this.messageService.add({
-              severity: 'info',
-              summary: '章節已新增',
-            });
-            this.confirmService.confirm({
-              message: '是否繼續新增另一個章節？',
-              accept: () => {
-                this.showNextButton = true;
-                this.showConfirmButton = false;
-              },
-              reject: () => {
-                this.showNextButton = false;
-                this.showConfirmButton = true;
-                this.currentStep = 1;
-              },
-            });
-          },
-        });
-      } else {
-        this.messageService.add({
-          severity: 'error',
-          summary: '驗證失敗',
-          detail: '請填寫章節內容所有必填欄位',
-        });
-      }
-    } else if (this.currentStep === 2) {
-      if (this.videoForm.valid) {
-        this.chapters.push({
-          ...this.chapterForm.value,
-          video: this.uploadedVideo,
-        });
+  onVideoSelected(event: any) {
+    const file = event.target.files[0];
+    if (!file) return;
 
-        this.confirmService.confirm({
-          message: '是否新增另一個章節？',
-          accept: () => {
-            this.chapterForm.reset();
-            this.videoForm.reset();
-            this.uploadedVideo = null;
-            this.currentStep = 1;
-            this.showNextButton = true;
-            this.showConfirmButton = false;
-          },
-          reject: () => {
-            this.showNextButton = false;
-            this.showConfirmButton = true;
-          },
-        });
-      } else {
-        this.messageService.add({
-          severity: 'error',
-          summary: '驗證失敗',
-          detail: '請上傳章節影片',
-        });
-      }
+    this.selectedVideoFile = file;
+    this.videoForm.patchValue({ file });
+  }
+
+  onNext() {
+    const stepLabel = this.steps[this.currentStep].label;
+
+    switch (stepLabel) {
+      case '建立課程':
+        this.handleCourseStep();
+        break;
+
+      case '新增章節':
+        this.handleChapterStep();
+        break;
+
+      case '新增影片':
+        this.handleVideoStep();
+        break;
     }
   }
 
-  goBack(): void {
-    if (this.currentStep === 0) return;
-
-    if (this.currentStep === 2) {
-      this.confirmService.confirm({
-        message: '返回將會清除目前章節影片的內容，確定嗎？',
-        accept: () => {
-          this.videoForm.reset();
-          this.uploadedVideo = null;
-          this.currentStep = 1;
-          this.showNextButton = true;
-          this.showConfirmButton = false;
-        },
-      });
-    } else {
+  onPrev() {
+    if (this.currentStep > 0) {
+      this.steps.pop();
       this.currentStep--;
-      this.showNextButton = true;
-      this.showConfirmButton = false;
     }
   }
 
-  submitCourse(): void {
-    if (this.chapters.length === 0) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: '課程需至少一章節',
-      });
+  private handleCourseStep() {
+    if (this.courseDetailForm.invalid) {
+      this.messageService.add({ severity: 'warn', summary: '資料不完整', detail: '請填寫課程標題和價格' });
+      return;
+    }
+    this.currentStep++;
+  }
+
+  private handleChapterStep() {
+    if (this.chapterForm.invalid) {
+      this.messageService.add({ severity: 'warn', summary: '章節未填寫完整', detail: '請輸入章節標題' });
       return;
     }
 
-    const courseData = {
-      ...this.courseDetailForm.value,
-      cover: this.uploadedCover,
-      chapters: this.chapters,
-    };
+    // 章節加入章節列表
+    this.appendChapter();
 
-    console.log('📝 Final Course Data:', courseData);
-    this.messageService.add({ severity: 'success', summary: '課程建立成功' });
-
-    // TODO: 呼叫 API 上傳資料
+    this.confirmationService.confirm({
+      message: '是否為此章節新增影片？',
+      header: '新增影片',
+      icon: 'pi pi-video',
+      acceptLabel: '是',
+      rejectLabel: '否',
+      accept: () => {
+        this.steps.push({ label: '新增影片' });
+        this.currentStep++;
+        this.initVideoForm();
+      },
+      reject: () => {
+        // ⭐⭐ 修正：使用 setTimeout 避免 UI 渲染跳過 confirm
+        setTimeout(() => this.confirmAddChapterOnly(), 200);
+      }
+    });
   }
 
-  onCoverUpload(event: any): void {
-    console.log('有傳檔案');
-    const file = event.files[0];
 
-    if (file && ['image/jpeg', 'image/png'].includes(file.type)) {
-      this.uploadedCover = file;
-      this.courseDetailForm.get('cover')?.setValue(file);
-      this.courseDetailForm.get('cover')?.updateValueAndValidity();
 
-      this.messageService.add({
-        severity: 'success',
-        summary: '成功',
-        detail: '封面已上傳',
-      });
-    } else {
-      this.messageService.add({
-        severity: 'error',
-        summary: '格式錯誤',
-        detail: '請上傳 JPG 或 PNG',
-      });
+  private handleVideoStep() {
+    if (this.videoForm.invalid) {
+      this.messageService.add({ severity: 'warn', summary: '影片未填寫完整', detail: '請輸入影片標題並上傳影片' });
+      return;
     }
+
+    this.appendVideoToPreviousChapter();
+
+    this.confirmationService.confirm({
+      message: '是否為此課程新增下一章節？',
+      header: '新增章節',
+      icon: 'pi pi-folder-open',
+      acceptLabel: '是',
+      rejectLabel: '否',
+      accept: () => {
+        this.steps.push({ label: '新增章節' });
+        this.currentStep++;
+        this.initChapterForm();
+      },
+      reject: () => {
+        this.finalizeCourse();
+      }
+    });
   }
 
-  onVideoUpload(event: any): void {
-    const file = event.files[0];
-    if (file && file.type === 'video/mp4') {
-      this.uploadedVideo = file;
-      this.videoForm.get('video')?.setValue(file);
-    } else {
-      this.messageService.add({
-        severity: 'error',
-        summary: '格式錯誤',
-        detail: '只接受 MP4 影片',
-      });
-    }
+
+  private confirmAddChapterOnly() {
+    this.confirmationService.confirm({
+      message: '是否為此課程新增下一章節？',
+      header: '新增章節',
+      icon: 'pi pi-folder-open',
+      acceptLabel: '是',
+      rejectLabel: '否',
+      accept: () => {
+        this.steps.push({ label: '新增章節' });
+        this.currentStep++;
+        this.initChapterForm();
+      },
+      reject: () => {
+        this.finalizeCourse();
+      }
+    });
   }
 
-  confirmAddVideo(addVideo: boolean) {
-    this.showAddVideoDialog = false;
+  private appendChapter() {
+    this.chapters.push(this.fb.group({
+      chapterTitle: this.chapterForm.value.chapterTitle,
+      chapterDes: this.chapterForm.value.chapterDes,
+      videos: this.fb.array([])
+    }));
+  }
 
-    if (addVideo) {
-      // 直接切到影片上傳步驟
-      this.currentStep = 2;
-      this.showNextButton = true;
-      this.showConfirmButton = false;
-    } else {
-      this.confirmService.confirm({
-        message: '是否新增另一個章節？',
-        accept: () => {
-          this.chapters.push(this.chapterForm.value);
-          this.chapterForm.reset();
-          this.currentStep = 1;
-          this.showNextButton = true;
-          this.showConfirmButton = false;
-        },
-        reject: () => {
-          this.showNextButton = false;
-          this.showConfirmButton = true;
-        },
-      });
-    }
+  private appendVideoToPreviousChapter() {
+    const lastChapterGroup = this.chapters.at(this.chapters.length - 1) as FormGroup;
+    const videoArray = lastChapterGroup.get('videos') as FormArray;
+    videoArray.push(this.fb.group({
+      title: this.videoForm.value.title,
+      file: this.videoForm.value.file
+    }));
+  }
+
+  private finalizeCourse() {
+    console.log('最終課程資料:', this.courseDetailForm.value);
+    this.messageService.add({ severity: 'success', summary: '課程建立完成', detail: '課程已成功建立' });
+    // TODO: 可在這裡進行實際的 API 呼叫送出
   }
 }
