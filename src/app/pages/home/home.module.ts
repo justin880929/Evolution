@@ -22,7 +22,8 @@ import { InputTextModule } from 'primeng/inputtext';
 import { CartComponent } from './cart/cart.component';
 import { BadgeModule }  from 'primeng/badge';
 import { UserComponent } from './user/user.component';
-
+import { ContextMenuModule } from 'primeng/contextmenu';
+import { LearingListComponent } from './user/learing-list/learing-list.component';
 
 @NgModule({
   declarations: [
@@ -35,6 +36,7 @@ import { UserComponent } from './user/user.component';
     LearningComponent,
     CartComponent,
     UserComponent,
+    LearingListComponent,
   ],
   imports: [
     CommonModule,
@@ -51,6 +53,7 @@ import { UserComponent } from './user/user.component';
     TableModule,
     InputTextModule,
     BadgeModule,
+    ContextMenuModule,
   ],
 })
 export class HomeModule { }

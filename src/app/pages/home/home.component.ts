@@ -32,7 +32,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   cartCount = 0;
   isLoggedIn = false;
   username = '';
-  userPhotoUrl = '../../../assets/img/NoprofilePhoto.png.png';
+  userPhotoUrl = '../../../assets/img/NoprofilePhoto.png';
   userRole = '';
   isAdmin = false;
 

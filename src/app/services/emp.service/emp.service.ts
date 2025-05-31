@@ -5,20 +5,20 @@ import { map } from 'rxjs/operators';
 import { empDTO } from '../../Interface/empDTO';
 import { MOCK_EMPLOYEES } from '../../mock/mock-emp';
 import { FilterMetadata } from 'primeng/api';
+import { ConfigService } from '../Config.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class EmpService {
-  private useMock = true;
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient,private configService: ConfigService) { }
 
   /**
    * ✅ 模擬取得所有資料（如需 client-side 處理時使用）
    */
   private fetchData(): Observable<empDTO[]> {
-    return this.useMock
+    return this.configService.useMock
       ? of(MOCK_EMPLOYEES)
       : this.http.get<empDTO[]>('https://your-api/employees');
   }

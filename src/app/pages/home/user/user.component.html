@@ -1,1 +1,59 @@
-<p>user works!</p>
+<div class="container">
+  <div class="row align-items-start">
+    <div class="col-4">
+      <div class="card mx-auto shadow bg-body" style="width: 18rem">
+        <img
+          [src]="user.pic"
+          (error)="user.pic = 'assets/img/NoprofilePhoto.png'"
+          class="card-img-top rounded-circle mx-auto d-block mt-4"
+          alt="..."
+          style="width: 150px; height: 150px; object-fit: cover"
+        />
+        <div class="card-body mx-auto d-block text-center">
+          <h5 class="card-title">{{ user.name }}</h5>
+          <p class="card-text">
+            {{ user.email }}
+          </p>
+        </div>
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item">
+            <div class="row mx-auto">
+              <div class="col-4">公司 :</div>
+              <div class="col-8 mx-auto d-block text-center">
+                {{ user.company }}
+              </div>
+            </div>
+          </li>
+          <li class="list-group-item">
+            <div class="row mx-auto">
+              <div class="col-4">部門 :</div>
+              <div class="col-8 mx-auto d-block text-center">
+                {{ user.dep }}
+              </div>
+            </div>
+          </li>
+        </ul>
+        <div class="card-body">
+          <a href="#" class="card-link">Card link</a>
+          <a href="#" class="card-link">Another link</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-8">
+      <div>
+        <img
+          src="assets/img/userRouteImg.png"
+          class="card-img-top shadow bg-body rounded"
+          style="height: 350px"
+          alt="..."
+        />
+      </div>
+      <div class="learing-list mt-5 shadow bg-body rounded">
+        <app-learing-list
+          *ngFor="let course of courses"
+          [course]="course"
+        ></app-learing-list>
+      </div>
+    </div>
+  </div>
+</div>

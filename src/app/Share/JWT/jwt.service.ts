@@ -17,15 +17,16 @@ export class JWTService {
     localStorage.removeItem('jwt');
     localStorage.removeItem('refresh_token'); // 如果有存
   }
-  UnpackJWT(): { role: string, username: string, exp: number } | null {
+  UnpackJWT(): { role: string, username: string, exp: number,id:number } | null {
     const token = this.getToken();
     if (!token) return null;
 
     const decoded: any = jwtDecode(token);
-    const User: { username: string, role: string, exp: number } = {
-      username: '',
-      role: '',
-      exp: 0
+    const User: { username: string, role: string, exp: number,id:number } = {
+    id: 0,
+    username: '',
+    role: '',
+    exp: 0
     };
 
     for (const key in decoded) {
@@ -35,12 +36,15 @@ export class JWTService {
       if (key.includes('role')) {
         User.role = decoded[key];
       }
+      if (key.includes('sub')) {
+        User.id = decoded[key];
+      }
     }
 
     if (typeof decoded.exp === 'number') {
       User.exp = decoded.exp;
     }
-    return User.username && User.role && User.exp ? User : null;
+    return User.username && User.role && User.exp && User.id ? User : null;
 
   }
   shouldRefreshTokenSoon(bufferSeconds = 60): boolean {
@@ -50,5 +54,4 @@ export class JWTService {
     const now = Math.floor(Date.now() / 1000);
     return (info.exp - now) < bufferSeconds;
   }
-
 }
