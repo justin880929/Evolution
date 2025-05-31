@@ -111,7 +111,7 @@
       <!-- <a class="dropdown-item" href="#"> -->
         <div class="d-flex">
           <div class="flex-shrink-0 me-3">
-            <div class="avatar avatar-online">
+            <div class="">
               <img
               [src]="userPhotoUrl"
               (error)="userPhotoUrl = defaultPhoto"
@@ -141,22 +141,22 @@
 
     <!-- 📘 前往個人資料 -->
     <li>
-      <a class="dropdown-item" [routerLink]="['/home/profile']">
+      <a class="dropdown-item" [routerLink]="['/home/user']">
         <i class="bx bx-user me-2"></i>
         <span class="align-middle">個人資料</span>
       </a>
     </li>
 
     <!-- ⚙️ 設定 -->
-    <li>
+    <!-- <li>
       <a class="dropdown-item" [routerLink]="['/settings']">
         <i class="bx bx-cog me-2"></i>
         <span class="align-middle">設定</span>
       </a>
-    </li>
+    </li> -->
 
     <!-- 💳 訂閱計畫（可保留或移除） -->
-    <li>
+    <!-- <li>
       <a class="dropdown-item" [routerLink]="['/billing']">
         <span class="d-flex align-items-center align-middle">
           <i class="flex-shrink-0 bx bx-credit-card me-2"></i>
@@ -164,7 +164,7 @@
           <span class="flex-shrink-0 badge badge-center rounded-pill bg-danger w-px-20 h-px-20">4</span>
         </span>
       </a>
-    </li>
+    </li> -->
 
     <li><div class="dropdown-divider"></div></li>
 

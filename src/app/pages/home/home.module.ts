@@ -21,6 +21,7 @@ import { TableModule } from 'primeng/table';
 import { InputTextModule } from 'primeng/inputtext';
 import { CartComponent } from './cart/cart.component';
 import { BadgeModule }  from 'primeng/badge';
+import { UserComponent } from './user/user.component';
 
 
 @NgModule({
@@ -33,6 +34,7 @@ import { BadgeModule }  from 'primeng/badge';
     UserRepositoriesComponent,
     LearningComponent,
     CartComponent,
+    UserComponent,
   ],
   imports: [
     CommonModule,
