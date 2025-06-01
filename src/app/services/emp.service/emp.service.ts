@@ -1,5 +1,7 @@
+// src/app/services/emp.service/emp.service.ts
+
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { empDTO } from '../../Interface/empDTO';
@@ -7,41 +9,41 @@ import { MOCK_EMPLOYEES } from '../../mock/mock-emp';
 import { FilterMetadata } from 'primeng/api';
 import { ConfigService } from '../config.service';
 
+interface PagedResult<T> {
+  data: T[];
+  total: number;
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class EmpService {
 
-  constructor(private http: HttpClient,private configService: ConfigService) { }
+  private apiUrl = '/api/employees'; // 或你實際的 API 路徑
 
-  /**
-   * ✅ 模擬取得所有資料（如需 client-side 處理時使用）
-   */
+  private mockData: empDTO[] = [...MOCK_EMPLOYEES];
+
+  constructor(
+    private http: HttpClient,
+    private configService: ConfigService
+  ) { }
+
   private fetchData(): Observable<empDTO[]> {
     return this.configService.useMock
-      ? of(MOCK_EMPLOYEES)
-      : this.http.get<empDTO[]>('https://your-api/employees');
+      ? of(this.mockData)
+      : this.http.get<empDTO[]>(`${this.apiUrl}`);
   }
 
-  /**
-   * ✅ 回傳所有資料
-   */
   getAll(): Observable<empDTO[]> {
     return this.fetchData();
   }
 
-  /**
-   * ✅ 依 ID 查單筆資料
-   */
   getById(id: number): Observable<empDTO | undefined> {
-    return this.fetchData().pipe(map(data => data.find(e => e.userID === id)));
+    if (this.configService.useMock) {
+      return of(this.mockData.find(e => e.userID === id));
+    }
+    return this.http.get<empDTO>(`${this.apiUrl}/${id}`);
   }
-
-  /**
-   * ✅ 模擬 Lazy loading 分頁
-   * @param startIndex 分頁起始索引（例如第2頁開始就是 10）
-   * @param pageSize 每頁資料筆數
-   */
 
   getPagedResult(
     startIndex: number,
@@ -50,54 +52,102 @@ export class EmpService {
     sortOrder: number,
     filters: { [s: string]: FilterMetadata | FilterMetadata[] | undefined }
   ): Observable<{ data: empDTO[]; total: number }> {
-    let result = [...MOCK_EMPLOYEES];
+    if (this.configService.useMock) {
+      let data = [...this.mockData];
 
-    // ✅ 加入 statusLabel 欄位 → 讓它能被篩選與排序
-    result = result.map(emp => ({
-      ...emp,
-      statusLabel: emp.isEmailConfirmed ? '已驗證' : '未驗證'
-    }));
+      // 1. 加上 statusLabel
+      data = data.map(emp => ({
+        ...emp,
+        statusLabel: emp.isEmailConfirmed ? '已驗證' : '未驗證'
+      }));
 
+      // 2. 篩選
+      Object.keys(filters).forEach(field => {
+        const meta = filters[field];
+        const rawValue = Array.isArray(meta) ? meta[0]?.value : meta?.value;
+        const filterValue = (rawValue as string)?.toString().toLowerCase();
 
-    // 🔍 搜尋處理
-    for (const field in filters) {
-      const meta = filters[field];
-      const rawValue = Array.isArray(meta) ? meta[0]?.value : meta?.value;
+        if (filterValue) {
+          data = data.filter(emp => {
+            const cell = (emp as any)[field];
+            return cell?.toString().toLowerCase().includes(filterValue);
+          });
+        }
+      });
 
-      const filterValue = Array.isArray(rawValue)
-        ? rawValue[0]?.toLowerCase()
-        : rawValue?.toLowerCase();
+      const total = data.length;
 
-      if (filterValue) {
-        result = result.filter(emp => {
-          const val = (emp as any)[field]?.toString().toLowerCase();
-          return val?.includes(filterValue);
+      // 3. 排序
+      if (sortField) {
+        data.sort((a, b) => {
+          const valA = (a as any)[sortField];
+          const valB = (b as any)[sortField];
+          if (valA == null || valB == null) return 0;
+          if (valA > valB) return sortOrder;
+          if (valA < valB) return -sortOrder;
+          return 0;
         });
       }
+
+      // 4. 分頁
+      const paged = data.slice(startIndex, startIndex + pageSize);
+      return of({ data: paged, total });
     }
 
-    const total = result.length;
+    // 正式回後端
+    let params = new HttpParams()
+      .set('start', startIndex.toString())
+      .set('limit', pageSize.toString())
+      .set('sortField', sortField)
+      .set('sortOrder', sortOrder.toString());
 
-    // ✅ 先加上 statusLabel 欄位（讓它也能排序）
-    result = result.map(emp => ({
-      ...emp,
-      statusLabel: emp.isEmailConfirmed ? '已驗證' : '未驗證'
-    }));
+    Object.keys(filters).forEach(field => {
+      const meta = filters[field];
+      const rawValue = Array.isArray(meta) ? meta[0]?.value : meta?.value;
+      if (rawValue) {
+        params = params.set(`filter_${field}`, rawValue.toString());
+      }
+    });
 
-    // ✅ 所有欄位皆可排序（包含 statusLabel）
-    if (sortField) {
-      result.sort((a, b) => {
-        const valA = (a as any)[sortField];
-        const valB = (b as any)[sortField];
-        if (valA == null || valB == null) return 0;
-        return sortOrder * (valA > valB ? 1 : valA < valB ? -1 : 0);
-      });
-    }
-
-    // 📄 分頁
-    const page = result.slice(startIndex, startIndex + pageSize);
-
-    return of({ data: page, total });
+    return this.http.get<{ data: empDTO[]; total: number }>(`${this.apiUrl}`, { params });
   }
 
+  createEmployee(emp: empDTO): Observable<any> {
+    if (this.configService.useMock) {
+      const maxId = this.mockData.reduce((acc, cur) => Math.max(acc, cur.userID), 0);
+      const newEmp = { ...emp, userID: maxId + 1 };
+      this.mockData.push(newEmp);
+      return of({ success: true, data: newEmp });
+    }
+    return this.http.post<any>(this.apiUrl, emp);
+  }
+
+  updateEmployee(emp: empDTO): Observable<any> {
+    if (this.configService.useMock) {
+      const idx = this.mockData.findIndex(e => e.userID === emp.userID);
+      if (idx !== -1) {
+        this.mockData[idx] = { ...emp };
+        return of({ success: true, data: emp });
+      } else {
+        return of({ success: false, message: '找不到該筆假資料' });
+      }
+    }
+    return this.http.put<any>(`${this.apiUrl}/${emp.userID}`, emp);
+  }
+
+  deleteEmployee(id: number): Observable<any> {
+    if (this.configService.useMock) {
+      this.mockData = this.mockData.filter(e => e.userID !== id);
+      return of({ success: true });
+    }
+    return this.http.delete<any>(`${this.apiUrl}/${id}`);
+  }
+
+  deleteEmployeesBulk(ids: number[]): Observable<any> {
+    if (this.configService.useMock) {
+      this.mockData = this.mockData.filter(e => !ids.includes(e.userID));
+      return of({ success: true });
+    }
+    return this.http.post<any>(`${this.apiUrl}/bulk-delete`, { ids });
+  }
 }

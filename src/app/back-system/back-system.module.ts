@@ -1,6 +1,5 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-
 import { BackSystemRoutingModule } from './back-system-routing.module';
 import { BackSystemComponent } from './back-system.component';
 import { CourselistComponent } from './courselist/courselist.component';
@@ -20,7 +19,6 @@ import { CreateEmpComponent } from './create-emp/create-emp.component';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { StatusToTagPipe } from '../Pipe/emp.pipe';
-
 import { StepsModule } from 'primeng/steps';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
@@ -32,6 +30,10 @@ import { ButtonModule } from 'primeng/button';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { AnimateModule } from 'primeng/animate';
 import { InputNumberModule } from 'primeng/inputnumber';
+import { ToolbarModule } from 'primeng/toolbar';
+import { CheckboxModule } from 'primeng/checkbox';
+import { ToastModule } from 'primeng/toast';
+import { PaginatorModule } from 'primeng/paginator';
 @NgModule({
   declarations: [
     BackSystemComponent,
@@ -67,6 +69,10 @@ import { InputNumberModule } from 'primeng/inputnumber';
     TableModule,
     TagModule,
     StatusToTagPipe,
+    ToolbarModule,
+    CheckboxModule,
+    ToastModule,
+    PaginatorModule
   ],
   providers: [
     ConfirmationService,
