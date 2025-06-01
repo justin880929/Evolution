@@ -1,42 +1,157 @@
 <div class="container">
   <div class="row align-items-start">
     <div class="col-4">
-      <div class="card mx-auto shadow bg-body" style="width: 18rem">
-        <img
-          [src]="user.pic"
-          (error)="user.pic = 'assets/img/NoprofilePhoto.png'"
-          class="card-img-top rounded-circle mx-auto d-block mt-4"
-          alt="..."
-          style="width: 150px; height: 150px; object-fit: cover"
-        />
-        <div class="card-body mx-auto d-block text-center">
-          <h5 class="card-title">{{ user.name }}</h5>
-          <p class="card-text">
-            {{ user.email }}
-          </p>
-        </div>
-        <ul class="list-group list-group-flush">
-          <li class="list-group-item">
-            <div class="row mx-auto">
-              <div class="col-4">公司 :</div>
-              <div class="col-8 mx-auto d-block text-center">
-                {{ user.company }}
-              </div>
+      <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
+        <div class="card mx-auto shadow bg-body" style="width: 18rem">
+          <!-- 1. 大頭照預覽 -->
+          <div class="position-relative">
+            <!-- 顯示目前的 user.pic ；如果使用者已選新檔案，也同時把「預覽」路徑放在這裡 -->
+            <img
+              [src]="previewPicUrl || user.pic"
+              (error)="
+                previewPicUrl = null; user.pic = 'assets/img/NoprofilePhoto.png'
+              "
+              class="card-img-top rounded-circle mx-auto d-block mt-4"
+              alt="使用者頭像"
+              style="width: 150px; height: 150px; object-fit: cover"
+            />
+
+            <!-- 2. 編輯模式才顯示「更換大頭照」按鈕 -->
+            <button
+              *ngIf="isEditing"
+              type="button"
+              class="btn btn-sm btn-outline-secondary position-absolute"
+              style="bottom: 0; right: 50%; transform: translateX(50%)"
+              (click)="fileInput.click()"
+            >
+              更換大頭照
+            </button>
+            <!-- 隱藏的 file input，只透過按鈕觸發 -->
+            <input
+              #fileInput
+              type="file"
+              accept="image/*"
+              (change)="onFileSelected($event)"
+              hidden
+            />
+          </div>
+
+          <div class="card-body text-center">
+            <!-- 姓名 -->
+            <div class="mb-3">
+              <input
+                *ngIf="!isEditing"
+                type="text"
+                class="form-control-plaintext text-center"
+                readonly
+                [value]="user.name"
+              />
+              <input
+                *ngIf="isEditing"
+                type="text"
+                class="form-control text-center"
+                formControlName="name"
+              />
             </div>
-          </li>
-          <li class="list-group-item">
-            <div class="row mx-auto">
-              <div class="col-4">部門 :</div>
-              <div class="col-8 mx-auto d-block text-center">
-                {{ user.dep }}
-              </div>
+
+            <!-- Email -->
+            <div class="mb-3">
+              <input
+                *ngIf="!isEditing"
+                type="email"
+                class="form-control-plaintext text-center"
+                readonly
+                [value]="user.email"
+              />
+              <input
+                *ngIf="isEditing"
+                type="email"
+                class="form-control text-center"
+                formControlName="email"
+              />
             </div>
-          </li>
-        </ul>
-        <div class="card-body">
-          <a href="#" class="card-link">Card link</a>
-          <a href="#" class="card-link">Another link</a>
+          </div>
+
+          <ul class="list-group list-group-flush">
+            <!-- 公司 -->
+            <li class="list-group-item">
+              <div class="row gx-0 align-items-center">
+                <div class="col-4">
+                  <label class="col-form-label">公司：</label>
+                </div>
+                <div class="col-8">
+                  <input
+                    *ngIf="!isEditing"
+                    type="text"
+                    class="form-control-plaintext text-center"
+                    readonly
+                    [value]="user.company"
+                  />
+                  <input
+                    *ngIf="isEditing"
+                    type="text"
+                    class="form-control text-center"
+                    formControlName="company"
+                  />
+                </div>
+              </div>
+            </li>
+
+            <!-- 部門 -->
+            <li class="list-group-item">
+              <div class="row gx-0 align-items-center">
+                <div class="col-4">
+                  <label class="col-form-label">部門：</label>
+                </div>
+                <div class="col-8">
+                  <input
+                    *ngIf="!isEditing"
+                    type="text"
+                    class="form-control-plaintext text-center"
+                    readonly
+                    [value]="user.dep"
+                  />
+                  <input
+                    *ngIf="isEditing"
+                    type="text"
+                    class="form-control text-center"
+                    formControlName="dep"
+                  />
+                </div>
+              </div>
+            </li>
+          </ul>
+
+          <div class="card-body text-center">
+            <!-- 編輯按鈕 → 顯示時機： !isEditing -->
+            <button
+              type="button"
+              class="btn btn-secondary me-2"
+              *ngIf="!isEditing"
+              (click)="enterEdit()"
+            >
+              編輯
+            </button>
+
+            <!-- 儲存 + 取消按鈕 → 顯示時機： isEditing -->
+            <button type="submit" class="btn btn-primary" *ngIf="isEditing">
+              儲存
+            </button>
+            <button
+              type="button"
+              class="btn btn-outline-secondary ms-2"
+              *ngIf="isEditing"
+              (click)="cancelEdit()"
+            >
+              取消
+            </button>
+          </div>
         </div>
+      </form>
+
+      <!-- 顯示錯誤訊息 -->
+      <div *ngIf="errorMsg" class="alert alert-danger mt-3 text-center">
+        {{ errorMsg }}
       </div>
     </div>
     <div class="col-8">

@@ -5,7 +5,7 @@ import { map } from 'rxjs/operators';
 import { empDTO } from '../../Interface/empDTO';
 import { MOCK_EMPLOYEES } from '../../mock/mock-emp';
 import { FilterMetadata } from 'primeng/api';
-import { ConfigService } from '../Config.service';
+import { ConfigService } from '../config.service';
 
 @Injectable({
   providedIn: 'root',

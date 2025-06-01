@@ -4,7 +4,7 @@ import { Injectable } from '@angular/core';
 import { map, Observable, tap, throwError, of, BehaviorSubject } from 'rxjs';
 import { ResultService } from "../Share/result.service";
 import { JWTService } from '../Share/JWT/jwt.service';
-import { ConfigService } from './Config.service';
+import { ConfigService } from './config.service';
 interface AuthResponseDto {
   accessToken: string;
   refreshToken: string;

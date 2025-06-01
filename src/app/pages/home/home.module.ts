@@ -1,6 +1,5 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { HomeComponent } from './home.component';
 import { HomeRoutingModule } from './home-routing.module';
@@ -24,6 +23,7 @@ import { BadgeModule }  from 'primeng/badge';
 import { UserComponent } from './user/user.component';
 import { ContextMenuModule } from 'primeng/contextmenu';
 import { LearingListComponent } from './user/learing-list/learing-list.component';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 
 @NgModule({
   declarations: [
@@ -54,6 +54,7 @@ import { LearingListComponent } from './user/learing-list/learing-list.component
     InputTextModule,
     BadgeModule,
     ContextMenuModule,
+    ReactiveFormsModule,
   ],
 })
 export class HomeModule { }
