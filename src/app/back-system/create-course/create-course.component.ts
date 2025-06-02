@@ -91,95 +91,159 @@ export class CreateCourseComponent implements OnInit {
       return false
     }
   }
-  onNext() {
-    const stepLabel = this.steps[this.currentStep].label;
-    this.selectedVideoFileName = '';
+  chapterFormIndex = -1;
+  videoFormIndex = -1;
 
-    // 若不是最後一個步驟，直接切換步驟
-    if (this.currentStep < this.steps.length - 1) {
-      this.currentStep++;
-      console.log((this.steps.length - 1));
-      console.log(this.currentStep);
-      return;
+  getStepFormIndex(stepIndex: number, label: string): number {
+    return this.steps.slice(0, stepIndex + 1).filter(s => s.label === label).length - 1;
+  }
+
+  onNext() {
+    console.log("onNext");
+    if (this.currentStep >= this.steps.length - 1) return;
+    this.selectedVideoFileName = '';
+    this.currentStep++;
+    const fromFinalStep = this.currentStep === this.steps.length - 1;
+    const currentLabel = this.steps[this.currentStep].label;
+
+    // 🎯 記住當前章節 / 影片索引
+    if (currentLabel === '新增章節') {
+      this.chapterFormIndex = this.getStepFormIndex(this.currentStep, '新增章節');
+    } else if (currentLabel === '新增影片') {
+      this.videoFormIndex = this.getStepFormIndex(this.currentStep, '新增影片');
     }
 
-    switch (stepLabel) {
-      case '建立課程':
-        this.handleCourseStep();
-        break;
+    if (currentLabel === '確認建立課程') return;
 
+    switch (currentLabel) {
       case '新增章節':
-        if (this.lastUnsavedChapter && this.currentStep === this.steps.length - 1) {
+        if (fromFinalStep && this.lastUnsavedChapter) {
           this.chapterForm.patchValue(this.lastUnsavedChapter);
+          this.chapterForm.markAsPristine();
           this.lastUnsavedChapter = null;
         } else {
-          this.handleChapterStep();
+          const chapter = this.chapters.at(this.chapterFormIndex);
+          if (chapter) {
+            this.chapterForm.patchValue({
+              chapterTitle: chapter.get('chapterTitle')?.value,
+              chapterDes: chapter.get('chapterDes')?.value
+            });
+            this.chapterForm.markAsPristine();
+          }
         }
         break;
 
       case '新增影片':
-        console.log(this.lastUnsavedVideo);
-        if (this.lastUnsavedVideo && this.currentStep === this.steps.length - 1) {
+        if (fromFinalStep && this.lastUnsavedVideo) {
           const { title, file } = this.lastUnsavedVideo;
           this.videoForm.patchValue({ title, file });
           this.selectedVideoFile = file ?? null;
           this.selectedVideoFileName = file?.name ?? '';
+          this.videoForm.markAsPristine();
           this.lastUnsavedVideo = null;
         } else {
-          this.handleVideoStep();
+          let videoCounter = 0;
+          for (let c = 0; c < this.chapters.length; c++) {
+            const chapterGroup = this.chapters.at(c) as FormGroup;
+            const videoArray = chapterGroup.get('videos') as FormArray;
+            for (let v = 0; v < videoArray.length; v++) {
+              if (videoCounter === this.videoFormIndex) {
+                const video = videoArray.at(v);
+                const file = video.get('file')?.value;
+                this.videoForm.patchValue({
+                  title: video.get('title')?.value,
+                  file
+                });
+                this.selectedVideoFile = file ?? null;
+                this.selectedVideoFileName = file?.name ?? '';
+                this.videoForm.markAsPristine();
+                return;
+              }
+              videoCounter++;
+            }
+          }
         }
         break;
     }
   }
 
 
+
+
+
+  addNewSteps() {
+    console.log("新增 addNewSteps");
+    const stepLabel = this.steps[this.currentStep].label;
+    this.selectedVideoFileName = '';
+
+    // 是最後一步
+    switch (stepLabel) {
+      case '建立課程':
+        this.handleCourseStep(); // 建立課程 -> 新增章節
+        break;
+
+      case '新增章節':
+
+        this.handleChapterStep(); // push chapter 並新增「新增影片」步驟
+
+        break;
+
+      case '新增影片':
+        this.handleVideoStep(); // push video 並新增下一個「新增章節？」步驟
+        break;
+    }
+  }
+
   onPrev() {
     if (this.currentStep <= 0) return;
 
     const currentLabel = this.steps[this.currentStep].label;
 
-    // ✅ 暫存當前未提交的資料
-    if (currentLabel === '新增章節' && this.chapterForm.dirty) {
-      this.lastUnsavedChapter = this.chapterForm.getRawValue();
-    } else if (currentLabel === '新增影片' && this.videoForm.dirty) {
-      this.lastUnsavedVideo = {
-        ...this.videoForm.getRawValue(),
-        file: this.selectedVideoFile
-      };
-      this.videofile.nativeElement.value = ''; // 清除舊檔名
+    if (
+      !this.getHasFinal() &&
+      this.lastUnsavedChapter === null &&
+      this.lastUnsavedVideo === null &&
+      this.currentStep + 1 === this.steps.length
+    ) {
+      if (currentLabel === '新增章節' && this.chapterForm.dirty) {
+        this.lastUnsavedChapter = structuredClone(this.chapterForm.getRawValue());
+      } else if (currentLabel === '新增影片' && this.videoForm.dirty) {
+        this.lastUnsavedVideo = structuredClone({
+          ...this.videoForm.getRawValue(),
+          file: this.selectedVideoFile
+        });
+        this.videofile.nativeElement.value = '';
+      }
     }
 
-    // 🔄 回到上一步
     this.currentStep--;
-
     const prevStepLabel = this.steps[this.currentStep].label;
 
-    // 統計前面的章節與影片數量
-    const chapterStepCount = this.steps.slice(0, this.currentStep + 1)
-      .filter(s => s.label === '新增章節').length;
-    const videoStepCount = this.steps.slice(0, this.currentStep + 1)
-      .filter(s => s.label === '新增影片').length;
-
-    // ✅ 回填「已儲存的章節資料」
+    // 🎯 記住回到的章節 / 影片索引
     if (prevStepLabel === '新增章節') {
-      const chapter = this.chapters.at(chapterStepCount - 1);
+      this.chapterFormIndex = this.getStepFormIndex(this.currentStep, '新增章節');
+    } else if (prevStepLabel === '新增影片') {
+      this.videoFormIndex = this.getStepFormIndex(this.currentStep, '新增影片');
+    }
+
+    if (prevStepLabel === '確認建立課程') return;
+
+    if (prevStepLabel === '新增章節') {
+      const chapter = this.chapters.at(this.chapterFormIndex);
       if (chapter) {
         this.chapterForm.patchValue({
           chapterTitle: chapter.get('chapterTitle')?.value,
           chapterDes: chapter.get('chapterDes')?.value
         });
+        this.chapterForm.markAsPristine();
       }
-    }
-
-    // ✅ 回填「已儲存的影片資料」
-    else if (prevStepLabel === '新增影片') {
+    } else if (prevStepLabel === '新增影片') {
       let videoCounter = 0;
       for (let c = 0; c < this.chapters.length; c++) {
         const chapterGroup = this.chapters.at(c) as FormGroup;
         const videoArray = chapterGroup.get('videos') as FormArray;
         for (let v = 0; v < videoArray.length; v++) {
-          videoCounter++;
-          if (videoCounter === videoStepCount) {
+          if (videoCounter === this.videoFormIndex) {
             const video = videoArray.at(v);
             const file = video.get('file')?.value;
             this.videoForm.patchValue({
@@ -188,11 +252,84 @@ export class CreateCourseComponent implements OnInit {
             });
             this.selectedVideoFile = file ?? null;
             this.selectedVideoFileName = file?.name ?? '';
+            this.videoForm.markAsPristine();
+            return;
+          }
+          videoCounter++;
+        }
+      }
+    }
+  }
+
+  shouldShowEditButton(): boolean {
+    if (this.currentStep >= this.steps.length - 1) return false;
+
+    const currentLabel = this.steps[this.currentStep].label;
+
+    // 僅章節或影片步驟可編輯，且表單 dirty 時顯示
+    if (currentLabel === '新增章節') {
+      return this.chapterForm.dirty;
+    }
+
+    if (currentLabel === '新增影片') {
+      return this.videoForm.dirty;
+    }
+
+    return false;
+  }
+
+  onEdit() {
+    const currentLabel = this.steps[this.currentStep].label;
+
+    // ✅ 章節修改
+    if (currentLabel === '新增章節') {
+      if (this.chapterForm.invalid) return;
+
+      const chapterStepCount = this.steps.slice(0, this.currentStep + 1)
+        .filter(s => s.label === '新增章節').length;
+
+      const chapter = this.chapters.at(chapterStepCount - 1);
+      if (chapter) {
+        chapter.get('chapterTitle')?.setValue(this.chapterForm.value.chapterTitle);
+        chapter.get('chapterDes')?.setValue(this.chapterForm.value.chapterDes);
+
+        this.chapterForm.markAsPristine(); // ✅ 清除 dirty 狀態
+      }
+    }
+
+    // ✅ 影片修改
+    else if (currentLabel === '新增影片') {
+      if (this.videoForm.invalid) return;
+
+      const videoStepCount = this.steps.slice(0, this.currentStep + 1)
+        .filter(s => s.label === '新增影片').length;
+
+      let videoCounter = 0;
+      for (let c = 0; c < this.chapters.length; c++) {
+        const chapterGroup = this.chapters.at(c) as FormGroup;
+        const videoArray = chapterGroup.get('videos') as FormArray;
+
+        for (let v = 0; v < videoArray.length; v++) {
+          videoCounter++;
+          if (videoCounter === videoStepCount) {
+            const video = videoArray.at(v);
+
+            video.get('title')?.setValue(this.videoForm.value.title);
+            video.get('file')?.setValue(this.selectedVideoFile);
+
+            this.videoForm.markAsPristine(); // ✅ 清除 dirty 狀態
             return;
           }
         }
       }
     }
+  }
+  isFormDirty(): boolean {
+    if (this.currentStep === this.steps.length - 1) return false; // 最後一步不檢查 dirty
+    const label = this.steps[this.currentStep].label;
+    if (label === '新增章節') return this.chapterForm.dirty;
+    if (label === '新增影片') return this.videoForm.dirty;
+    return false;
   }
 
 
@@ -298,6 +435,7 @@ export class CreateCourseComponent implements OnInit {
       rejectLabel: '否',
       accept: () => {
         this.appendVideoToPreviousChapter();
+        this.selectedVideoFile = null
         this.videofile.nativeElement.value = ''; // ✅ 重設 UI 上殘留的檔案名稱
         this.steps.push({ label: '新增影片' });
         this.currentStep++;

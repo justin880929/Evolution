@@ -74,19 +74,36 @@
 
   <!-- 按鈕控制區 -->
   <div class="mt-4 d-flex justify-content-between">
-    <button class="btn btn-secondary" (click)="onPrev()" [disabled]="currentStep === 0">
-      上一步
-    </button>
-
+    <!-- 上一步 -->
+    <div>
+      <ng-container *ngIf="currentStep > 0 && !isFormDirty(); else showSaveReminder">
+        <button class="btn btn-secondary" (click)="onPrev()">上一步</button>
+      </ng-container>
+      <ng-template #showSaveReminder>
+        <span *ngIf="currentStep > 0" class="text-warning">
+          <i class="pi pi-exclamation-triangle me-1"></i>請先儲存再返回上一步</span>
+      </ng-template>
+    </div>
     <div class="d-flex gap-2">
+      <button *ngIf="shouldShowEditButton()" class="btn btn-warning" (click)="onEdit()">
+        儲存資料修改
+      </button>
       <button *ngIf="currentStep>1&&(currentStep===steps.length-1)&&!isFinalStep" class="btn btn-danger"
         (click)="removeLastStep()">
         刪除此步驟
       </button>
-      <button *ngIf="!isFinalStep||(getHasFinal()&&currentStep!==steps.length-1)" class="btn btn-primary"
-        (click)="onNext()">
+      <button
+        *ngIf="!isFormDirty() && (currentStep < steps.length - 1 || lastUnsavedChapter || lastUnsavedVideo || currentStep === 0 || getHasFinal())"
+        class="btn btn-primary" (click)="onNext()">
         下一步
       </button>
+
+      <!-- 只有在最後一步，且沒有要回填資料，才顯示 addNewSteps -->
+      <button *ngIf="currentStep === steps.length - 1 && !isFinalStep && !lastUnsavedChapter && !lastUnsavedVideo"
+        class="btn btn-primary" (click)="addNewSteps()">
+        下一步
+      </button>
+
       <button *ngIf="isFinalStep&&(currentStep===steps.length-1)" class="btn btn-success" (click)="finalizeCourse()">
         確認建立
       </button>
