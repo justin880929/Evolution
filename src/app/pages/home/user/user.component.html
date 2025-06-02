@@ -1,6 +1,6 @@
 <div class="container">
   <div class="row align-items-start">
-    <div class="col-4">
+    <div class="col-3">
       <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
         <div class="card mx-auto shadow bg-body" style="width: 18rem">
           <!-- 1. 大頭照預覽 -->
@@ -21,10 +21,10 @@
               *ngIf="isEditing"
               type="button"
               class="btn btn-sm btn-outline-secondary position-absolute"
-              style="bottom: 0; right: 50%; transform: translateX(50%)"
+              style="bottom: 10px; right: 10px"
               (click)="fileInput.click()"
             >
-              更換大頭照
+              <i class="bi bi-upload"></i>
             </button>
             <!-- 隱藏的 file input，只透過按鈕觸發 -->
             <input
@@ -154,7 +154,7 @@
         {{ errorMsg }}
       </div>
     </div>
-    <div class="col-8">
+    <div class="col-9">
       <div>
         <img
           src="assets/img/userRouteImg.png"
