@@ -24,6 +24,12 @@ import { UserComponent } from './user/user.component';
 import { ContextMenuModule } from 'primeng/contextmenu';
 import { LearingListComponent } from './user/learing-list/learing-list.component';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { ToolbarModule } from 'primeng/toolbar';
+import { CheckboxModule } from 'primeng/checkbox';
+import { ToastModule } from 'primeng/toast';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { RippleModule } from 'primeng/ripple';
+import { ConfirmationService, MessageService } from 'primeng/api';
 
 @NgModule({
   declarations: [
@@ -55,6 +61,15 @@ import { ReactiveFormsModule, FormsModule } from '@angular/forms';
     BadgeModule,
     ContextMenuModule,
     ReactiveFormsModule,
+    ToolbarModule,
+    CheckboxModule,
+    ToastModule,
+    ConfirmDialogModule,
+    RippleModule,
   ],
+  providers: [
+    ConfirmationService,
+    MessageService
+  ]
 })
 export class HomeModule { }
