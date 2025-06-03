@@ -1,0 +1,13 @@
+.focusto:hover {
+  background-color: #dff7e4;
+  transform: translateY(-3px);
+}
+
+/* 內層 card 半透明，讓外層背景露出 */
+.focusto:hover .card {
+  background-color: rgba(255, 255, 255, 0) !important; /* 80% 透明度 */
+}
+
+.card{
+  border: none !important;
+}

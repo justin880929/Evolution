@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CourseService } from 'src/app/services/course.service/course.service';
 import { CartService } from 'src/app/services/cart.service';
 import { courseDTO } from 'src/app/Interface/courseDTO';
@@ -16,7 +16,8 @@ export class CourseDetailComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private courseService: CourseService,
-    private cartService: CartService // ⬅️ 注入購物車服務
+    private cartService: CartService, // ⬅️ 注入購物車服務
+    private router: Router
   ) { }
 
   ngOnInit(): void {
@@ -39,7 +40,9 @@ export class CourseDetailComponent implements OnInit {
   addToCart(): void {
     if (this.course) {
       this.cartService.addToCart(this.course);
+      this.cartService.addToCart(this.course);
       alert('✅ 已加入購物車');
+      this.router.navigate(['/home/course-products']);
     }
   }
 }

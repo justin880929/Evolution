@@ -27,3 +27,66 @@
               // "src/assets/FrontSystem/vendor/glightbox/css/glightbox.min.css",
               // "src/assets/FrontSystem/vendor/swiper/swiper-bundle.min.css",
               // "src/assets/FrontSystem/css/main.css" */
+
+.p-overlay-badge .p-badge {
+  /* 舉例：上移 -4px、右移 -8px */
+  top: 30px !important;
+  right: 17px !important;
+}
+
+.avatar {
+  position: relative;
+  width: 2.375rem;
+  height: 1.95rem;
+  cursor: pointer;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+}
+
+.avatar .avatar-initial {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background-color: #8592a3;
+  font-weight: 700;
+}
+
+.avatar.avatar-online:after,
+.avatar.avatar-offline:after,
+.avatar.avatar-away:after,
+.avatar.avatar-busy:after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 100%;
+  box-shadow: 0 0 0 2px #fff;
+}
+
+.avatar.avatar-online:after {
+  background-color: #71dd37;
+}
+
+.avatar.avatar-offline:after {
+  background-color: #8592a3;
+}
+
+.avatar.avatar-away:after {
+  background-color: #ffab00;
+}
+
+.avatar.avatar-busy:after {
+  background-color: #ff3e1d;
+}

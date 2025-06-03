@@ -13,3 +13,11 @@
 .app-brand-logo img {
   max-height: 80px;
 }
+
+.top-color {
+  background-color: #fdfdfd !important;
+}
+
+.back-color {
+  background-color: #f5f8f1 !important;
+}

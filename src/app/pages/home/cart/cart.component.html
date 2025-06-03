@@ -1,33 +1,181 @@
-<div class="container mt-4">
-  <h2>🛒 購物車</h2>
+<div class="container">
+  <div class="row">
+    <!-- 左側：如果購物車有項目，顯示列表；否則顯示空狀態 -->
+    <div class="col-9">
+      <!-- 如果 cartItems.length > 0，才顯示原本的購物車列表 -->
+      <ng-container *ngIf="cartItems.length > 0; else emptyCart">
+        <div class="card">
+          <!-- 1. Toast 顯示位置 -->
+          <p-toast></p-toast>
 
-  <div *ngIf="cartItems.length === 0">
-    <p>購物車是空的。</p>
-  </div>
+          <!-- 2. 工具列：刪除已選項目 -->
+          <p-toolbar styleClass="gap-2">
+            <ng-template pTemplate="left">
+              <button
+                pButton
+                pRipple
+                label="Delete"
+                icon="pi pi-trash"
+                class="p-button-danger mr-2 rounded"
+                (click)="deleteSelectedItems()"
+                [disabled]="!selectedItems || !selectedItems.length"
+              ></button>
+            </ng-template>
+          </p-toolbar>
 
-  <div *ngIf="cartItems.length > 0">
-    <table class="table table-bordered table-striped">
-      <thead>
-        <tr>
-          <th>課程名稱</th>
-          <th>價格</th>
-          <th>操作</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let item of cartItems">
-          <td>{{ item.title }}</td>
-          <td>NT$ {{ item.price }}</td>
-          <td>
-            <button class="btn btn-sm btn-danger" (click)="removeItem(item.id)">移除</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+          <!-- 3. PrimeNG Table -->
+          <p-table
+            #dt
+            [value]="cartItems"
+            [(selection)]="selectedItems"
+            dataKey="id"
+            [rowHover]="true"
+            [globalFilterFields]="['title', 'price']"
+            [tableStyle]="{ 'min-width': '40rem' }"
+            currentPageReportTemplate="Showing {first} to {last} of {totalRecords} items"
+            [showCurrentPageReport]="true"
+          >
+            <!-- 3.1 Caption：標題 + 全域搜尋 -->
+            <ng-template pTemplate="caption">
+              <div class="flex align-items-center justify-content-between">
+                <h5 class="m-0">🛒 購物車</h5>
+                <span class="p-input-icon-left">
+                  <i class="pi pi-search"></i>
+                  <input
+                    pInputText
+                    type="text"
+                    (input)="
+                      dt.filterGlobal($any($event.target).value, 'contains')
+                    "
+                    placeholder="搜尋課程..."
+                  />
+                </span>
+              </div>
+            </ng-template>
 
-    <div class="d-flex justify-content-between">
-      <h4>總計：NT$ {{ getTotal() }}</h4>
-      <button class="btn btn-outline-danger" (click)="clearCart()">清空購物車</button>
+            <!-- 3.2 Header：新增「照片」欄位為第一個 -->
+            <ng-template pTemplate="header">
+              <tr>
+                <th style="width: 4rem">
+                  <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                </th>
+                <!-- 照片欄位 -->
+                <th style="width: 6rem">照片</th>
+                <!-- 課程名稱 -->
+                <th pSortableColumn="title" style="min-width: 15rem">
+                  課程名稱
+                  <p-sortIcon field="title"></p-sortIcon>
+                </th>
+                <!-- 價格 -->
+                <th pSortableColumn="price">
+                  價格
+                  <p-sortIcon field="price"></p-sortIcon>
+                </th>
+                <!-- 操作 -->
+                <th style="width: 8rem">操作</th>
+              </tr>
+            </ng-template>
+
+            <!-- 3.3 Body：每列先顯示照片、再顯示名稱、價格、最後操作按鈕 -->
+            <ng-template pTemplate="body" let-item>
+              <tr>
+                <!-- 勾選框 -->
+                <td>
+                  <p-tableCheckbox [value]="item"></p-tableCheckbox>
+                </td>
+                <!-- 照片欄位 -->
+                <td>
+                  <img
+                    [src]="item.coverImage"
+                    alt="{{ item.title }} 圖片"
+                    style="
+                      width: 50px;
+                      height: 50px;
+                      object-fit: cover;
+                      border-radius: 0.25rem;
+                    "
+                    (error)="item.coverImage = 'assets/img/course-product.png'"
+                  />
+                </td>
+                <!-- 課程名稱 -->
+                <td>{{ item.title }}</td>
+                <!-- 價格 -->
+                <td>NT$ {{ item.price }}</td>
+                <!-- 操作按鈕 -->
+                <td>
+                  <button
+                    type="button"
+                    class="btn btn-outline-danger btn-sm rounded-circle"
+                    (click)="deleteItem(item)"
+                  >
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </td>
+              </tr>
+            </ng-template>
+
+            <!-- ↓ 移除 p-template="summary" ↓ -->
+          </p-table>
+        </div>
+
+        <!-- 確認對話框 -->
+        <p-confirmDialog [style]="{ width: '450px' }"></p-confirmDialog>
+      </ng-container>
+
+      <!-- 空狀態範本 -->
+      <ng-template #emptyCart>
+        <div class="card text-center p-5">
+          <div class="card-body">
+            <p class="h5 mb-4">購物車是空的，再去尋找進化之路吧 !</p>
+            <button
+              class="btn btn-evolution"
+              type="button"
+              [routerLink]="['/home/course-products']"
+            >
+              前往商品頁
+            </button>
+          </div>
+        </div>
+      </ng-template>
+    </div>
+
+    <!-- 右側：只有在購物車有項目時才顯示訂單明細 -->
+    <div class="col-3" *ngIf="cartItems.length > 0">
+      <div class="border rounded p-3 text-center">
+        <!-- 1. 插入圖片：請將 src 換成你實際儲存的路徑 -->
+        <img
+          src="assets/img/transaction.png"
+          alt="Evolution 交易 插圖"
+          class="img-fluid w-100 mb-3"
+        />
+
+        <!-- 2. 訂單明細標題 -->
+        <h5 class="mb-3">訂單明細</h5>
+
+        <!-- 3. 顯示「已選取件數」與「已選取商品合併總價」 -->
+        <div class="d-flex justify-content-between mb-2">
+          <span>{{ selectedItems.length || 0 }} 件小計</span>
+          <span>NT$ {{ getSelectedTotal() }}</span>
+        </div>
+
+        <hr />
+
+        <!-- 4. 總金額 -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <strong>總金額</strong>
+          <strong>NT$ {{ getSelectedTotal() }}</strong>
+        </div>
+
+        <!-- 5. 結帳按鈕：沒有勾選任何項目就 disable -->
+        <button
+          class="btn btn-evolution w-100"
+          type="button"
+          (click)="checkout()"
+          [disabled]="!selectedItems.length"
+        >
+          來去結帳
+        </button>
+      </div>
     </div>
   </div>
 </div>

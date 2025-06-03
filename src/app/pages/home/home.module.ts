@@ -1,6 +1,5 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { HomeComponent } from './home.component';
 import { HomeRoutingModule } from './home-routing.module';
@@ -20,7 +19,17 @@ import { ButtonModule } from 'primeng/button';
 import { TableModule } from 'primeng/table';
 import { InputTextModule } from 'primeng/inputtext';
 import { CartComponent } from './cart/cart.component';
-
+import { BadgeModule }  from 'primeng/badge';
+import { UserComponent } from './user/user.component';
+import { ContextMenuModule } from 'primeng/contextmenu';
+import { LearingListComponent } from './user/learing-list/learing-list.component';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { ToolbarModule } from 'primeng/toolbar';
+import { CheckboxModule } from 'primeng/checkbox';
+import { ToastModule } from 'primeng/toast';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { RippleModule } from 'primeng/ripple';
+import { ConfirmationService, MessageService } from 'primeng/api';
 
 @NgModule({
   declarations: [
@@ -32,6 +41,8 @@ import { CartComponent } from './cart/cart.component';
     UserRepositoriesComponent,
     LearningComponent,
     CartComponent,
+    UserComponent,
+    LearingListComponent,
   ],
   imports: [
     CommonModule,
@@ -47,6 +58,18 @@ import { CartComponent } from './cart/cart.component';
     ButtonModule,
     TableModule,
     InputTextModule,
+    BadgeModule,
+    ContextMenuModule,
+    ReactiveFormsModule,
+    ToolbarModule,
+    CheckboxModule,
+    ToastModule,
+    ConfirmDialogModule,
+    RippleModule,
   ],
+  providers: [
+    ConfirmationService,
+    MessageService
+  ]
 })
 export class HomeModule { }

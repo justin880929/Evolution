@@ -13,6 +13,8 @@ import { CreateDepComponent } from './create-dep/create-dep.component';
 import { DepManageComponent } from './dep-manage/dep-manage.component';
 import { CreateEmpComponent } from './create-emp/create-emp.component';
 import { EmpManageComponent } from './emp-manage/emp-manage.component';
+import { UserComponent } from '../pages/home/user/user.component';
+
 const routes: Routes = [
   {
     path: '',

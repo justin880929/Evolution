@@ -4,6 +4,7 @@ import { Injectable } from '@angular/core';
 import { map, Observable, tap, throwError, of, BehaviorSubject } from 'rxjs';
 import { ResultService } from "../Share/result.service";
 import { JWTService } from '../Share/JWT/jwt.service';
+import { ConfigService } from './config.service';
 interface AuthResponseDto {
   accessToken: string;
   refreshToken: string;
@@ -36,8 +37,6 @@ export interface UserIdentity {
 @Injectable({ providedIn: 'root' })
 export class AuthService {
 
-  private useMock = true; // ✅ true = 使用 mock，不呼叫後端
-
   private authUrl = 'https://localhost:7274/api/auth';       // ✅ 用於 login
   private accountUrl = 'https://localhost:7274/api/account'; // ✅ 用於 reset-password 與 forgot-password
   private fakeResponse: ApiResponse<AuthResponseDto> = {
@@ -52,11 +51,11 @@ export class AuthService {
     }
   };
 
-  constructor(private http: HttpClient, private resultService: ResultService, private jwtService: JWTService) { }
+  constructor(private http: HttpClient, private resultService: ResultService, private jwtService: JWTService,private configService: ConfigService) { }
   private _loggedIn$$ = new BehaviorSubject<boolean>(!!localStorage.getItem('jwt'));
   public isLoggedIn$ = this._loggedIn$$.asObservable();
   login(email: string, password: string): Observable<UserIdentity | null> {
-    if (this.useMock) {
+    if (this.configService.useMock) {
       this.jwtService.setToken(this.fakeResponse.data.accessToken, this.fakeResponse.data.refreshToken)
       const user = this.jwtService.UnpackJWT();
       console.log('Mock 登入 user:', user); // ✅ 加這行檢查
@@ -106,7 +105,7 @@ export class AuthService {
   logout(): Observable<ApiResponse<string>> {
     console.log("logout");
 
-    if (this.useMock) {
+    if (this.configService.useMock) {
       // 清除邏輯不應寫在 service，應交由 component 控制
       this.jwtService.clearToken();
       this._loggedIn$$.next(false);

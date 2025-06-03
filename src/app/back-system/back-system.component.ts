@@ -50,7 +50,7 @@ export class BackSystemComponent implements OnInit, OnDestroy {
       this.username = user.username;
       this.role     = user.role;
       // ← 這裡改成絕對路徑，開頭加斜線
-      this.userPhotoUrl = '/assets/img/NoprofilePhoto.png.png';
+      this.userPhotoUrl = '/assets/img/NoprofilePhoto.png';
     } else {
       // 同樣用絕對路徑
       this.userPhotoUrl = '/assets/img/default-user.png';
