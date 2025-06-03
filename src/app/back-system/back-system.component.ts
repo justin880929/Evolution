@@ -43,18 +43,18 @@ export class BackSystemComponent implements OnInit, OnDestroy {
 
   async ngOnInit(): Promise<void> {
     try {
-    const user = this.jwtService.UnpackJWT();
-    this.isLoggedIn = !!user;
+      const user = this.jwtService.UnpackJWT();
+      this.isLoggedIn = !!user;
 
-    if (user) {
-      this.username = user.username;
-      this.role     = user.role;
-      // ← 這裡改成絕對路徑，開頭加斜線
-      this.userPhotoUrl = '/assets/img/NoprofilePhoto.png';
-    } else {
-      // 同樣用絕對路徑
-      this.userPhotoUrl = '/assets/img/default-user.png';
-    }
+      if (user) {
+        this.username = user.username;
+        this.role = user.role;
+        // ← 這裡改成絕對路徑，開頭加斜線
+        this.userPhotoUrl = '/assets/img/NoprofilePhoto.png';
+      } else {
+        // 同樣用絕對路徑
+        this.userPhotoUrl = '/assets/img/default-user.png';
+      }
 
       // 1. 初始化設定與輔助工具
       await this.loadScript('assets/BackSystem/js/config.js');
@@ -111,6 +111,9 @@ export class BackSystemComponent implements OnInit, OnDestroy {
       { label: '建立部門', link: 'create-dep' },
       { label: '員工管理', link: 'emp-manage' },
       { label: '建立員工帳號', link: 'create-emp' },
+    ],
+    Client: [
+      { label: '客戶帳號管理', link: 'client' },
     ],
   };
 

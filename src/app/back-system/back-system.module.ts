@@ -35,6 +35,7 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { ToastModule } from 'primeng/toast';
 import { PaginatorModule } from 'primeng/paginator';
 import { RadioButtonModule } from 'primeng/radiobutton';
+import { ClientComponent } from './client/client.component';
 @NgModule({
   declarations: [
     BackSystemComponent,
@@ -50,6 +51,7 @@ import { RadioButtonModule } from 'primeng/radiobutton';
     CreateDepComponent,
     EmpManageComponent,
     CreateEmpComponent,
+    ClientComponent,
   ],
   imports: [
     CommonModule,

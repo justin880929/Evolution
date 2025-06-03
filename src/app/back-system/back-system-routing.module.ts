@@ -14,6 +14,7 @@ import { DepManageComponent } from './dep-manage/dep-manage.component';
 import { CreateEmpComponent } from './create-emp/create-emp.component';
 import { EmpManageComponent } from './emp-manage/emp-manage.component';
 import { UserComponent } from '../pages/home/user/user.component';
+import { ClientComponent } from './client/client.component';
 
 const routes: Routes = [
   {
@@ -33,6 +34,7 @@ const routes: Routes = [
       { path: 'create-dep', component: CreateDepComponent },
       { path: 'emp-manage', component: EmpManageComponent },
       { path: 'create-emp', component: CreateEmpComponent },
+      { path: 'client', component: ClientComponent },
     ],
   },
   {
@@ -50,4 +52,4 @@ const routes: Routes = [
   imports: [RouterModule.forChild(routes)],
   exports: [RouterModule],
 })
-export class BackSystemRoutingModule {}
+export class BackSystemRoutingModule { }

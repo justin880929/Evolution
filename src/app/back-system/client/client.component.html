@@ -1,0 +1,117 @@
+<p-toolbar class="mb-2">
+  <div class="p-toolbar-group-left">
+    <!-- 新增員工按鈕 -->
+    <button pButton type="button" icon="pi pi-plus" label="新增客戶" class="p-button-success mr-2 rounded"
+      (click)="showCreateDialog()"></button>
+
+    <!-- 批次刊除按鈕，只有當已選擇 selectedEmps 長度 > 0 才可點擊 -->
+    <button pButton type="button" icon="pi pi-trash" label="刪除選取" class="p-button-danger rounded"
+      [disabled]="!selectedEmps || selectedEmps.length === 0" (click)="confirmDeleteSelected()"></button>
+  </div>
+</p-toolbar>
+
+<div class="card table-container">
+  <p-table #dt1 [value]="empList" [lazy]="true" (onLazyLoad)="loadLazyData($event)" [paginator]="true" [rows]="10"
+    [totalRecords]="totalRecords" [loading]="loading" [first]="first" selectionMode="multiple"
+    [(selection)]="selectedEmps" dataKey="userID" [tableStyle]="{ 'min-width': '50rem' }" stateStorage="session"
+    stateKey="emp-session">
+    <!-- 🔹 表頭區：先加上 checkbox 欄位，再加欄位排序與篩選 -->
+    <ng-template pTemplate="header">
+      <tr>
+        <!-- 1-1. 多選 CheckBox 欄位 -->
+        <th style="width: 3rem">
+          <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+        </th>
+
+        <!-- 1-2. 其他欄位：姓名/信箱/部門/狀態/操作 -->
+        <th pSortableColumn="username" style="width: 40%">
+          客戶名稱 <p-sortIcon field="username"></p-sortIcon>
+        </th>
+        <th pSortableColumn="email" style="width: 35%">
+          客戶信箱 <p-sortIcon field="email"></p-sortIcon>
+        </th>
+        <th pSortableColumn="statusLabel" style="width: 15%">
+          帳號狀態 <p-sortIcon field="statusLabel"></p-sortIcon>
+        </th>
+        <th style="width: 10%">操作</th>
+      </tr>
+      <tr>
+        <!-- 1-3. 篩選列：多選欄位這裡留空 -->
+        <th></th>
+
+        <th>
+          <input pInputText type="text" (input)="onInputFilter($event, 'username', dt1)"
+            [value]="getFilterValue(dt1.filters['username'])" placeholder="Search Name" class="w-full custom-input" />
+        </th>
+        <th>
+          <input pInputText type="text" (input)="onInputFilter($event, 'email', dt1)"
+            [value]="getFilterValue(dt1.filters['email'])" placeholder="Search Email" class="w-full custom-input" />
+        </th>
+        <th>
+          <input pInputText type="text" (input)="onInputFilter($event, 'statusLabel', dt1)"
+            [value]="getFilterValue(dt1.filters['statusLabel'])" placeholder="Search Status"
+            class="w-full custom-input" />
+        </th>
+        <!-- 篩選列最後一格（操作）的格子留空 -->
+        <th></th>
+      </tr>
+    </ng-template>
+
+    <!-- 🔸 資料列：先顯示 checkbox，再顯示其他欄位、最後一欄顯示「刪除圖示」-->
+    <ng-template pTemplate="body" let-emp>
+      <tr [pSelectableRow]="emp">
+        <!-- 2-1. 多選 CheckBox -->
+        <td>
+          <p-tableCheckbox [value]="emp"></p-tableCheckbox>
+        </td>
+
+        <!-- 2-2. 其他欄位：都改成 emp?.xxx -->
+        <td>{{ emp?.username }}</td>
+        <td>{{ emp?.email }}</td>
+        <td>
+          <p-tag [value]="emp?.statusLabel" [severity]="emp?.isEmailConfirmed ? 'success' : 'warning'"></p-tag>
+        </td>
+
+        <!-- 2-3. 單筆刪除按鈕 -->
+        <td>
+          <button pButton type="button" icon="pi pi-trash" class="p-button-rounded p-button-text p-button-danger"
+            (click)="confirmDelete(emp)"></button>
+        </td>
+      </tr>
+    </ng-template>
+
+    <!-- ⛔ 空資料顯示 -->
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="6">No employee found.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- 3. 新增/編輯 Dialog（以「新增員工」為例，可複用同一個 Dialog 來做編輯） -->
+<p-dialog header="{{ isCreateMode ? '新增客戶' : '編輯客戶' }}" [(visible)]="displayEmpDialog" [modal]="true"
+  [style]="{ width: '400px' }" [closable]="false" (onHide)="onDialogHide()">
+  <div class="p-fluid">
+    <!-- 假設員工物件屬性有：username、email、department、isEmailConfirmed -->
+    <div class="p-field">
+      <label for="username">客戶名稱</label>
+      <input id="username" type="text" pInputText [(ngModel)]="currentEmp.username" required />
+    </div>
+
+    <div class="p-field">
+      <label for="email">電子郵件</label>
+      <input id="email" type="email" pInputText [(ngModel)]="currentEmp.email" required />
+    </div>
+  </div>
+
+  <p-footer>
+    <button pButton type="button" label="取消" icon="pi pi-times" class="p-button-text"
+      (click)="displayEmpDialog = false"></button>
+    <button pButton type="button" label="新增" icon="pi pi-check" class="p-button-success" (click)="saveEmployee()"
+      [disabled]="!currentEmp.username || !currentEmp.email"></button>
+  </p-footer>
+</p-dialog>
+
+<!-- 4. 確認刪除 (ConfirmDialog) -->
+<p-confirmDialog></p-confirmDialog>
