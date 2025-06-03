@@ -4,90 +4,25 @@
       <p-avatar ariaLabel="User" icon="pi pi-user" styleClass="mr-2" size="xlarge"
         [style]="{'background-color':'#2196F3', 'color': '#ffffff'}" shape="circle">
       </p-avatar>
-      <strong class="text-capitalize fs-3 ms-3">User</strong>
+      <strong class="text-capitalize fs-3 ms-3">{{UserName}}</strong>
     </div>
     <span class="p-fluid">
-      <p-autoComplete placeholder="Search..."></p-autoComplete>
+      <p-autoComplete [(ngModel)]="searchKeyword" (ngModelChange)="onSearchChange($event)" [suggestions]="[]"
+        [dropdown]="false" [showClear]="true" placeholder="Search..."></p-autoComplete>
+
     </span>
-    <hr>
+
+    <hr />
+
     <div class="course-list">
-      <div class="card custom-card ">
-        <div (click)="gotoLearning()">
-          <img class="card-img-top" src="assets/img/EvolutionLogo.png">
-
-          <div class="card-body">
-            <h5 class="course-title">Docker 容器技術</h5>
-            <p class="course-company">發布單位：DevOps 學院</p>
-            <p class="course-description">學會用 Docker 封裝與部署應用。</p>
-            <p class="course-price">NT$ 2,100</p>
-          </div>
+      <div class="card custom-card" *ngFor="let course of filteredCourses" (click)="gotoLearning()">
+        <img class="card-img-top" src='assets/img/EvolutionLogo.png' alt="課程封面" />
+        <div class="card-body">
+          <h5 class="course-title">{{ course.title }}</h5>
+          <p class="course-company">發布單位：{{ course.company }}</p>
+          <p class="course-description">{{ course.description }}</p>
+          <p class="course-price">NT$ {{ course.price }}</p>
         </div>
-
-      </div>
-      <div class="card custom-card ">
-        <div (click)="gotoLearning()">
-          <img class="card-img-top" src="assets/img/EvolutionLogo.png">
-
-          <div class="card-body">
-            <h5 class="course-title">Docker 容器技術</h5>
-            <p class="course-company">發布單位：DevOps 學院</p>
-            <p class="course-description">學會用 Docker 封裝與部署應用。</p>
-            <p class="course-price">NT$ 2,100</p>
-          </div>
-        </div>
-
-      </div>
-      <div class="card custom-card ">
-        <div (click)="gotoLearning()">
-          <img class="card-img-top" src="assets/img/EvolutionLogo.png">
-
-          <div class="card-body">
-            <h5 class="course-title">Docker 容器技術</h5>
-            <p class="course-company">發布單位：DevOps 學院</p>
-            <p class="course-description">學會用 Docker 封裝與部署應用。</p>
-            <p class="course-price">NT$ 2,100</p>
-          </div>
-        </div>
-
-      </div>
-      <div class="card custom-card ">
-        <div (click)="gotoLearning()">
-          <img class="card-img-top" src="assets/img/EvolutionLogo.png">
-
-          <div class="card-body">
-            <h5 class="course-title">Docker 容器技術</h5>
-            <p class="course-company">發布單位：DevOps 學院</p>
-            <p class="course-description">學會用 Docker 封裝與部署應用。</p>
-            <p class="course-price">NT$ 2,100</p>
-          </div>
-        </div>
-
-      </div>
-      <div class="card custom-card ">
-        <div (click)="gotoLearning()">
-          <img class="card-img-top" src="assets/img/EvolutionLogo.png">
-
-          <div class="card-body">
-            <h5 class="course-title">Docker 容器技術</h5>
-            <p class="course-company">發布單位：DevOps 學院</p>
-            <p class="course-description">學會用 Docker 封裝與部署應用。</p>
-            <p class="course-price">NT$ 2,100</p>
-          </div>
-        </div>
-
-      </div>
-      <div class="card custom-card ">
-        <div (click)="gotoLearning()">
-          <img class="card-img-top" src="assets/img/EvolutionLogo.png">
-
-          <div class="card-body">
-            <h5 class="course-title">Docker 容器技術</h5>
-            <p class="course-company">發布單位：DevOps 學院</p>
-            <p class="course-description">學會用 Docker 封裝與部署應用。</p>
-            <p class="course-price">NT$ 2,100</p>
-          </div>
-        </div>
-
       </div>
     </div>
 

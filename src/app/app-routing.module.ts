@@ -9,7 +9,7 @@ import { guardsChildGuard, guardsGuard, loginGuard } from './Share/Guards/guards
 const routes: Routes = [
   {
     path: 'back-system',
-    canActivate: [guardsGuard],
+    // canActivate: [guardsGuard],
     loadChildren: () =>
       import('./back-system/back-system.module').then(
         (m) => m.BackSystemModule
@@ -17,7 +17,7 @@ const routes: Routes = [
   },
   {
     path: 'home',
-    canActivateChild: [guardsChildGuard],
+    // canActivateChild: [guardsChildGuard],
     loadChildren: () =>
       import('./pages/home/home.module').then((m) => m.HomeModule),
   },

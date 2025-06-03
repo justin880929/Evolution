@@ -34,6 +34,7 @@ import { ToolbarModule } from 'primeng/toolbar';
 import { CheckboxModule } from 'primeng/checkbox';
 import { ToastModule } from 'primeng/toast';
 import { PaginatorModule } from 'primeng/paginator';
+import { RadioButtonModule } from 'primeng/radiobutton';
 @NgModule({
   declarations: [
     BackSystemComponent,
@@ -72,7 +73,9 @@ import { PaginatorModule } from 'primeng/paginator';
     ToolbarModule,
     CheckboxModule,
     ToastModule,
-    PaginatorModule
+    PaginatorModule,
+    RadioButtonModule,
+    ToastModule,
   ],
   providers: [
     ConfirmationService,
