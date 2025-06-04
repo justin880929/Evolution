@@ -1,162 +1,156 @@
+<!-- Layout wrapper -->
+<div class="layout-wrapper layout-content-navbar">
+  <div class="layout-container">
+    <!-- Menu -->
 
-  <!-- Layout wrapper -->
-  <div class="layout-wrapper layout-content-navbar">
-    <div class="layout-container">
-      <!-- Menu -->
+    <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+      <div class="app-brand demo">
+        <a href="/home" class="app-brand-link">
+          <span class="app-brand-logo demo">
+            <img src="../../assets/img/EvolutionLogo.png" alt="Evolution Logo">
+          </span>
+          <span class="app-brand-text demo menu-text fw-bolder ms-2">Evolution</span>
+        </a>
 
-      <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
-        <div class="app-brand demo">
-          <a href="/home" class="app-brand-link">
-            <span class="app-brand-logo demo">
-              <img src="../../assets/img/EvolutionLogo.png" alt="Evolution Logo">
-            </span>
-            <span class="app-brand-text demo menu-text fw-bolder ms-2">Evolution</span>
-          </a>
-
-          <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto d-block d-xl-none">
-            <i class="bx bx-chevron-left bx-sm align-middle"></i>
-          </a>
-        </div>
-
-
-        <div class="menu-inner-shadow"></div>
-
-        <ul class="menu-inner py-1">
-          <!-- Dashboard -->
-          <li class="menu-item active">
-            <a [routerLink]="['back-dashboard']" class="menu-link">
-              <i class="menu-icon tf-icons bx bx-home-circle"></i>
-              <div data-i18n="Analytics">後台主頁</div>
-            </a>
-          </li>
-          <li class="menu-header small text-uppercase">
-            <span class="menu-header-text">訂單與金流</span>
-          </li>
-          <li class="menu-header small text-uppercase">
-            <span class="menu-header-text">公告</span>
-          </li>
-          <li class="menu-header small text-uppercase">
-            <span class="menu-header-text">課程</span>
-          </li>
-          <!-- Layouts -->
-          <li class="menu-item">
-            <a href="javascript:void(0);" class="menu-link menu-toggle">
-              <i class="menu-icon tf-icons bx bx-layout"></i>
-              <div data-i18n="Layouts">課程管理</div>
-            </a>
-
-            <ul class="menu-sub">
-              <li class="menu-item" *ngFor="let item of menuItems.course">
-                <a [routerLink]="[item.link]" class="menu-link">
-                  <div data-i18n="Without menu">{{item.label}}</div>
-                </a>
-              </li>
-            </ul>
-          </li>
-          <li class="menu-header small text-uppercase">
-            <span class="menu-header-text">員工與部門</span>
-          </li>
-          <!-- Layouts -->
-          <li class="menu-item">
-            <a href="javascript:void(0);" class="menu-link menu-toggle">
-              <i class="menu-icon tf-icons bx bx-layout"></i>
-              <div data-i18n="Layouts">員工部門管理</div>
-            </a>
-
-            <ul class="menu-sub">
-              <li class="menu-item" *ngFor="let item of menuItems.EmpDep">
-                <a [routerLink]="[item.link]" class="menu-link">
-                  <div data-i18n="Without menu">{{item.label}}</div>
-                </a>
-              </li>
-            </ul>
-          </li>
-        </ul>
-      </aside>
-      <!-- / Menu -->
-
-      <!-- Layout container -->
-      <div class="layout-page back-color">
-        <!-- Navbar -->
-
-        <div class="container-xxl flex-grow-1 container-p-y">
-          <div class=" " id="navbar-collapse">
-            <!-- Search -->
-
-            <div class="container-xxl navbar-nav-right d-flex flex-grow-1 container-p-y align-items-center text-center top-color">
-              <div class="layout-menu-toggle navbar-nav align-items-xl-center me-3 me-xl-0 d-xl-none">
-                <a class="nav-item nav-link px-0 me-xl-4" href="javascript:void(0)">
-                  <i class="bx bx-menu bx-sm"></i>
-                </a>
-              </div>
-              <h4 class="fw-bold "><span class="text-muted fw-light">UI elements /</span> Navbar</h4>
-              <div class="navbar-nav flex-row align-items-center ms-auto">
-              <!-- ✅ 使用者選單（Sneat 風格 + Angular 整合） -->
-<div class="nav-item navbar-dropdown dropdown-user dropdown" *ngIf="isLoggedIn">
-  <a class="nav-link dropdown-toggle hide-arrow" href="#" data-bs-toggle="dropdown">
-    <div class="avatar avatar-online">
-      <img
-        [src]="userPhotoUrl"
-        (error)="userPhotoUrl = defaultPhoto"
-        alt="User Photo"
-        class="w-px-40 h-auto rounded-circle"
-      />
-    </div>
-  </a>
-
-  <ul class="dropdown-menu dropdown-menu-end">
-    <!-- 使用者資訊 -->
-    <li>
-      <div class="dropdown-item-text">
-      <!-- <a class="dropdown-item" href="#"> -->
-        <div class="d-flex">
-          <div class="flex-shrink-0 me-3">
-            <div class="">
-              <img
-              [src]="userPhotoUrl"
-              (error)="userPhotoUrl = defaultPhoto"
-              alt="User Photo"
-              class="w-px-40 h-auto rounded-circle"
-              />
-            </div>
-          </div>
-          <div class="flex-grow-1">
-            <span class="fw-semibold d-block">{{ username }}</span>
-            <small class="text-muted">{{ role }}</small>
-          </div>
-        </div>
-      <!-- </a> -->
+        <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto d-block d-xl-none">
+          <i class="bx bx-chevron-left bx-sm align-middle"></i>
+        </a>
       </div>
-    </li>
 
-    <li><div class="dropdown-divider"></div></li>
 
-    <!-- 🔐 Admin 與 SuperAdmin 顯示後台 -->
-    <li *ngIf="role === 'Admin' || role === 'SuperAdmin'">
-      <a class="dropdown-item" [routerLink]="['/back-system']">
-        <i class="bx bx-desktop me-2"></i>
-        <span class="align-middle">後台管理</span>
-      </a>
-    </li>
+      <div class="menu-inner-shadow"></div>
 
-    <!-- 📘 前往個人資料 -->
-    <li>
-      <a class="dropdown-item" [routerLink]="['/home/user']">
-        <i class="bx bx-user me-2"></i>
-        <span class="align-middle">個人資料</span>
-      </a>
-    </li>
+      <ul class="menu-inner py-1">
+        <!-- Dashboard -->
+        <li class="menu-item active">
+          <a [routerLink]="['back-dashboard']" class="menu-link">
+            <i class="menu-icon tf-icons bx bx-home-circle"></i>
+            <div data-i18n="Analytics">後台主頁</div>
+          </a>
+        </li>
+        <li class="menu-header small text-uppercase">
+          <span class="menu-header-text">訂單與金流</span>
+        </li>
+        <li class="menu-header small text-uppercase">
+          <span class="menu-header-text">公告</span>
+        </li>
+        <li class="menu-header small text-uppercase">
+          <span class="menu-header-text">課程</span>
+        </li>
+        <!-- Layouts -->
+        <li class="menu-item">
+          <a href="javascript:void(0);" class="menu-link menu-toggle">
+            <i class="menu-icon tf-icons bx bx-layout"></i>
+            <div data-i18n="Layouts">課程管理</div>
+          </a>
 
-    <!-- ⚙️ 設定 -->
-    <!-- <li>
+          <ul class="menu-sub">
+            <li class="menu-item" *ngFor="let item of menuItems.course">
+              <a [routerLink]="[item.link]" class="menu-link">
+                <div data-i18n="Without menu">{{item.label}}</div>
+              </a>
+            </li>
+          </ul>
+        </li>
+        <li class="menu-header small text-uppercase">
+          <span class="menu-header-text">員工與部門</span>
+        </li>
+        <!-- Layouts -->
+        <li class="menu-item">
+          <a href="javascript:void(0);" class="menu-link menu-toggle">
+            <i class="menu-icon tf-icons bx bx-layout"></i>
+            <div data-i18n="Layouts">員工部門管理</div>
+          </a>
+
+          <ul class="menu-sub">
+            <li class="menu-item" *ngFor="let item of menuItems.EmpDep">
+              <a [routerLink]="[item.link]" class="menu-link">
+                <div data-i18n="Without menu">{{item.label}}</div>
+              </a>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </aside>
+    <!-- / Menu -->
+
+    <!-- Layout container -->
+    <div class="layout-page back-color">
+      <!-- Navbar -->
+
+      <div class="container-xxl flex-grow-1 container-p-y">
+        <div class=" " id="navbar-collapse">
+          <!-- Search -->
+
+          <div
+            class="container-xxl navbar-nav-right d-flex flex-grow-1 container-p-y align-items-center text-center top-color">
+            <div class="layout-menu-toggle navbar-nav align-items-xl-center me-3 me-xl-0 d-xl-none">
+              <a class="nav-item nav-link px-0 me-xl-4" href="javascript:void(0)">
+                <i class="bx bx-menu bx-sm"></i>
+              </a>
+            </div>
+            <h4 class="fw-bold "><span class="text-muted fw-light">課程管理 /</span> 建立課程</h4>
+            <div class="navbar-nav flex-row align-items-center ms-auto">
+              <!-- ✅ 使用者選單（Sneat 風格 + Angular 整合） -->
+              <div class="nav-item navbar-dropdown dropdown-user dropdown" *ngIf="isLoggedIn">
+                <a class="nav-link dropdown-toggle hide-arrow" href="#" data-bs-toggle="dropdown">
+                  <div class="avatar avatar-online">
+                    <img [src]="userPhotoUrl" (error)="userPhotoUrl = defaultPhoto" alt="User Photo"
+                      class="w-px-40 h-auto rounded-circle" />
+                  </div>
+                </a>
+
+                <ul class="dropdown-menu dropdown-menu-end">
+                  <!-- 使用者資訊 -->
+                  <li>
+                    <div class="dropdown-item-text">
+                      <!-- <a class="dropdown-item" href="#"> -->
+                      <div class="d-flex">
+                        <div class="flex-shrink-0 me-3">
+                          <div class="">
+                            <img [src]="userPhotoUrl" (error)="userPhotoUrl = defaultPhoto" alt="User Photo"
+                              class="w-px-40 h-auto rounded-circle" />
+                          </div>
+                        </div>
+                        <div class="flex-grow-1">
+                          <span class="fw-semibold d-block">{{ username }}</span>
+                          <small class="text-muted">{{ role }}</small>
+                        </div>
+                      </div>
+                      <!-- </a> -->
+                    </div>
+                  </li>
+
+                  <li>
+                    <div class="dropdown-divider"></div>
+                  </li>
+
+                  <!-- 🔐 Admin 與 SuperAdmin 顯示後台 -->
+                  <li *ngIf="role === 'Admin' || role === 'SuperAdmin'">
+                    <a class="dropdown-item" [routerLink]="['/back-system']">
+                      <i class="bx bx-desktop me-2"></i>
+                      <span class="align-middle">後台管理</span>
+                    </a>
+                  </li>
+
+                  <!-- 📘 前往個人資料 -->
+                  <li>
+                    <a class="dropdown-item" [routerLink]="['/home/user']">
+                      <i class="bx bx-user me-2"></i>
+                      <span class="align-middle">個人資料</span>
+                    </a>
+                  </li>
+
+                  <!-- ⚙️ 設定 -->
+                  <!-- <li>
       <a class="dropdown-item" [routerLink]="['/settings']">
         <i class="bx bx-cog me-2"></i>
         <span class="align-middle">設定</span>
       </a>
     </li> -->
 
-    <!-- 💳 訂閱計畫（可保留或移除） -->
-    <!-- <li>
+                  <!-- 💳 訂閱計畫（可保留或移除） -->
+                  <!-- <li>
       <a class="dropdown-item" [routerLink]="['/billing']">
         <span class="d-flex align-items-center align-middle">
           <i class="flex-shrink-0 bx bx-credit-card me-2"></i>
@@ -166,37 +160,38 @@
       </a>
     </li> -->
 
-    <li><div class="dropdown-divider"></div></li>
+                  <li>
+                    <div class="dropdown-divider"></div>
+                  </li>
 
-    <!-- 🔴 登出 -->
-    <li>
-      <a class="dropdown-item text-danger" href="#" (click)="logout($event)">
-        <i class="bx bx-power-off me-2"></i>
-        <span class="align-middle">登出</span>
-      </a>
-    </li>
-  </ul>
-</div>
-
-                <!--/ User -->
+                  <!-- 🔴 登出 -->
+                  <li>
+                    <a class="dropdown-item text-danger" href="#" (click)="logout($event)">
+                      <i class="bx bx-power-off me-2"></i>
+                      <span class="align-middle">登出</span>
+                    </a>
+                  </li>
+                </ul>
               </div>
+
+              <!--/ User -->
             </div>
-
-            <!-- /Search -->
-
-
           </div>
-          <router-outlet></router-outlet>
+
+          <!-- /Search -->
+
+
         </div>
-        <!-- / Navbar -->
-        <!-- <router-outlet></router-outlet> -->
-        <!-- Content wrapper -->
+        <router-outlet></router-outlet>
       </div>
-      <!-- / Layout page -->
+      <!-- / Navbar -->
+      <!-- <router-outlet></router-outlet> -->
+      <!-- Content wrapper -->
     </div>
-
-    <!-- Overlay -->
-    <div class="layout-overlay layout-menu-toggle"></div>
+    <!-- / Layout page -->
   </div>
-  <!-- / Layout wrapper -->
 
+  <!-- Overlay -->
+  <div class="layout-overlay layout-menu-toggle"></div>
+</div>
+<!-- / Layout wrapper -->

@@ -20,7 +20,8 @@ export class InterceptorService implements HttpInterceptor {
     '/api/auth/logout',
     '/api/auth/refresh',
     '/api/account/reset-password',
-    '/api/account/forgot-password'
+    '/api/account/forgot-password',
+    '/api/course'
   ];
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     const url = req.url.toLowerCase();

@@ -43,18 +43,18 @@ export class BackSystemComponent implements OnInit, OnDestroy {
 
   async ngOnInit(): Promise<void> {
     try {
-    const user = this.jwtService.UnpackJWT();
-    this.isLoggedIn = !!user;
+      const user = this.jwtService.UnpackJWT();
+      this.isLoggedIn = !!user;
 
-    if (user) {
-      this.username = user.username;
-      this.role     = user.role;
-      // ← 這裡改成絕對路徑，開頭加斜線
-      this.userPhotoUrl = '/assets/img/NoprofilePhoto.png';
-    } else {
-      // 同樣用絕對路徑
-      this.userPhotoUrl = '/assets/img/default-user.png';
-    }
+      if (user) {
+        this.username = user.username;
+        this.role = user.role;
+        // ← 這裡改成絕對路徑，開頭加斜線
+        this.userPhotoUrl = '/assets/img/NoprofilePhoto.png';
+      } else {
+        // 同樣用絕對路徑
+        this.userPhotoUrl = '/assets/img/default-user.png';
+      }
 
       // 1. 初始化設定與輔助工具
       await this.loadScript('assets/BackSystem/js/config.js');
@@ -76,12 +76,12 @@ export class BackSystemComponent implements OnInit, OnDestroy {
       await this.loadScript('assets/BackSystem/js/main.js');
       await this.loadScript('assets/BackSystem/js/dashboards-analytics.js');
 
-      console.log('✅ 所有腳本載入完成');
+      // console.log('✅ 所有腳本載入完成');
 
       const globalWin = window as any;
       if (globalWin.Menu && typeof globalWin.Menu.init === 'function') {
         globalWin.Menu.init();
-        console.log('✅ Menu.init() 執行完成');
+        // console.log('✅ Menu.init() 執行完成');
       }
 
       if (
@@ -89,7 +89,7 @@ export class BackSystemComponent implements OnInit, OnDestroy {
         typeof globalWin.Helpers.initCustomOptionCheck === 'function'
       ) {
         globalWin.Helpers.initCustomOptionCheck();
-        console.log('✅ Helpers.initCustomOptionCheck() 執行完成');
+        // console.log('✅ Helpers.initCustomOptionCheck() 執行完成');
       }
     } catch (err) {
       console.error('❌ Script loading error:', err);
@@ -117,7 +117,7 @@ export class BackSystemComponent implements OnInit, OnDestroy {
   loadScript(src: string): Promise<void> {
     return new Promise((resolve, reject) => {
       if (document.querySelector(`script[src="${src}"]`)) {
-        console.warn(`Script already loaded: ${src}`);
+        // console.warn(`Script already loaded: ${src}`);
         return resolve();
       }
 
@@ -127,7 +127,7 @@ export class BackSystemComponent implements OnInit, OnDestroy {
       script.defer = true;
 
       script.onload = () => {
-        console.log(`✅ Script loaded: ${src}`);
+        // console.log(`✅ Script loaded: ${src}`);
         resolve();
       };
 
