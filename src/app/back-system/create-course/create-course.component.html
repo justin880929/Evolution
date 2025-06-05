@@ -8,29 +8,29 @@
     <form *ngIf="steps[currentStep]?.label === '建立課程'" [formGroup]="courseForm">
       <div class="mb-3">
         <label class="form-label">課程標題</label>
-        <input type="text" class="form-control" formControlName="courseTitle" />
+        <input type="text" class="form-control" formControlName="CourseTitle" />
       </div>
 
       <div class="mb-3">
         <label class="form-label">課程描述</label>
-        <textarea class="form-control" formControlName="courseDes"></textarea>
+        <textarea class="form-control" formControlName="CourseDes"></textarea>
       </div>
 
       <div class="mb-3">
         <label class="form-label d-block">是否公開</label>
         <div class="form-check form-check-inline">
-          <p-radioButton name="isPublic" value="true" inputId="public-yes" formControlName="isPublic"></p-radioButton>
+          <p-radioButton name="IsPublic" value="true" inputId="public-yes" formControlName="IsPublic"></p-radioButton>
           <label for="public-yes" class="form-check-label ms-1">是</label>
         </div>
         <div class="form-check form-check-inline">
-          <p-radioButton name="isPublic" value="false" inputId="public-no" formControlName="isPublic"></p-radioButton>
+          <p-radioButton name="IsPublic" value="false" inputId="public-no" formControlName="IsPublic"></p-radioButton>
           <label for="public-no" class="form-check-label ms-1">否</label>
         </div>
       </div>
 
       <div class="mb-3">
         <label class="form-label">課程價格</label>
-        <input type="number" class="form-control" formControlName="coursePrice" />
+        <input type="number" class="form-control" formControlName="Price" />
       </div>
 
       <div class="mb-3">
@@ -71,6 +71,8 @@
       </button> -->
       </div>
     </div>
+    <!-- 顯示上傳進度 -->
+    <p-progressBar *ngIf="isUploading" [value]="progressPercent"></p-progressBar>
     <!-- PrimeNG ConfirmDialog & Toast -->
     <p-confirmDialog></p-confirmDialog>
     <p-toast></p-toast>

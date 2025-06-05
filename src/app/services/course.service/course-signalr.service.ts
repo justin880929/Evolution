@@ -1,9 +1,11 @@
+import { JWTService } from './../../Share/JWT/jwt.service';
 import { Injectable } from '@angular/core';
 import * as signalR from '@microsoft/signalr';
 import { ResultService } from 'src/app/Share/result.service';
 import { courseDTO } from "../../Interface/createCourseDTO";
 import { BehaviorSubject, Observable, of, tap, throwError } from 'rxjs';
 import { FormGroup } from '@angular/forms';
+import { HttpHeaders, HttpClient } from '@angular/common/http';
 @Injectable({
   providedIn: 'root',
 })
@@ -11,7 +13,7 @@ export class CourseSignalrService {
 
   private hubConnection?: signalR.HubConnection;
 
-  constructor(private resultService: ResultService) { }
+  constructor(private resultService: ResultService, private JWTService: JWTService, private http: HttpClient) { }
   postCourseUrl = 'https://localhost:7073/api/course'
   // 在 Service 裡加上：
   private progressSubject = new BehaviorSubject<{ step: string; data: any } | null>(null);
@@ -36,7 +38,7 @@ export class CourseSignalrService {
   postCourse(courseForm: FormGroup): Observable<number> {
     const file = courseForm.get('CoverImage')?.value;
     if (!(file instanceof File)) {
-      console.error("❌ CoverImage 不是合法的 File");
+      console.error("❌ 圖片不是合法的檔案");
       return throwError(() => new Error('❌ CoverImage 欄位不是合法的檔案類型'));
     }
     // 圖片格式驗證（僅允許 jpg 和 png）
@@ -53,6 +55,25 @@ export class CourseSignalrService {
     formData.append('Price', courseForm.get('Price')?.value.toString());
     formData.append('IsPublic', courseForm.get('IsPublic')?.value.toString());
     formData.append('CoverImage', file);
+    //之後要砍
+    const token = this.JWTService.getToken(); // ⬅️ 這裡自己帶 token，可從 localStorage 或變數取
+
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
+    this.http.post<number>(
+      this.postCourseUrl,
+      formData,
+      { headers }
+    ).subscribe({
+      next: (res) => {
+        console.log("✅ 手動呼叫成功：", res);
+      },
+      error: (err) => {
+        console.error("❌ 呼叫失敗：", err);
+      }
+    });
+
     return this.resultService.postResult<number>(
       this.postCourseUrl,
       formData

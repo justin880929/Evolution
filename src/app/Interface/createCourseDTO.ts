@@ -1,5 +1,5 @@
 export interface courseDTO {
-  Coursetitle: string;      // CourseTitle
+  CourseTitle: string;      // CourseTitle
   CourseDes: string;        // CourseDescription
   IsPublic: boolean;        // IsPublic（可選）
   Price: number;            // Price
