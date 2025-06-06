@@ -27,7 +27,7 @@ export class ForgotComponent {
 
     this.authService.sendResetLink(email).subscribe({
       next: (res) => {
-        this.message = res.message; // 統一處理成功訊息
+        this.message = res.data; // 統一處理成功訊息
         this.error = null;
 
         // ✅ 2.5 秒後自動導向登入頁

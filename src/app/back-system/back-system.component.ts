@@ -10,6 +10,8 @@ import { JWTService } from '../Share/JWT/jwt.service';
 import { AuthService } from '../services/auth.service';
 import { Router } from '@angular/router';
 import { Location } from '@angular/common';
+import { Subscription } from 'rxjs';
+import { UserService } from '../services/user.service';
 
 
 declare var Menu: any; // Sneat 的選單初始化函式
@@ -30,32 +32,49 @@ export class BackSystemComponent implements OnInit, OnDestroy {
 
   private scripts: HTMLScriptElement[] = [];
 
+  private userSub!: Subscription;
+
   constructor(
     private renderer: Renderer2,
     private jwtService: JWTService,
     private authService: AuthService,   // ← 注入 AuthService
     private router: Router,              // ← 注入 Router
-    private location: Location
+    private location: Location,
+    private userService: UserService
   ) {
     // 設定預設 fallback 圖
     this.defaultPhoto = this.location.prepareExternalUrl('assets/img/default-user.png');
   }
 
   async ngOnInit(): Promise<void> {
-    try {
-      const user = this.jwtService.UnpackJWT();
-      this.isLoggedIn = !!user;
+    const userPayload  = this.jwtService.UnpackJWT();
+    this.isLoggedIn = !!userPayload ;
 
-      if (user) {
-        this.username = user.username;
-        this.role = user.role;
-        // ← 這裡改成絕對路徑，開頭加斜線
-        this.userPhotoUrl = '/assets/img/NoprofilePhoto.png';
-      } else {
-        // 同樣用絕對路徑
-        this.userPhotoUrl = '/assets/img/default-user.png';
+    if (userPayload) {
+      // 先用 JWT 解析一份基本資訊（登入狀態、role），但姓名與頭像改為從 userService 取
+      this.role = userPayload.role;
+      // 如果希望一開始就顯示一份「JWT 內的 user.username」，可暫時賦值：
+      this.username = userPayload.username;
+      this.userPhotoUrl = '/assets/img/NoprofilePhoto.png';
+    } else {
+      this.userPhotoUrl = '/assets/img/default-user.png';
+    }
+
+    this.userSub = this.userService.user$.subscribe((userDto) => {
+      if (userDto) {
+        this.username = userDto.name;
+        // 這裡把 userDto.pic 當頭像 URL
+        this.userPhotoUrl = userDto.pic || '/assets/img/default-user.png';
       }
+      // 如果 userDto 為 null（尚未載入或已登出），就可選擇顯示預設
+      // else {
+        //   this.username = '';
+        //   this.userPhotoUrl = '/assets/img/default-user.png';
+        // }
+      });
 
+
+      try {
       // 1. 初始化設定與輔助工具
       await this.loadScript('assets/BackSystem/js/config.js');
       await this.loadScript('assets/BackSystem/js/helpers.js');
@@ -150,7 +169,10 @@ export class BackSystemComponent implements OnInit, OnDestroy {
         script.parentNode.removeChild(script);
       }
     });
+
     this.scripts = [];
+
+    this.userSub?.unsubscribe();
   }
 
   logout(event: Event): void {

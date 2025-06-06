@@ -1,3 +1,4 @@
+import { JWTService } from './../../Share/JWT/jwt.service';
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -23,7 +24,8 @@ export class ResetPasswordComponent implements OnInit {
     private fb: FormBuilder,
     private route: ActivatedRoute,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private jwtService : JWTService
   ) {
     this.resetForm = this.fb.group({
       newPassword: ['', [Validators.required, Validators.minLength(6)]],
@@ -57,9 +59,19 @@ export class ResetPasswordComponent implements OnInit {
 
     this.authService.resetPassword(dto).subscribe({
       next: (res) => {
-        // 儲存 accessToken & refreshToken
-      localStorage.setItem('accessToken', res.data.accessToken);
-      localStorage.setItem('refreshToken', res.data.refreshToken);
+        if(!res.success)
+        {
+          console.error("API 回傳失敗 :",res.message);
+          return ;
+        }
+        // b. 拿到後端的 accessToken / refreshToken / username / role
+        const { accessToken, refreshToken } = res.data;
+
+        // c. 把 token 寫進 localStorage & 更新登入狀態
+        this.jwtService.setToken(accessToken, refreshToken);
+        // 假設你的 AuthService 裡有一個行為主題 _loggedIn$$
+        // 這邊直接呼叫 next(true)
+        this.authService['_loggedIn$$'].next(true);
 
         this.successMsg = res.message || '密碼已成功重設';
         this.loading = false;
