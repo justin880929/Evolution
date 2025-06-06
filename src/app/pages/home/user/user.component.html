@@ -104,14 +104,14 @@
               </div>
             </li>
 
-            <!-- 部門 -->
+            <!-- 修改後的部門欄位 (下拉式選單) -->
             <li class="list-group-item">
               <div class="row gx-0 align-items-center">
                 <div class="col-4">
                   <label class="col-form-label">部門：</label>
                 </div>
                 <div class="col-8">
-                  <!-- 只讀模式 -->
+                  <!-- 只讀模式：顯示 user.dep -->
                   <input
                     *ngIf="!isEditing"
                     type="text"
@@ -119,13 +119,17 @@
                     readonly
                     [value]="user.dep"
                   />
-                  <!-- 編輯模式：formControlName 要對應到 userForm 裡的 dep -->
-                  <input
+                  <!-- 編輯模式：改成下拉選單 -->
+                  <select
                     *ngIf="isEditing"
-                    type="text"
-                    class="form-control text-center"
+                    class="form-select text-center"
                     formControlName="dep"
-                  />
+                  >
+                    <option value="" disabled>請選擇部門</option>
+                    <option *ngFor="let d of departments" [value]="d">
+                      {{ d }}
+                    </option>
+                  </select>
                 </div>
               </div>
             </li>

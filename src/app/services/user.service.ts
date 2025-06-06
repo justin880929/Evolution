@@ -8,6 +8,7 @@ import { UserDTO } from '../Interface/userDTO';
 import { ApiResponse } from '../Share/interface/resultDTO';
 import { UserInfoDTO } from '../Interface/userInfoDTO';                 // ← 確認這行
 import { EditUserResponseDTO } from '../Interface/editUserResponseDTO'; // ← 確認這行
+import { DepListResponseDTO } from '../Interface/depListResponseDTO';
 
 @Injectable({
   providedIn: 'root',
@@ -132,6 +133,21 @@ export class UserService {
           return apiRes.data;
         }),
         catchError((err) => throwError(() => err))
+      );
+  }
+
+    getDepList(): Observable<string[]> {
+    return this.http
+      .get<ApiResponse<DepListResponseDTO[]>>(`${this.apiUrl}/Users/dept-list`)
+      .pipe(
+        // 先檢查 success，如果不是就拋錯
+        map(resp => {
+          if (!resp.success || !resp.data) {
+            throw new Error(resp.message || '取得部門列表失敗');
+          }
+          // 將 DTO 陣列轉成只要 depName 的 string[]
+          return resp.data.map(item => item.depName || '');
+        })
       );
   }
 }

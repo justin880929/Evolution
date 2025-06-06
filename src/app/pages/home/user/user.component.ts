@@ -21,6 +21,7 @@ export class UserComponent implements OnInit {
   userForm!: FormGroup;
   isEditing = false;
 
+
   // 用來暫存「新大頭照的 Data URL」或「本地檔案路徑」以便畫面預覽
   previewPicUrl: string | null = null;
   // 用來暫存使用者挑選的 File，方便 onSubmit 時把它放到 FormData 傳給後端
@@ -34,6 +35,7 @@ export class UserComponent implements OnInit {
   @ViewChild('fileInput') fileInputRef!: ElementRef<HTMLInputElement>;
 
   courses: courseDTO[] = [];
+  departments: string[] = [];
 
   constructor(private courseService: CourseService,private userService:UserService,private fb: FormBuilder) { }
 
@@ -43,7 +45,7 @@ export class UserComponent implements OnInit {
   username:  ['', [Validators.required]],             // 對應後端 DTO.Username
   userEmail: ['', [Validators.required, Validators.email]], // 對應後端 DTO.UserEmail
   company:   [''],  // 如果後端不處理就放空或只做顯示
-  dep:       [''],  // 對應後端 DTO.Department
+  dep:       ['', Validators.required],
   photoFile: ['']   // 對應後端 DTO.PhotoFile
 });
     // 2. 拿課程列表
@@ -67,13 +69,31 @@ export class UserComponent implements OnInit {
 
     // 預覽從 this.user.pic (完整 URL) 直接顯示
     this.previewPicUrl = this.user.pic;
-  },
-  error: (err) => {
-    console.error('取得使用者資訊失敗：', err);
-    this.errorMsg = '無法取得使用者資訊，請稍後再試。';
+
+ // → 呼叫後端的 GetDepList API，取得部門名稱清單
+        this.userService.getDepList().subscribe({
+          next: (deps: string[]) => {
+            this.departments = deps;
+
+            // 如果原本 user.dep 在清單裡，就選中它；否則設空字串
+            if (this.departments.includes(this.user.dep)) {
+              this.userForm.get('dep')!.setValue(this.user.dep);
+            } else {
+              this.userForm.get('dep')!.setValue('');
+            }
+          },
+          error: (err) => {
+            console.error('取得部門列表失敗：', err);
+            this.errorMsg = '部門清單載入失敗';
+          }
+        });
+      },
+      error: (err) => {
+        console.error('取得使用者資訊失敗：', err);
+        this.errorMsg = '無法取得使用者資訊，請稍後再試。';
+      }
+    });
   }
-});
-}
 
   ngOnDestroy(): void {
     this.sub.unsubscribe();
@@ -96,6 +116,7 @@ export class UserComponent implements OnInit {
   this.previewPicUrl = this.user.pic;
   this.selectedFile = null;
   this.isEditing = false;
+  this.userForm.get('dep')!.setValue(this.user.dep);
   }
 
   // 當使用者透過檔案選擇器選擇新大頭照
@@ -123,55 +144,40 @@ export class UserComponent implements OnInit {
 
   // 按下「儲存」按鈕時，包含文字欄位＋大頭照一起上傳
   onSubmit() {
-    if (this.userForm.invalid) {
-    return;
-  }
-
-  // 讀出剛才 patch 進去的值
-  const formValues = this.userForm.value;
-
-  const formData = new FormData();
-  formData.append('Username',  formValues.username);   // DTO.Username
-  formData.append('UserEmail', formValues.userEmail);  // DTO.UserEmail
-  formData.append('Department', formValues.dep);        // DTO.Department
-
-  // company 如果後端沒處理就不傳
-
-  // 如果使用者選了新照片，就把檔案放到 'PhotoFile'
-  if (this.selectedFile) {
-    formData.append('PhotoFile', this.selectedFile, this.selectedFile.name);
-  }
-
-  // 呼叫 service
-  this.userService.editUserInfo(formData).subscribe({
-    next: (res) => {
-      if (res.success && res.data) {
-        const payload = res.data;
-        // 1. 更新 localStorage 的 JWT
-        localStorage.setItem('access_token', payload.newAccessToken);
-
-        // 2. 更新畫面上的 this.user
-        this.user = {
-          ...this.user,
-          name:  payload.userInfo.username,
-          email: payload.userInfo.email,
-          dep:   payload.userInfo.depName,
-          pic:   payload.userInfo.photoUrl  // 完整 URL
-        };
-
-        // 3. 重新顯示預覽
-        this.previewPicUrl = payload.userInfo.photoUrl;
-        this.isEditing = false;
-        this.selectedFile = null;
-        this.errorMsg = null;
-      } else {
-        this.errorMsg = res.message || '更新失敗';
-      }
-    },
-    error: (err) => {
-      console.error('更新使用者資訊失敗：', err);
-      this.errorMsg = '更新失敗，請稍後再試。';
+    if (this.userForm.invalid) return;
+    const formValues = this.userForm.value;
+    const formData = new FormData();
+    formData.append('Username',  formValues.username);
+    formData.append('UserEmail', formValues.userEmail);
+    formData.append('Department', formValues.dep);
+    if (this.selectedFile) {
+      formData.append('PhotoFile', this.selectedFile, this.selectedFile.name);
     }
-  });
+
+    this.userService.editUserInfo(formData).subscribe({
+      next: (res) => {
+        if (res.success && res.data) {
+          const payload = res.data;
+          localStorage.setItem('access_token', payload.newAccessToken);
+          this.user = {
+            ...this.user,
+            name:  payload.userInfo.username,
+            email: payload.userInfo.email,
+            dep:   payload.userInfo.depName,
+            pic:   payload.userInfo.photoUrl
+          };
+          this.previewPicUrl = payload.userInfo.photoUrl;
+          this.isEditing = false;
+          this.selectedFile = null;
+          this.errorMsg = null;
+        } else {
+          this.errorMsg = res.message || '更新失敗';
+        }
+      },
+      error: (err) => {
+        console.error('更新使用者資訊失敗：', err);
+        this.errorMsg = '更新失敗，請稍後再試。';
+      }
+    });
   }
 }
