@@ -1,18 +1,20 @@
+import { FormControl } from "@angular/forms";
+
 export interface courseDTO {
-  CourseTitle: string;      // CourseTitle
-  CourseDes: string;        // CourseDescription
-  IsPublic: boolean;        // IsPublic（可選）
-  Price: number;            // Price
-  CoverImage: File;         // CoverImage File
-  CompanyId: number;        // CompanyID
+  CourseTitle: FormControl;      // CourseTitle
+  CourseDes: FormControl;        // CourseDescription
+  IsPublic: FormControl;        // IsPublic（可選）
+  Price: FormControl;            // Price
+  CoverImage: FormControl;         // CoverImage File
+  CompanyId: FormControl;        // CompanyID
 }
 export interface chapterDTO {
-  CourseId: number;          // CourseID
-  ChapterTitle: string;      // ChapterTitle
-  ChapterDes: string;        // CourseDescription
+  CourseId: FormControl;          // CourseID
+  ChapterTitle: FormControl;      // ChapterTitle
+  ChapterDes: FormControl;        // CourseDescription
 }
 export interface videoDTO {
-  ChapterId: number;         // ChapterId
-  Title: string;             // VideoTitle
-  VideoFile: File;           // VideoFile
+  ChapterId: FormControl;         // ChapterId
+  Title: FormControl;             // VideoTitle
+  VideoFile: FormControl;           // VideoFile
 }

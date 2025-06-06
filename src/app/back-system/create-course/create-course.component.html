@@ -43,25 +43,27 @@
     <div class="mt-4 d-flex justify-content-between">
       <!-- 上一步 -->
       <div>
-        <button class="btn btn-secondary" (click)="onPrev()">上一步</button>
+        <button *ngIf="currentStep>0" [disabled]="lockButton" class="btn btn-secondary" (click)="onPrev()">上一步</button>
       </div>
       <div class="d-flex gap-2">
-        <!-- <button class="btn btn-warning" (click)="onEdit()">
-        儲存資料修改
-      </button> -->
-        <!-- <button class="btn btn-danger"
-        (click)="removeLastStep()">
-        刪除此步驟
-      </button> -->
-        <button class="btn btn-primary" (click)="onNext()">
+        <button *ngIf="showEditButton" class="btn btn-warning" (click)="EditSteps()" [disabled]="lockButton">
+          儲存資料修改
+        </button>
+        <button *ngIf="currentStep>1&&currentStep===steps.length-1&&steps[currentStep].label!=='確認建立課程'"
+          class="btn btn-danger" (click)="removeLastStep()" [disabled]="lockButton">
+          刪除此步驟
+        </button>
+        <!-- 步驟過程中的下一步 -->
+        <button *ngIf="currentStep<steps.length-1&&steps[currentStep].label!=='確認建立課程'" class="btn btn-primary"
+          (click)="onNext()" [disabled]="lockButton">
           下一步
         </button>
 
-        <!-- 只有在最後一步，且沒有要回填資料，才顯示 addNewSteps -->
-        <!-- <button *ngIf="currentStep === steps.length - 1 && !isFinalStep && !lastUnsavedChapter && !lastUnsavedVideo"
-        class="btn btn-primary" (click)="addNewSteps()">
-        下一步
-      </button> -->
+        <!-- 只有在最後一步，才顯示 addNewSteps -->
+        <button [disabled]="lockButton" *ngIf="currentStep === steps.length - 1 &&steps[currentStep].label!=='確認建立課程'"
+          class="btn btn-primary" (click)="addNewSteps()">
+          下一步
+        </button>
 
         <!-- <button *ngIf="isFinalStep&&(currentStep===steps.length-1)" class="btn btn-success" (click)="finalizeCourse()">
         確認建立
