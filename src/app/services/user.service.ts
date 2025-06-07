@@ -104,11 +104,15 @@ export class UserService {
   }
 
   /** 手動強制刷新使用者資料，再推到 BehaviorSubject */
-  refreshUserInfo(): void {
-    this.getUserInfo().subscribe({
-      next: (user) => this.userSubject.next(user),
-      error: (err) => console.error('手動刷新使用者資訊失敗：', err),
-    });
+   refreshUserInfo(): Observable<UserDTO> {
+    return this.getUserInfo().pipe(
+      tap(user => this.userSubject.next(user)),
+      catchError(err => {
+        console.error('手動刷新使用者資訊失敗：', err);
+        // 將錯誤往外拋，呼叫端（AuthService / Component）可繼續 subscribe 處理
+        return throwError(() => err);
+      })
+    );
   }
 
   /** 如果還需要：更新大頭照範例 */
@@ -162,5 +166,8 @@ export class UserService {
         return res.data ?? [];
       })
     )
+  }
+   clearUser(): void {
+    this.userSubject.next(null);
   }
 }
