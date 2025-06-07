@@ -1,6 +1,7 @@
 import { Component, Input } from '@angular/core';
 import { courseDTO } from 'src/app/Interface/courseDTO';
 import { Router } from '@angular/router';
+import { EmpOrderDTO } from 'src/app/Interface/empOrderDTO';
 
 
 @Component({
@@ -9,11 +10,11 @@ import { Router } from '@angular/router';
   styleUrls: ['./learing-list.component.css']
 })
 export class LearingListComponent {
-  @Input() course!: courseDTO;
+  @Input() course!: EmpOrderDTO;
 
   constructor(private router: Router) { }
 
   goToLearning(): void {
-    console.log('goToLearning', this.course.id);
+    console.log('goToLearning', this.course.courseId);
   }
 }

@@ -5,6 +5,7 @@ import { Subscription } from 'rxjs';
 import { courseDTO } from 'src/app/Interface/courseDTO';
 import { UserDTO } from 'src/app/Interface/userDTO';
 import { CourseService } from 'src/app/services/course.service/course.service';
+import { EmpOrderDTO } from 'src/app/Interface/empOrderDTO';
 
 @Component({
   selector: 'app-user',
@@ -34,7 +35,7 @@ export class UserComponent implements OnInit {
   // 取得隱藏的 <input type="file">，讓我們可以透過程式觸發 click()
   @ViewChild('fileInput') fileInputRef!: ElementRef<HTMLInputElement>;
 
-  courses: courseDTO[] = [];
+  courses: EmpOrderDTO[] = [];
   departments: string[] = [];
 
   constructor(private courseService: CourseService,private userService:UserService,private fb: FormBuilder) { }
@@ -49,7 +50,7 @@ export class UserComponent implements OnInit {
   photoFile: ['']   // 對應後端 DTO.PhotoFile
 });
     // 2. 拿課程列表
-    this.courseService.getCourses().subscribe((data) => {
+    this.userService.getMyOrders().subscribe((data) => {
       this.courses = data;
     });
 

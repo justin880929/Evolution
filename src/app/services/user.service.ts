@@ -9,6 +9,7 @@ import { ApiResponse } from '../Share/interface/resultDTO';
 import { UserInfoDTO } from '../Interface/userInfoDTO';                 // ← 確認這行
 import { EditUserResponseDTO } from '../Interface/editUserResponseDTO'; // ← 確認這行
 import { DepListResponseDTO } from '../Interface/depListResponseDTO';
+import { EmpOrderDTO } from '../Interface/empOrderDTO';
 
 @Injectable({
   providedIn: 'root',
@@ -149,5 +150,17 @@ export class UserService {
           return resp.data.map(item => item.depName || '');
         })
       );
+  }
+
+  getMyOrders(): Observable<EmpOrderDTO[]> {
+    return this.http
+    .get<ApiResponse<EmpOrderDTO[]>>(`${this.apiUrl}/Users/user-order`)
+    .pipe(
+      map(res =>{
+        if(!res.success)
+          throw new Error(res.message || '取得已購買課程失敗');
+        return res.data ?? [];
+      })
+    )
   }
 }
