@@ -39,6 +39,33 @@
         <img [src]="coverPreviewUrl" class="img-thumbnail mt-2" style="max-width: 300px;" *ngIf="coverPreviewUrl" />
       </div>
     </form>
+    <!-- Step: 新增章節 -->
+    <form *ngIf="steps[currentStep]?.label === '新增章節'" [formGroup]="chapterForm">
+      <div class="mb-3">
+        <label class="form-label">章節標題</label>
+        <input type="text" class="form-control" formControlName="ChapterTitle" />
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">章節描述</label>
+        <textarea class="form-control" formControlName="ChapterDes"></textarea>
+      </div>
+    </form>
+    <!-- Step: 新增影片 -->
+    <form *ngIf="steps[currentStep]?.label === '新增影片'" [formGroup]="videoForm">
+      <div class="mb-3">
+        <label class="form-label">影片標題</label>
+        <input type="text" class="form-control" formControlName="Title" />
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">上傳影片</label>
+        <input type="file" class="form-control" (change)="onVideoSelected($event)" #videofile />
+        <div *ngIf="selectedVideoFileName" class="mt-1 text-muted">
+          已選擇：{{ selectedVideoFileName }}
+        </div>
+      </div>
+    </form>
     <!-- 按鈕控制區 -->
     <div class="mt-4 d-flex justify-content-between">
       <!-- 上一步 -->
