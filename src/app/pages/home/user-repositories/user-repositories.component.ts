@@ -26,10 +26,10 @@ export class UserRepositoriesComponent implements OnInit {
   ngOnInit(): void {
     this.UserName = this.jwTService.UnpackJWT()?.username;
 
-    this.courseService.getCourses().subscribe((data) => {
-      this.allCourses = data;
-      this.filteredCourses = [...this.allCourses];
-    });
+    // this.courseService.getCourses().subscribe((data) => {
+    //   this.allCourses = data;
+    //   this.filteredCourses = [...this.allCourses];
+    // });
 
     this.searchSubject.pipe(debounceTime(300)).subscribe((query) => {
       this.applyFilter(query);

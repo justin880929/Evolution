@@ -1,11 +1,17 @@
-<div class="card custom-card" (click)="goToDetail()" style="cursor: pointer;">
-  <img [src]="course.coverImage" class="card-img-top" [alt]="course.title"
-    (error)="course.coverImage = '../../../../../assets/img/course-product.png'">
+<div class="card custom-card" (click)="goToDetail()" style="cursor: pointer">
+  <img
+    [src]="course.coverImagePath"
+    class="card-img-top"
+    [alt]="course.courseTitle"
+    (error)="
+      course.coverImagePath = '../../../../../assets/img/course-product.png'
+    "
+  />
 
   <div class="card-body">
-    <h5 class="course-title">{{ course.title }}</h5>
+    <h5 class="course-title">{{ course.courseTitle }}</h5>
     <p class="course-company">發布單位：{{ course.companyName }}</p>
-    <p class="course-description">{{ course.description }}</p>
-    <p class="course-price">NT$ {{ course.price | number:'1.0-0' }}</p>
+    <p class="course-description">{{ course.courseDes }}</p>
+    <p class="course-price">NT$ {{ course.price | number : "1.0-0" }}</p>
   </div>
 </div>

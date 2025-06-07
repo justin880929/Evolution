@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { courseDTO } from 'src/app/Interface/courseDTO';
+import { CourseDto } from 'src/app/Interface/courseDTO';
 import { Router } from '@angular/router';
 
 @Component({
@@ -8,20 +8,12 @@ import { Router } from '@angular/router';
   styleUrls: ['./course-card.component.css']
 })
 export class CourseCardComponent {
-  @Input() course!: courseDTO; // ✅ 一定要有這行
+  @Input() course!: CourseDto; // ✅ 一定要有這行
 
 
   constructor(private router: Router) { }
 
   goToDetail(): void {
-    this.router.navigate(['/home/course-products/detail', this.course.id]);
+    this.router.navigate(['/home/course-products/detail', this.course.courseId]);
   }
-
-
-
-
-
-
-
-
 }

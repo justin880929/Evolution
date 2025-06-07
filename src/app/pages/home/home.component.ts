@@ -1,5 +1,6 @@
 import {
   Component,
+  OnInit,
   AfterViewInit,
   OnDestroy,
   ViewEncapsulation,
@@ -53,7 +54,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   ngOnInit(): void {
     // 1. 訂閱購物車數量
-    this.cartSub = this.cartService.cartCount$.subscribe((count) => {
+    this.cartSub = this.cartService.cartCount$.subscribe((count: number) => {
       this.cartCount = count;
     });
 
@@ -88,13 +89,14 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       }
     });
 
-    // 4. **如果需要一進入 HomeComponent 就拉一次 userInfo**，可以直接呼叫
-    //    （通常已在 AppComponent 一開始就 loadUserInfo()，此處可略過）
-    // if (!this.isLoggedIn) {
-    //   return;
-    // }
-    // this.userService.refreshUserInfo();
-  }
+    // 4. 若需要路由事件（選單高亮等），也可訂閱
+    this.routerSub = this.router.events
+      .pipe(filter(evt => evt instanceof NavigationEnd))
+      .subscribe(() => {
+        // 例如關閉 mobile-nav
+        document.body.classList.remove('mobile-nav-active');
+      });
+    }
 
   ngAfterViewInit(): void {
     this.initPreloader();
@@ -116,11 +118,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     this.loginSub?.unsubscribe();
     this.routerSub?.unsubscribe();
     this.cartSub?.unsubscribe();
-  }
-
-  /** 讓外部新增完商品後，也可以呼叫這個方法同步更新 badge */
-  updateCartCount(): void {
-    this.cartCount = this.cartService.getCartCount();
+    this.userSub.unsubscribe();
   }
 
   // === Preloader ===

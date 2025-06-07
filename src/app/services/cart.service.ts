@@ -1,77 +1,73 @@
+// src/app/services/cart.service.ts
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
-import { courseDTO } from '../Interface/courseDTO';
-
-@Injectable({
-  providedIn: 'root'
-})
+import { BehaviorSubject, Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { CourseDto } from '../Interface/courseDTO';
+import { ApiResponse } from '../Share/interface/resultDTO';
+import { HttpClient } from '@angular/common/http';
+@Injectable({ providedIn: 'root' })
 export class CartService {
+  private baseUrl = 'https://localhost:7274/api/courses';
   private storageKey = 'shopping_cart';
 
-  // 1. 這個用來推送「購物車數量」的 BehaviorSubject（維持你原有邏輯）
-  private cartCountSubject = new BehaviorSubject<number>(this.loadCart().length);
-  cartCount$ = this.cartCountSubject.asObservable();
+  // --- 只保留 ID 陣列的 subject + observable ---
+  private cartIdsSubject = new BehaviorSubject<number[]>(this.loadCartIds());
+  cartIds$ = this.cartIdsSubject.asObservable();
 
-  // 2. 新增：用來推送「整個購物車內容陣列」的 BehaviorSubject
-  private cartItemsSubject = new BehaviorSubject<courseDTO[]>(this.loadCart());
-  cartItems$ = this.cartItemsSubject.asObservable();
+  // --- 新增：讓外面可以直接訂閱「數量」---
+  cartCount$ = this.cartIds$.pipe(
+    map((ids: number[]) => ids.length)
+  );
 
-  constructor() { }
+  constructor(private http: HttpClient) {}
 
-  /** ✅ 從 localStorage 讀取整個購物車陣列 */
-  private loadCart(): courseDTO[] {
-    const cartJson = localStorage.getItem(this.storageKey);
-    return cartJson ? JSON.parse(cartJson) as courseDTO[] : [];
+  private loadCartIds(): number[] {
+    const json = localStorage.getItem(this.storageKey);
+    return json ? JSON.parse(json) : [];
   }
 
-  /**
-   * ✅ 將 cart 陣列存回 localStorage，並同時推送
-   *    1. 推送最新的 cart.length 給 cartCountSubject
-   *    2. 推送最新的整個 cart 陣列給 cartItemsSubject
-   */
-  private saveCart(cart: courseDTO[]): void {
-    // (A) 存到 localStorage
-    localStorage.setItem(this.storageKey, JSON.stringify(cart));
-
-    // (B) 推送最新「數量」給訂閱 cartCount$
-    this.cartCountSubject.next(cart.length);
-
-    // (C) 推送最新「整個陣列」給訂閱 cartItems$
-    this.cartItemsSubject.next(cart);
+  private saveCartIds(ids: number[]): void {
+    localStorage.setItem(this.storageKey, JSON.stringify(ids));
+    this.cartIdsSubject.next(ids);
   }
 
-  /** ✅ 直接從 localStorage 回傳購物車內容 */
-  getCart(): courseDTO[] {
-    return this.loadCart();
-  }
-
-  /** ✅ 新增一筆商品到購物車 */
-  addToCart(course: courseDTO): void {
-    const cart = this.loadCart();
-    const exists = cart.some(c => c.id === course.id);
-    if (!exists) {
-      cart.push(course);
-      this.saveCart(cart);
+  addToCart(courseId: number): boolean {
+    const ids = this.loadCartIds();
+    if (!ids.includes(courseId)) {
+      this.saveCartIds([...ids, courseId]);
+      return true;
     }
+    return false;
   }
 
-  /** ✅ 移除指定商品 */
   removeFromCart(courseId: number): void {
-    const cart = this.loadCart().filter(c => c.id !== courseId);
-    this.saveCart(cart);
+    this.saveCartIds(this.loadCartIds().filter(id => id !== courseId));
   }
 
-  /** ✅ 清空購物車 */
+  removeMultiple(courseIds: number[]): void {
+    const remaining = this.loadCartIds().filter(id => !courseIds.includes(id));
+    this.saveCartIds(remaining);
+  }
+
   clearCart(): void {
     localStorage.removeItem(this.storageKey);
-
-    // 推送空陣列給 cartItems$，並推送數量 0 給 cartCount$
-    this.cartItemsSubject.next([]);
-    this.cartCountSubject.next(0);
+    this.cartIdsSubject.next([]);
   }
 
-  /** ✅ 回傳目前購物車數量 */
-  getCartCount(): number {
-    return this.loadCart().length;
+  /** 同步取 ID 陣列 */
+  getCartIds(): number[] {
+    return this.loadCartIds();
   }
+
+  getCoursesByIds(ids: number[]): Observable<CourseDto[]> {
+  return this.http
+    .post<ApiResponse<CourseDto[]>>(`${this.baseUrl}/batch`, ids)
+    .pipe(
+      map(res => {
+        if (!res.success) throw new Error(res.message);
+        // 如果 res.data 是 undefined，就回傳空陣列
+        return res.data ?? [];
+      })
+    );
+}
 }
