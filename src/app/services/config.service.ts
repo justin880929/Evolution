@@ -9,6 +9,7 @@ export class ConfigService {
   // 為了讓其他 Service 監聽到變化，可以改用 RxJS BehaviorSubject
   private _useMock = new BehaviorSubject<boolean>(false);
   public useMock$ = this._useMock.asObservable();
+  apiUrl = 'https://localhost:7274';
 
   constructor() {}
 

@@ -16,7 +16,7 @@ export class CourseService {
   constructor(private http: HttpClient,private configService : ConfigService) { }
 
   /** ✅ 取得所有課程 */
- getCoursesPaged(pageIndex: number, pageSize: number) {
+getCoursesPaged(pageIndex: number, pageSize: number) {
   return this.http.get<ApiResponse<PagedResult<CourseDto>>>(
     `${this.baseUrl}/paged`,
     {
@@ -27,6 +27,25 @@ export class CourseService {
     }
   );
 }
+
+getSuggestions(prefix: string): Observable<string[]> {
+    return this.http
+      .get<ApiResponse<string[]>>(
+        `${this.baseUrl}/suggestions`,
+        { params: { prefix } }
+      )
+      .pipe(map(res => res.data?? []));
+  }
+
+  /** 2️⃣ 完整搜尋 CourseTitle 或 CourseDes */
+  searchCourses(query: string): Observable<CourseDto[]> {
+    return this.http
+      .get<ApiResponse<CourseDto[]>>(
+        `${this.baseUrl}/search`,
+        { params: { query } }
+      )
+      .pipe(map(res => res.data?? []));
+  }
 
   /** ✅ 取得指定課程（含 null 處理） */
   getCourseById(id: number): Observable<CourseDto> {

@@ -6,8 +6,17 @@
       class="form-control pretty-input"
       placeholder="輸入關鍵字搜尋課程"
       [(ngModel)]="searchText"
+      (ngModelChange)="onSearchTextChange($event)"
     />
+
     <button class="btn pretty-button" (click)="onSearch()">搜尋</button>
+
+    <!-- 下拉提示 -->
+    <ul *ngIf="suggestions.length" class="suggestion-list">
+      <li *ngFor="let s of suggestions" (click)="selectSuggestion(s)">
+        {{ s }}
+      </li>
+    </ul>
   </div>
 </div>
 
