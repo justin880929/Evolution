@@ -42,7 +42,16 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes, { onSameUrlNavigation: 'reload' })],
+  imports: [
+    RouterModule.forRoot(routes, {
+      // 前進/後退導航時，自動捲到先前儲存的位置／頂端
+      scrollPositionRestoration: 'enabled',
+      // 如果有 #fragment，也會自動捲到對應 element
+      anchorScrolling: 'enabled',
+      // 如有需要，可調整偏移量
+      scrollOffset: [0, 0]
+    })
+  ],
   exports: [RouterModule],
   providers: [{ provide: LocationStrategy, useClass: HashLocationStrategy }],
 })

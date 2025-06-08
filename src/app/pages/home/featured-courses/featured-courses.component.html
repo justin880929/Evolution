@@ -1,0 +1,16 @@
+<!-- featured-courses.component.html -->
+<div class="portfolio-item">
+  <img
+    [src]="course.coverImagePath"
+    class="img-fluid"
+    alt="{{ course.courseTitle }}"
+    (error)="course.coverImagePath = 'assets/img/course-product.png'"
+  />
+  <div class="portfolio-info">
+    <h4>{{ course.courseTitle }}</h4>
+    <p>{{ course.courseDes }}</p>
+    <a title="More Details" class="details-link"
+      ><i class="bi bi-link-45deg"></i
+    ></a>
+  </div>
+</div>
