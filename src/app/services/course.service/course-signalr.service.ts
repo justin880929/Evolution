@@ -5,7 +5,7 @@ import { ResultService } from 'src/app/Share/result.service';
 
 import { BehaviorSubject, catchError, map, Observable, of, tap, throwError } from 'rxjs';
 import { FormControl, FormGroup } from '@angular/forms';
-import { ResCourseDTO, ReqChapterDTO, ResChapterDTO, ResVideoDTO, RePutDTO, chapterDTO, videoDTO } from 'src/app/Interface/createCourseDTO';
+import { ResCourseDTO, ReqChapterDTO, ResChapterDTO, ResVideoDTO, RePutDTO, chapterDTO, videoDTO, ReqFinalDTO } from 'src/app/Interface/createCourseDTO';
 @Injectable({
   providedIn: 'root',
 })
@@ -17,25 +17,38 @@ export class CourseSignalrService {
   CourseUrl = 'https://localhost:7073/api/course'
   ChapterUrl = "https://localhost:7073/api/chapter"
   VideoUrl = "https://localhost:7073/api/video"
+  connectionId = ""
   // 在 Service 裡加上：
   private progressSubject = new BehaviorSubject<{ step: string; data: any } | null>(null);
   progress$ = this.progressSubject.asObservable();
 
-  connect(): void {
+  async connect(): Promise<void> {
     this.hubConnection = new signalR.HubConnectionBuilder()
-      .withUrl('https://localhost:7073/courseHub') // 攔截器自動加 token
+      .withUrl('https://localhost:7073/courseHub')
       .withAutomaticReconnect()
       .build();
 
-    this.hubConnection.start()
-      .then(() => console.log('✅ SignalR 已連線'))
-      .catch(err => console.error('❌ SignalR 連線失敗', err));
+    try {
+      await this.hubConnection.start();
+      console.log('✅ SignalR 已連線');
 
-    this.hubConnection.on('ReceiveCourseStepUpdate', (step: string, data: any) => {
-      console.log('📩 收到推播', step, data);
-      this.progressSubject.next({ step, data });
+      // 呼叫後端方法取得 connectionId
+      const connectionId = await this.hubConnection.invoke<string>('GetConnectionId');
+      console.log('前端自己的 ConnectionId:', connectionId);
+
+      // 可以存在 service 方便後續使用
+      this.connectionId = connectionId;
+
+    } catch (err) {
+      console.error('❌ SignalR 連線失敗', err);
+    }
+
+    this.hubConnection.on('ReceiveProgress', (update) => {
+      console.log('📩 收到推播', update.step, update.data);
+      this.progressSubject.next(update);
     });
   }
+
   //獲取課程
   getCourse(ID: number): Observable<ResCourseDTO> {
     return this.resultService.getResult<ResCourseDTO>(
@@ -45,6 +58,8 @@ export class CourseSignalrService {
 
   //新增課程
   postCourse(courseForm: FormGroup): Observable<number> {
+    console.log(courseForm.value);
+
     const file = courseForm.get('CoverImage')?.value;
     if (file == null) {
       return throwError(() => new Error('沒有上傳檔案'));
@@ -61,6 +76,7 @@ export class CourseSignalrService {
     }
 
     const formData = new FormData();
+    formData.append('ConnectionId', this.connectionId);
     formData.append('CompanyId', courseForm.get('CompanyId')?.value.toString());
     formData.append('CourseTitle', courseForm.get('CourseTitle')?.value);
     formData.append('CourseDes', courseForm.get('CourseDes')?.value);
@@ -72,6 +88,17 @@ export class CourseSignalrService {
     return this.resultService.postResult<number>(
       this.CourseUrl,
       formData
+    );
+  }
+  //告訴後端確認建立課程
+  putCourseFinal(courseID: number, IsDraft: boolean): Observable<RePutDTO> {
+    const req: ReqFinalDTO = {
+      IsDraft: IsDraft,
+      ConnectionId: this.connectionId
+    }
+    return this.resultService.putResult<RePutDTO>(
+      `${this.CourseUrl}/final/${courseID}`,
+      req
     );
   }
   //更新課程
@@ -89,8 +116,9 @@ export class CourseSignalrService {
         console.error("❌ 圖片格式錯誤，只允許 jpg 或 png");
         return throwError(() => new Error('❌ 圖片格式錯誤，僅支援 .jpg 與 .png'));
       }
-      formData.append('CoverImage', file);
     }
+    formData.append('CoverImage', file);
+    formData.append('ConnectionId', this.connectionId);
     formData.append('CompanyId', courseForm.get('CompanyId')?.value.toString());
     formData.append('CourseTitle', courseForm.get('CourseTitle')?.value);
     formData.append('CourseDes', courseForm.get('CourseDes')?.value);
@@ -126,6 +154,7 @@ export class CourseSignalrService {
       CourseId: courseID,
       ChapterTitle: chapterForm.get("ChapterTitle")?.value,
       ChapterDes: chapterForm.get("ChapterDes")?.value,
+      ConnectionId: this.connectionId
     }
     return this.resultService.postResult<number>(
       this.ChapterUrl,
@@ -134,9 +163,14 @@ export class CourseSignalrService {
   }
   // 更新章節
   putChapter(chapterForm: FormGroup<chapterDTO>, chapterID: number): Observable<RePutDTO> {
-    return this.resultService.putResult<ResChapterDTO>(
+    const transChapterForm = {
+      ChapterTitle: chapterForm.get("ChapterTitle")?.value,
+      ChapterDes: chapterForm.get("ChapterDes")?.value,
+      ConnectionId: this.connectionId
+    }
+    return this.resultService.putResult<RePutDTO>(
       `${this.ChapterUrl}/${chapterID}`,
-      chapterForm.value
+      transChapterForm
     ).pipe(
       map(res => ({
         success: res.statusCode === 200,
@@ -177,7 +211,7 @@ export class CourseSignalrService {
   }
   //獲取影片
   getVideo(ID: number): Observable<ResVideoDTO> {
-    return this.resultService.getResult(
+    return this.resultService.getResult<ResVideoDTO>(
       `${this.VideoUrl}/${ID}`
     )
   }
@@ -198,6 +232,7 @@ export class CourseSignalrService {
       return throwError(() => new Error('❌ 影片格式錯誤，僅支援 mp4'));
     }
     const formData = new FormData();
+    formData.append('ConnectionId', this.connectionId);
     formData.append('ChapterId', chapterID.toString());
     formData.append('Title', videoForm.get('Title')?.value);
     formData.append('VideoFile', file);
@@ -220,13 +255,29 @@ export class CourseSignalrService {
         console.error("❌ 影片格式錯誤，只允許 mp4");
         return throwError(() => new Error('❌ 影片格式錯誤，僅支援 mp4'));
       }
-      formData.append('VideoFile', file);
     }
+    formData.append('ConnectionId', this.connectionId);
+    formData.append('VideoFile', file);
     formData.append('Title', videoForm.get('Title')?.value);
-    return this.resultService.putResult(
+    return this.resultService.putResult<ResVideoDTO>(
       `${this.VideoUrl}/${videoID}`,
       formData
-    )
+    ).pipe(
+      map(res => ({
+        success: res.statusCode === 200,
+        message: res.message,
+        statusCode: res.statusCode,
+        errors: res.errors ?? []
+      })),
+      catchError(err => {
+        return of({
+          success: false,
+          message: err.message || '更新影片失敗',
+          statusCode: err.statusCode || 500,
+          errors: []
+        } as RePutDTO);
+      })
+    );
   }
   //刪除影片
   delVideo(ID: number): Observable<RePutDTO> {
@@ -250,8 +301,13 @@ export class CourseSignalrService {
     );
   }
   disconnect(): void {
-    this.hubConnection?.stop().then(() => {
-      console.log('❎ 已中斷 SignalR 連線');
-    });
+    if (this.hubConnection) {
+      this.hubConnection.stop().then(() => {
+        console.log('❎ 已中斷 SignalR 連線');
+      }).catch(err => {
+        console.error('❌ SignalR 中斷連線失敗', err);
+      });
+    }
   }
+
 }

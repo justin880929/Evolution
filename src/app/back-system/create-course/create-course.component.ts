@@ -3,7 +3,7 @@ import { Component, ElementRef, OnInit, ViewChild, Pipe } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormArray, FormControl } from '@angular/forms';
 import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
 import { CourseSignalrService } from 'src/app/services/course.service/course-signalr.service';
-import { courseDTO, chapterDTO, videoDTO } from "../../Interface/createCourseDTO";
+import { courseDTO, chapterDTO, videoDTO, RePutDTO } from "../../Interface/createCourseDTO";
 import { Observable, Subscription, delay, firstValueFrom } from 'rxjs';
 @Component({
   selector: 'app-create-course',
@@ -37,11 +37,11 @@ export class CreateCourseComponent {
   //課程表單
   courseForm = new FormGroup<courseDTO>({
     CompanyId: new FormControl(1),
-    CourseTitle: new FormControl("6666", Validators.required),
-    CourseDes: new FormControl("777", Validators.required),
-    IsPublic: new FormControl("true", Validators.required),
+    CourseTitle: new FormControl("", Validators.required),
+    CourseDes: new FormControl("", Validators.required),
+    IsPublic: new FormControl(true, Validators.required),
     CoverImage: new FormControl('', Validators.required), // 這裡先不給字串，會用 <input type="file"> 補上 File
-    Price: new FormControl(9999, Validators.required),
+    Price: new FormControl(0, Validators.required),
   });
   //章節表單
   chapterForm = new FormGroup<chapterDTO>({
@@ -98,14 +98,13 @@ export class CreateCourseComponent {
     if (this.currentStep < 0) {
       return
     }
+    console.log(this.steps);
     const CourseID = parseInt(this.steps[0].id!)
     const nowStepId = parseInt(this.steps[this.currentStep].id!)
     const nowSteLable = this.steps[this.currentStep].label
     if (nowStepId === 0) {
       switch (nowSteLable) {
         case "新增章節":
-          console.log(111);
-
           await this.AddChapterAPI(CourseID)
           break;
         case "新增影片":
@@ -157,6 +156,7 @@ export class CreateCourseComponent {
       // 1. 確認資料庫是否有此課程
       const id = parseInt(this.steps[0].id!);
       const HasCourse = await this.CheckHasCourseAPI(id);
+      console.log(HasCourse);
       if (!HasCourse) {
         await this.AddCourseAPI(); // 等待 SignalR percent 100 完成
       }
@@ -164,6 +164,7 @@ export class CreateCourseComponent {
       // 2. 獲取下一步驟資訊
       const nextStep = this.steps[this.currentStep + 1];
       if (nextStep.id !== "0") {
+        console.log("獲取下一步驟資訊");
         const nextId = parseInt(nextStep.id!);
         switch (nextStep.label) {
           case "新增章節":
@@ -325,7 +326,7 @@ export class CreateCourseComponent {
         }
       },
       reject: async () => {
-        await delay(200);
+        await this.CallBECompeleteAPI()
         this.StepsPushFinal()
       }
     })
@@ -377,7 +378,9 @@ export class CreateCourseComponent {
     }, 15000);
 
     sub = this.signalR.progress$.subscribe(update => {
-      if (update && steps.includes(update.step)) {
+      console.log('📡 收到進度更新：', update);
+
+      if (update && update.step && steps.includes(update.step)) {
         const percent = update.data?.percent ?? 0;
         this.progressPercent = percent;
 
@@ -386,6 +389,7 @@ export class CreateCourseComponent {
           sub.unsubscribe();
           this.ChangeBtnStatus();
           this.ChangeUploadingStatus();
+          this.ShowMessage("success", "成功", `成功建立`);
           this.progressPercent = 0;
           resolve();
         } else {
@@ -394,39 +398,51 @@ export class CreateCourseComponent {
       }
     });
 
+
     return sub;
   }
 
 
   private callApiWithProgress<T>(
     request$: Observable<T>,
-    stepNames: string[] | string
+    stepNames: string[] | string,
+    onSuccess?: (res: T) => void
   ): Promise<void> {
     return new Promise((resolve, reject) => {
       this.ChangeUploadingStatus();
       this.ChangeBtnStatus();
       this.ShowMessage("info", "上傳中", "請稍後...");
+      this.ShowMessage("success", "成功", `已送出，等待進度...`);
+      // ✅ 監聽進度（百分比、逾時等）
+      this.handleProgressAndTimeout(stepNames, resolve, reject);
 
       request$.subscribe({
         next: res => {
-          this.ShowMessage("success", "成功", `已送出，等待進度...`);
-          this.handleProgressAndTimeout(stepNames, resolve, reject);
+          // ✅ 呼叫外部處理邏輯（你可以塞不同的處理邏輯進來）
+          onSuccess?.(res);
         },
         error: err => {
           this.ShowMessage("error", "失敗", err.message);
           reject(err);
         }
+        // ❌ 不用寫 complete，避免與進度訂閱衝突
       });
     });
   }
+
+
   AddCourseAPI(): Promise<void> {
     if (!this.courseForm.valid) {
       this.ShowMessage('warn', "警告", "請輸入正確的資訊");
       return Promise.reject();
     }
-    return this.callApiWithProgress(
+    return this.callApiWithProgress<number>(
       this.signalR.postCourse(this.courseForm),
-      'CourseCreated'
+      ['Course:Started', 'Course:SavingToDb', 'Course:SavingImage', 'Course:Completed'],
+      res => {
+        this.steps[this.currentStep].id = res.toString();
+        console.log(this.steps);
+      }
     );
   }
 
@@ -438,9 +454,13 @@ export class CreateCourseComponent {
     }
 
     try {
-      await this.callApiWithProgress(
+      await this.callApiWithProgress<number>(
         this.signalR.postChapter(this.chapterForm, courseId),
-        'ChapterAdded'
+        ["Chapter:Started", "Chapter:SavingToDb", "Chapter:Completed"],
+        res => {
+          this.steps[this.currentStep].id = res.toString();
+          console.log(this.steps);
+        }
       );
       this.InitChapterForm(); // ✅ 呼叫成功後再清空
     } catch (err) {
@@ -454,16 +474,13 @@ export class CreateCourseComponent {
       return Promise.reject();
     }
     try {
-      await this.callApiWithProgress(
+      await this.callApiWithProgress<number>(
         this.signalR.postVideo(this.videoForm, id),
-        [
-          'Video:Started',
-          'Video:Uploading',
-          'Video:UploadCompleted',
-          'Video:SavingToServer',
-          'Video:SavingToDb',
-          'Video:Completed'
-        ]
+        ["Video:Upload", "Video:Started", "Video:SavingToDb", "Video:SavingFile", "Video:Completed"],
+        res => {
+          this.steps[this.currentStep].id = res.toString();
+          console.log(this.steps);
+        }
       );
       this.InitVideoForm()
     } catch (error) {
@@ -473,7 +490,7 @@ export class CreateCourseComponent {
   async CheckHasCourseAPI(id: number): Promise<boolean> {
     try {
       const result = await firstValueFrom(this.signalR.getCourse(id));
-      return result != null && result.CourseID === id;
+      return result != null && result.courseId === id;
     } catch (err) {
       console.warn('❌ Course 不存在或錯誤:', err);
       return false;
@@ -483,7 +500,7 @@ export class CreateCourseComponent {
   async CheckHasChapterAPI(id: number): Promise<boolean> {
     try {
       const result = await firstValueFrom(this.signalR.getChapter(id));
-      return result != null && result.ChapterID === id;
+      return result != null && result.chapterId === id;
     } catch (err) {
       console.warn('❌ Chapter 不存在或錯誤:', err);
       return false;
@@ -493,29 +510,40 @@ export class CreateCourseComponent {
   async CheckHasVideoAPI(id: number): Promise<boolean> {
     try {
       const result = await firstValueFrom(this.signalR.getVideo(id));
-      return result != null && result.VideoID === id;
+      return result != null && result.videoId === id;
     } catch (err) {
       console.warn('❌ Video 不存在或錯誤:', err);
       return false;
     }
   }
-
-  CallBECompeleteAPI() {
-
+  //告訴後端確認建立課程
+  async CallBECompeleteAPI(): Promise<void> {
+    this.ChangeBtnStatus()
+    try {
+      const courseID = parseInt(this.steps[0].id!);
+      await firstValueFrom(this.signalR.putCourseFinal(courseID, false));
+      this.ShowMessage("success", "成功", "成功建立課程");
+    } catch (error) {
+      console.error(error);
+      this.ShowMessage("error", "失敗", "無法建立課程");
+    } finally {
+      this.ChangeBtnStatus()
+    }
   }
+
   async GetCourseAPI(id: number): Promise<void> {
     this.InitCourseForm(); // 清空表單
     this.coverPreviewUrl = 'assets/img/noimage.png'
     try {
       const course = await firstValueFrom(this.signalR.getCourse(id));
       this.courseForm.patchValue({
-        CourseTitle: course.CourseTitle,
-        CourseDes: course.CourseDes,
-        IsPublic: course.IsPublic,
-        Price: course.Price,
+        CourseTitle: course.courseTitle,
+        CourseDes: course.courseDes,
+        IsPublic: (course.isPublic).toString(),
+        Price: course.price,
         // CoverImage 不直接設值，僅顯示預覽
       });
-      this.coverPreviewUrl = `https://localhost:7073/images/${course.CoverImage}`; // ⚠️ 請依實際網址修改
+      this.coverPreviewUrl = `https://localhost:7073/images/${course.coverImage}`; // ⚠️ 請依實際網址修改
     } catch (error) {
       console.log(error);
       this.ShowMessage("error", "取得課程失敗", "無法載入課程資料");
@@ -526,9 +554,10 @@ export class CreateCourseComponent {
     this.InitChapterForm();
     try {
       const chapter = await firstValueFrom(this.signalR.getChapter(id));
+      console.log(chapter);
       this.chapterForm.patchValue({
-        ChapterTitle: chapter.ChapterTitle,
-        ChapterDes: chapter.ChapterDes,
+        ChapterTitle: chapter.chapterTitle,
+        ChapterDes: chapter.chapterDes,
       });
     } catch (error) {
       console.log(error);
@@ -542,10 +571,10 @@ export class CreateCourseComponent {
     try {
       const video = await firstValueFrom(this.signalR.getVideo(id));
       this.videoForm.patchValue({
-        Title: video.Title,
+        Title: video.title,
         // VideoFile 不設值，只設檔名顯示
       });
-      this.selectedVideoFileName = video.VideoFile;
+      this.selectedVideoFileName = video.videoFile;
     } catch (error) {
       console.log(error);
       this.ShowMessage("error", "取得影片失敗", "無法載入影片資料");
@@ -559,10 +588,16 @@ export class CreateCourseComponent {
     }
 
     try {
-      await this.callApiWithProgress(
+      await this.callApiWithProgress<RePutDTO>(
         this.signalR.putCourse(this.courseForm, id),
-        'CourseUpdated' // ⚠️ 根據實際 signalR 事件名稱調整
+        ["Chapter:Started", "Course:Processing", "Chapter:Completed"],  // ✅ 這才是後端實際使用的事件名稱
+        res => {
+          if (!res.success) {
+            this.ShowMessage("warn", "警告", res.message ?? "更新失敗");
+          }
+        }
       );
+
     } catch (error) {
       return Promise.reject(error);
     }
@@ -575,9 +610,15 @@ export class CreateCourseComponent {
     }
 
     try {
-      await this.callApiWithProgress(
+      await this.callApiWithProgress<RePutDTO>(
         this.signalR.putChapter(this.chapterForm, id),
-        'ChapterUpdated' // ⚠️ 根據實際 signalR 事件名稱調整
+        ["Chapter:Started", "Chapter:SavingToDb", "Chapter:Completed"], // ⚠️ 根據實際 signalR 事件名稱調整
+        res => {
+          if (!res.success) {
+            this.ShowMessage("warn", "警告", res.message ?? "更新失敗");
+          }
+          // 可視需要處理回傳訊息
+        }
       );
     } catch (error) {
       return Promise.reject(error);
@@ -591,16 +632,19 @@ export class CreateCourseComponent {
     }
 
     try {
-      await this.callApiWithProgress(
+      const hasNewFile = this.videoForm.get('VideoFile')?.value instanceof File;
+      const steps = hasNewFile
+        ? ['Video:Upload', "Video:Started", "Video:SavingToDb", "Video:SavingFile", 'Video:Completed']
+        : ["Video:Started", 'Video:Completed'];
+      await this.callApiWithProgress<RePutDTO>(
         this.signalR.putVideo(this.videoForm, id),
-        [
-          'Video:Started',
-          'Video:Uploading',
-          'Video:UploadCompleted',
-          'Video:SavingToServer',
-          'Video:SavingToDb',
-          'Video:Completed'
-        ] // ✅ 更新時仍可沿用相同步驟
+        steps, // ✅ 更新時仍可沿用相同步驟
+        res => {
+          if (!res.success) {
+            this.ShowMessage("warn", "警告", res.message ?? "更新失敗");
+          }
+          // 可視需要處理回傳訊息
+        }
       );
     } catch (error) {
       return Promise.reject(error);
@@ -637,7 +681,8 @@ export class CreateCourseComponent {
     })
   }
   //取消訂閱或中斷 SignalR 連線
-  ngOnDestroy() {
-    this.signalR.disconnect();
+  ngOnDestroy(): void {
+    this.formValueChangeSub?.unsubscribe();
+    this.signalR.disconnect(); // 如果有手動斷線機制的話
   }
 }

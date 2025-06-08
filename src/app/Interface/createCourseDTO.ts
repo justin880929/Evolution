@@ -25,27 +25,32 @@ export interface videoDTO {
 export interface ReqChapterDTO {
   CourseId: number,          // CourseID
   ChapterTitle: string,      // ChapterTitle
-  ChapterDes: string        // CourseDescription
+  ChapterDes: string,       // CourseDescription
+  ConnectionId: string
+}
+export interface ReqFinalDTO {
+  IsDraft: boolean,
+  ConnectionId: string
 }
 //Response回傳格式
 export interface ResCourseDTO {
-  CourseID: number,
-  CourseTitle: string,      // CourseTitle
-  CourseDes: string,        // CourseDescription
-  IsPublic: boolean,        // IsPublic（可選）
-  Price: number,            // Price
-  CoverImage: string,         // CoverImage File
-  CompanyId: number        // CompanyID
+  courseId: number,
+  courseTitle: string,      // CourseTitle
+  courseDes: string,        // CourseDescription
+  isPublic: boolean,        // IsPublic（可選）
+  price: number,            // Price
+  coverImage: string,         // CoverImage File
+  companyId: number        // CompanyID
 }
 export interface ResChapterDTO {
-  ChapterID: number
-  CourseId: number,          // CourseID
-  ChapterTitle: string,      // ChapterTitle
-  ChapterDes: string        // CourseDescription
+  chapterId: number
+  courseId: number,          // CourseID
+  chapterTitle: string,      // ChapterTitle
+  chapterDes: string        // CourseDescription
 }
 export interface ResVideoDTO {
-  VideoID: number,
-  ChapterId: number,         // ChapterId
-  Title: string,             // VideoTitle
-  VideoFile: string           // VideoFile
+  videoId: number,
+  chapterId: number,         // ChapterId
+  title: string,             // VideoTitle
+  videoFile: string           // VideoFile
 }

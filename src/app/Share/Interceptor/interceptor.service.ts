@@ -16,24 +16,28 @@ import { AuthService } from "../../services/auth.service";
 export class InterceptorService implements HttpInterceptor {
   constructor(private jwtService: JWTService, private router: Router, private auth: AuthService) { }
   private skipUrls = [
-    '/api/auth/login',
-    '/api/auth/logout',
-    '/api/auth/refresh',
-    '/api/account/reset-password',
-    '/api/account/forgot-password',
-    '/api/course'
+    '/api/auth',
+    '/api/account',
+    '/api/course',
+    '/api/chapter',
+    '/api/video',
+    '/courseHub'
   ];
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     const url = req.url.toLowerCase();
-    const shouldSkip = this.skipUrls.some(path => url.endsWith(path));
+    const urlPath = new URL(url).pathname; // 例如：/courseHub/negotiate
+    const shouldSkip = this.skipUrls.some(path => urlPath.startsWith(path));
     const token = this.jwtService.getToken();
-
+    // console.log('[Interceptor] 處理 URL:', req.url, '是否跳過:', shouldSkip);
+    if (req.url.includes('/courseHub')) {
+      return next.handle(req); // 繞過 Interceptor
+    }
     const authReq = token && !shouldSkip
       ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } })
       : req;
-    console.log('是否跳過：', shouldSkip);
+    // console.log('是否跳過：', shouldSkip);
     // console.log('Token：', token);
-    console.log('是否應該 refresh：', this.jwtService.shouldRefreshTokenSoon());
+    // console.log('是否應該 refresh：', this.jwtService.shouldRefreshTokenSoon());
     // ✅ 判斷是否需要 refresh
     if (!shouldSkip && this.jwtService.shouldRefreshTokenSoon()) {
       console.log('⚠️ 將呼叫 refreshToken()');
