@@ -30,12 +30,22 @@
 
       <div class="mb-3">
         <label class="form-label">課程價格</label>
-        <input type="number" class="form-control" formControlName="Price" />
+        <div class="input-group">
+          <span class="input-group-text">TWD$</span>
+          <input type="number" class="form-control" formControlName="Price" />
+        </div>
       </div>
 
       <div class="mb-3">
         <label class="form-label">課程封面</label>
         <input type="file" class="form-control" (change)="onCoverSelected($event)" accept=".jpg,.jpeg,.png" />
+        <ng-container *ngIf="originalCoverImageUrl$ | async as originalCover">
+          <div *ngIf="originalCover">
+            已選擇：{{ originalCover }}
+          </div>
+        </ng-container>
+
+
         <img [src]="coverPreviewUrl" class="img-thumbnail mt-2" style="max-width: 300px;" *ngIf="coverPreviewUrl" />
       </div>
     </form>

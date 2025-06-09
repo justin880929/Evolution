@@ -1,10 +1,10 @@
 import { ConfigService } from './../../services/config.service';
 import { Component, ElementRef, OnInit, ViewChild, Pipe } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, FormArray, FormControl } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, FormArray, FormControl, ValidatorFn, AbstractControl, ValidationErrors } from '@angular/forms';
 import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
 import { CourseSignalrService } from 'src/app/services/course.service/course-signalr.service';
 import { courseDTO, chapterDTO, videoDTO, RePutDTO } from "../../Interface/createCourseDTO";
-import { Observable, Subscription, delay, firstValueFrom } from 'rxjs';
+import { BehaviorSubject, Observable, Subscription, delay, firstValueFrom } from 'rxjs';
 @Component({
   selector: 'app-create-course',
   templateUrl: './create-course.component.html',
@@ -34,6 +34,9 @@ export class CreateCourseComponent {
     this.signalR.connect();
 
   }
+  // 在 component 中改為：
+  originalCoverImageUrl$ = new BehaviorSubject<string | null>(null);
+
   //課程表單
   courseForm = new FormGroup<courseDTO>({
     CompanyId: new FormControl(1),
@@ -41,7 +44,7 @@ export class CreateCourseComponent {
     CourseDes: new FormControl("", Validators.required),
     IsPublic: new FormControl(true, Validators.required),
     CoverImage: new FormControl('', Validators.required), // 這裡先不給字串，會用 <input type="file"> 補上 File
-    Price: new FormControl(0, Validators.required),
+    Price: new FormControl(null, Validators.required),
   });
   //章節表單
   chapterForm = new FormGroup<chapterDTO>({
@@ -56,6 +59,7 @@ export class CreateCourseComponent {
   //初始化課程表單
   InitCourseForm() {
     this.courseForm.reset()
+    this.originalCoverImageUrl$.next(null)
   }
   //初始化章節表單
   InitChapterForm() {
@@ -64,6 +68,20 @@ export class CreateCourseComponent {
   //初始化影片表單
   InitVideoForm() {
     this.videoForm.reset()
+    this.selectedVideoFileName = null
+  }
+  //自訂 Validator 檢查封面 File 或 字串都視為有效
+  coverImageValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const value = control.value;
+      if (value instanceof File) {
+        return null; // 有上傳檔案
+      }
+      if (typeof value === 'string' && value.trim() !== '') {
+        return null; // 有回填 URL
+      }
+      return { required: true }; // 沒上傳也沒回填
+    };
   }
   onCoverSelected(event: Event) {
     const input = event.target as HTMLInputElement;
@@ -75,6 +93,23 @@ export class CreateCourseComponent {
       reader.readAsDataURL(file)
     }
   }
+  //自訂 Validator 檢查影片 File 或 字串都視為有效
+  videoFileValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const value = control.value;
+
+      if (value instanceof File) {
+        return null; // 上傳的是檔案
+      }
+
+      if (typeof value === 'string' && value.trim() !== '') {
+        return null; // 是已回填的檔案 URL（或名稱）
+      }
+
+      return { required: true }; // 沒有檔案
+    };
+  }
+
   selectedVideoFileName: string | null = null
   onVideoSelected(event: Event) {
     const input = event.target as HTMLInputElement;
@@ -111,28 +146,30 @@ export class CreateCourseComponent {
           const ParentChapterID = this.findParentChapterID(this.currentStep)
           await this.AddVideoAPI(ParentChapterID)
       }
-      this.currentStep--;
-    } else {
-      const Prevlabel = this.steps[this.currentStep - 1].label
-      const PrevID = parseInt(this.steps[this.currentStep - 1].id!)
-      try {
-        switch (Prevlabel) {
-          case "建立課程":
-            await this.GetCourseAPI(PrevID)
-            break;
-          case "新增章節":
-            await this.GetChapterAPI(PrevID)
-            break;
-          case "新增影片":
-            await this.GetVideoAPI(PrevID)
-            break;
-        }
-        this.currentStep--; // 等資料都回填後再切換
-        this.watchFormDirty(); // 切換後再啟動 dirty 監聽
-      } catch (error) {
-        this.ShowMessage("error", "錯誤", `抓不到步驟${this.currentStep - 1}${this.steps[this.currentStep - 1].label}的資料`)
-      }
     }
+    const Prevlabel = this.steps[this.currentStep - 1].label
+    const PrevID = parseInt(this.steps[this.currentStep - 1].id!)
+    try {
+      switch (Prevlabel) {
+        case "建立課程":
+          await this.GetCourseAPI(PrevID)
+          break;
+        case "新增章節":
+          await this.GetChapterAPI(PrevID)
+          break;
+        case "新增影片":
+          await this.GetVideoAPI(PrevID)
+          break;
+      }
+      // ✅ 用微任務確保資料與 DOM 渲染一致
+      Promise.resolve().then(() => {
+        this.currentStep--;
+        this.watchFormDirty();
+      });
+    } catch (error) {
+      this.ShowMessage("error", "錯誤", `抓不到步驟${this.currentStep - 1}${this.steps[this.currentStep - 1].label}的資料`)
+    }
+
   }
   //下一步
   lockButton = false //控制按鈕是否解鎖
@@ -289,7 +326,9 @@ export class CreateCourseComponent {
     this.configService.confirm({
       message: '是否為此章節新增影片？',
       accept: async () => {
-        await this.AddChapterAPI(parseInt(this.steps[0].id!))
+        if (parseInt(this.steps[this.currentStep].id!) === 0) {
+          await this.AddChapterAPI(parseInt(this.steps[0].id!))
+        }
         this.StepsPushVideo()
       },
       reject: async () => {
@@ -303,7 +342,9 @@ export class CreateCourseComponent {
       message: '是否繼續為此章節新增影片？',
       accept: async () => {
         const ParentChapterID = this.findParentChapterID(this.currentStep)
-        await this.AddVideoAPI(ParentChapterID)
+        if (parseInt(this.steps[this.currentStep].id!) === 0) {
+          await this.AddVideoAPI(ParentChapterID)
+        }
         this.StepsPushVideo()
       },
       reject: async () => {
@@ -317,11 +358,15 @@ export class CreateCourseComponent {
       message: '是否繼續為此課程新增章節？',
       accept: async () => {
         if (this.steps[this.currentStep].label === "新增章節") {
-          await this.AddChapterAPI(parseInt(this.steps[0].id!))
+          if (parseInt(this.steps[this.currentStep].id!) === 0) {
+            await this.AddChapterAPI(parseInt(this.steps[0].id!))
+          }
           this.StepsPushChapter()
         } else {
           const ParentChapterID = this.findParentChapterID(this.currentStep)
-          await this.AddVideoAPI(ParentChapterID)
+          if (parseInt(this.steps[this.currentStep].id!) === 0) {
+            await this.AddVideoAPI(ParentChapterID)
+          }
           this.StepsPushChapter()
         }
       },
@@ -375,7 +420,7 @@ export class CreateCourseComponent {
       this.progressPercent = 0;
       this.ShowMessage("error", "逾時", `上傳逾時，請重試`);
       reject(new Error("SignalR timeout"));
-    }, 15000);
+    }, 180000);
 
     sub = this.signalR.progress$.subscribe(update => {
       console.log('📡 收到進度更新：', update);
@@ -440,7 +485,7 @@ export class CreateCourseComponent {
       this.signalR.postCourse(this.courseForm),
       ['Course:Started', 'Course:SavingToDb', 'Course:SavingImage', 'Course:Completed'],
       res => {
-        this.steps[this.currentStep].id = res.toString();
+        this.steps[0].id = res.toString();
         console.log(this.steps);
       }
     );
@@ -462,6 +507,7 @@ export class CreateCourseComponent {
           console.log(this.steps);
         }
       );
+      this.InitVideoForm()
       this.InitChapterForm(); // ✅ 呼叫成功後再清空
     } catch (err) {
       return Promise.reject(err);
@@ -482,6 +528,7 @@ export class CreateCourseComponent {
           console.log(this.steps);
         }
       );
+      this.InitChapterForm()
       this.InitVideoForm()
     } catch (error) {
       return Promise.reject(error);
@@ -532,6 +579,8 @@ export class CreateCourseComponent {
   }
 
   async GetCourseAPI(id: number): Promise<void> {
+    console.log("進入GetCourseAPI");
+
     this.InitCourseForm(); // 清空表單
     this.coverPreviewUrl = 'assets/img/noimage.png'
     try {
@@ -541,7 +590,12 @@ export class CreateCourseComponent {
         CourseDes: course.courseDes,
         IsPublic: (course.isPublic).toString(),
         Price: course.price,
-        // CoverImage 不直接設值，僅顯示預覽
+        CoverImage: course.coverImage
+      });
+      // 👉 等 DOM 確定渲染後再設定 originalCoverImageUrl
+      Promise.resolve().then(() => {
+        console.log("cover from api", course.coverImage);
+        this.originalCoverImageUrl$.next(course.coverImage);
       });
       this.coverPreviewUrl = `https://localhost:7073/images/${course.coverImage}`; // ⚠️ 請依實際網址修改
     } catch (error) {
@@ -572,7 +626,7 @@ export class CreateCourseComponent {
       const video = await firstValueFrom(this.signalR.getVideo(id));
       this.videoForm.patchValue({
         Title: video.title,
-        // VideoFile 不設值，只設檔名顯示
+        VideoFile: video.videoFile
       });
       this.selectedVideoFileName = video.videoFile;
     } catch (error) {
@@ -583,18 +637,27 @@ export class CreateCourseComponent {
 
   async UpCourseAPI(id: number): Promise<void> {
     if (!this.courseForm.valid) {
+      console.log(this.courseForm.errors);
+      console.log(this.courseForm.getRawValue());
       this.ShowMessage('warn', "警告", "請輸入正確的資訊");
       return;
     }
 
     try {
+      const coverValue = this.courseForm.get('CoverImage')?.value;
+      const originalUrl = this.originalCoverImageUrl$.getValue();
+      if (typeof coverValue === 'string' && coverValue === originalUrl) {
+        // 沒變更過封面圖，設為 null，避免 service API 驗證失敗
+        this.courseForm.get('CoverImage')?.setValue(null);
+      }
       await this.callApiWithProgress<RePutDTO>(
         this.signalR.putCourse(this.courseForm, id),
-        ["Chapter:Started", "Course:Processing", "Chapter:Completed"],  // ✅ 這才是後端實際使用的事件名稱
+        ["Course:Started", "Course:Processing", "Course:Completed"],  // ✅ 這才是後端實際使用的事件名稱
         res => {
           if (!res.success) {
             this.ShowMessage("warn", "警告", res.message ?? "更新失敗");
           }
+          this.showEditButton = false
         }
       );
 
@@ -617,6 +680,7 @@ export class CreateCourseComponent {
           if (!res.success) {
             this.ShowMessage("warn", "警告", res.message ?? "更新失敗");
           }
+          this.showEditButton = false
           // 可視需要處理回傳訊息
         }
       );
@@ -632,6 +696,10 @@ export class CreateCourseComponent {
     }
 
     try {
+      const videoValue = this.videoForm.get('VideoFile')?.value;
+      if (typeof videoValue === 'string' && videoValue === this.selectedVideoFileName) {
+        this.videoForm.get('VideoFile')?.setValue(null);
+      }
       const hasNewFile = this.videoForm.get('VideoFile')?.value instanceof File;
       const steps = hasNewFile
         ? ['Video:Upload', "Video:Started", "Video:SavingToDb", "Video:SavingFile", 'Video:Completed']
@@ -643,6 +711,7 @@ export class CreateCourseComponent {
           if (!res.success) {
             this.ShowMessage("warn", "警告", res.message ?? "更新失敗");
           }
+          this.showEditButton = false
           // 可視需要處理回傳訊息
         }
       );

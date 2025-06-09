@@ -116,10 +116,9 @@ export class CourseSignalrService {
         console.error("❌ 圖片格式錯誤，只允許 jpg 或 png");
         return throwError(() => new Error('❌ 圖片格式錯誤，僅支援 .jpg 與 .png'));
       }
+      formData.append('CoverImage', file);
     }
-    formData.append('CoverImage', file);
     formData.append('ConnectionId', this.connectionId);
-    formData.append('CompanyId', courseForm.get('CompanyId')?.value.toString());
     formData.append('CourseTitle', courseForm.get('CourseTitle')?.value);
     formData.append('CourseDes', courseForm.get('CourseDes')?.value);
     formData.append('Price', courseForm.get('Price')?.value.toString());
@@ -255,9 +254,9 @@ export class CourseSignalrService {
         console.error("❌ 影片格式錯誤，只允許 mp4");
         return throwError(() => new Error('❌ 影片格式錯誤，僅支援 mp4'));
       }
+      formData.append('VideoFile', file);
     }
     formData.append('ConnectionId', this.connectionId);
-    formData.append('VideoFile', file);
     formData.append('Title', videoForm.get('Title')?.value);
     return this.resultService.putResult<ResVideoDTO>(
       `${this.VideoUrl}/${videoID}`,
