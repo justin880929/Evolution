@@ -29,6 +29,10 @@ export class BackSystemComponent implements OnInit, OnDestroy {
   userPhotoUrl = '';
   defaultPhoto = '';
   isLoggedIn = false;
+  userRole = '';
+  isAdmin = false;
+
+  private loginSub!: Subscription;
 
   private scripts: HTMLScriptElement[] = [];
 
@@ -47,31 +51,35 @@ export class BackSystemComponent implements OnInit, OnDestroy {
   }
 
   async ngOnInit(): Promise<void> {
-    const userPayload  = this.jwtService.UnpackJWT();
-    this.isLoggedIn = !!userPayload ;
+    this.loginSub = this.authService.isLoggedIn$.subscribe((flag) => {
+      this.isLoggedIn = flag;
+      if (flag) {
+        // 從 JWT 解析 username / role
+        const payload = this.jwtService.UnpackJWT();
+        this.username = payload?.username ?? '使用者';
+        this.userRole = payload?.role ?? '';
+        const roleLower = this.userRole.toLowerCase();
+        this.isAdmin = roleLower === 'admin' || roleLower === 'superadmin';
+      } else {
+        // 登出時重置
+        this.username = '';
+        this.userRole = '';
+        this.isAdmin = false;
+        this.userPhotoUrl = 'assets/img/NoprofilePhoto.png';
+      }
+    });
 
-    if (userPayload) {
-      // 先用 JWT 解析一份基本資訊（登入狀態、role），但姓名與頭像改為從 userService 取
-      this.role = userPayload.role;
-      // 如果希望一開始就顯示一份「JWT 內的 user.username」，可暫時賦值：
-      this.username = userPayload.username;
-      this.userPhotoUrl = '/assets/img/NoprofilePhoto.png';
-    } else {
-      this.userPhotoUrl = '/assets/img/default-user.png';
-    }
-
+    // 3. **訂閱 userService.user$**：凡是 Service 裡有 next()，這邊都會收到
     this.userSub = this.userService.user$.subscribe((userDto) => {
       if (userDto) {
         this.username = userDto.name;
-        // 這裡把 userDto.pic 當頭像 URL
-        this.userPhotoUrl = userDto.pic || '/assets/img/default-user.png';
+        this.userPhotoUrl = userDto.pic || 'assets/img/NoprofilePhoto.png';
+      } else {
+        // 如果你想讓載入初始值時 userSubject 為 null，就顯示預設
+        // this.username = '';
+        // this.userPhotoUrl = 'assets/img/NoprofilePhoto.png';
       }
-      // 如果 userDto 為 null（尚未載入或已登出），就可選擇顯示預設
-      // else {
-        //   this.username = '';
-        //   this.userPhotoUrl = '/assets/img/default-user.png';
-        // }
-      });
+    });
 
 
       try {

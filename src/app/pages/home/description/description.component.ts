@@ -12,7 +12,8 @@ import { forkJoin, Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { Router, NavigationEnd } from '@angular/router';
 import * as Isotope from 'isotope-layout';
-import * as imagesLoaded from 'imagesloaded';
+// import * as imagesLoaded from 'imagesloaded';
+import imagesLoaded from 'imagesloaded/imagesloaded.pkgd.js';
 
 import { DescriptionService } from '../../../services/description.service';
 import { CourseWithTagDto } from '../../../Interface/coursewithtagDTO';
@@ -73,16 +74,6 @@ export class DescriptionComponent implements OnInit, AfterViewInit, OnDestroy {
         err => console.error(err)
       )
     );
-
-    // 用 courseItems.changes 確保篩選時也能重排
-    this.courseItems.changes.subscribe(() => {
-      if (this.iso) {
-        imagesLoaded(this.isotopeContainer.nativeElement, () => {
-          this.iso.reloadItems();
-          this.iso.layout();
-        });
-      }
-    });
   }
 
   ngAfterViewInit(): void {
@@ -92,6 +83,16 @@ export class DescriptionComponent implements OnInit, AfterViewInit, OnDestroy {
       itemSelector: '.isotope-item',
       layoutMode: 'masonry',
       transitionDuration: '0.4s'
+    });
+
+    // 用 courseItems.changes 確保篩選時也能重排
+    this.courseItems.changes.subscribe(() => {
+      if (this.iso) {
+        imagesLoaded(this.isotopeContainer.nativeElement, () => {
+          this.iso.reloadItems();
+          this.iso.layout();
+        });
+      }
     });
 
     // 監聽 NavigationEnd，只有在 URL 包含 /home/description 時才重排

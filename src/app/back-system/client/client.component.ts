@@ -1,10 +1,8 @@
-import { Component, OnInit } from '@angular/core';
-import { empDTO } from '../../Interface/empDTO';
-import { EmpService } from '../../services/emp.service/emp.service';
-import { Router } from '@angular/router';
-import { TableLazyLoadEvent } from 'primeng/table';
+import { Component, OnInit, ViewChild } from '@angular/core';
+import { Table, TableLazyLoadEvent } from 'primeng/table';
 import { ConfirmationService, MessageService } from 'primeng/api';
-
+import { CompanyListDTO } from 'src/app/Interface/companyListDTO';
+import { ClientService } from './../../services/client.service';
 
 
 @Component({
@@ -13,64 +11,159 @@ import { ConfirmationService, MessageService } from 'primeng/api';
   styleUrls: ['./client.component.css']
 })
 export class ClientComponent implements OnInit {
-  empList: empDTO[] = [];
-  totalRecords: number = 0;
-  loading: boolean = false;
-  first: number = 0;
+   @ViewChild('dt1') dt1!: Table;
+  clientList: CompanyListDTO[] = [];
+  totalRecords = 0;
+  loading = false;
+  first = 0;
+  rows = 10;
 
-  selectEmp!: empDTO;
-  selectedEmps: empDTO[] = [];
-
-  displayEmpDialog: boolean = false;
-  isCreateMode: boolean = true;
-  currentEmp: empDTO = {
-    userID: 0,
-    username: '',
-    email: '',
-    department: '',
-    isEmailConfirmed: false,
-  };
+  currentCom!: CompanyListDTO;
+  selectedComs: CompanyListDTO[] = [];
+  displayComDialog = false;
+  isCreateMode = true;
 
   constructor(
-    private empService: EmpService,
-    private router: Router,
-    private confirmationService: ConfirmationService,
-    private messageService: MessageService
-  ) { }
+    private clientService: ClientService,
+    private messageService: MessageService,
+    private confirmationService: ConfirmationService
+  ) {}
 
   ngOnInit(): void {
-    this.loading = true;
-    setTimeout(() => this.loadLazyData({ first: 0, rows: 10 }), 100);
+    this.currentCom = this.emptyCompany();
   }
 
-  loadLazyData(event: TableLazyLoadEvent): void {
-    const first = event.first ?? 0;
-    const rows = event.rows ?? 10;
-    let sortFieldRaw = event.sortField;
-    const sortField: string = Array.isArray(sortFieldRaw) ? sortFieldRaw[0] ?? '' : sortFieldRaw ?? '';
-    const sortOrder = event.sortOrder ?? 1;
-    const filters = event.filters ?? {};
+  ngAfterViewInit() {
+  this.dt1.clearState();      // 清掉所有儲存的狀態
+  this.dt1.reset();           // 觸發一次 loadLazyData({ first:0, rows:this.rows, … })
+}
 
-    this.loading = true;
-    this.first = first;
+  // 分頁載入
+  loadLazyData(event: TableLazyLoadEvent) {
+  this.loading = true;
+  this.first = event.first ?? 0;
+const pageSize = event.rows ?? this.rows;
+  // 1. 處理 sortField：如果是陣列就取第一個，否則直接取字串／null
+  const sortFieldValue: string | null = Array.isArray(event.sortField)
+    ? (event.sortField[0] ?? null)
+    : (event.sortField ?? null);
 
-    this.empService
-      .getPagedResult(first, rows, sortField, sortOrder, filters)
-      .subscribe({
-        next: res => {
-          this.empList = res.data.map(emp => ({
-            ...emp,
-            statusLabel: emp.isEmailConfirmed ? '已驗證' : '未驗證'
-          }));
-          this.totalRecords = res.total;
-          this.loading = false;
-        },
-        error: () => {
-          this.messageService.add({ severity: 'error', summary: '錯誤', detail: '取得員工列表失敗' });
-          this.loading = false;
-        }
-      });
+  // 2. 處理 sortOrder：這邊如果你的 API 接受 null，就保留 null，否則給預設值（例如 1 或 0）
+  const sortOrderValue: number | null = event.sortOrder ?? null;
+
+    this.clientService
+    .getClientPageData(
+      this.first,
+      pageSize,
+      sortFieldValue,
+      sortOrderValue,
+      event.filters ?? {}
+    )
+    .subscribe({
+      next: ({ data, total }) => {
+        this.clientList = data.map(client => ({
+          ...client,
+          isActiveLabel: client.isActive ? '啟用' : '停用'
+        }));
+        this.totalRecords = total;
+        this.loading = false;
+      },
+      error: () => {
+        this.messageService.add({ severity: 'error', summary: '錯誤', detail: '取得客戶列表失敗' });
+        this.loading = false;
+      }
+    });
+}
+
+
+  // === 1. 顯示「新增客戶」對話框 ===
+  createClient(): void {
+    this.isCreateMode = true;
+    this.currentCom = this.emptyCompany();
+    this.displayComDialog = true;
   }
+
+  // === 2. 顯示「編輯客戶」對話框 ===
+  updateClient(com: CompanyListDTO): void {
+    this.isCreateMode = false;
+    this.currentCom = { ...com };
+    this.displayComDialog = true;
+  }
+
+  // === 3. 實際呼叫 API 建立/編輯 ===
+  saveClient(): void {
+    if (!this.currentCom.companyName || !this.currentCom.companyEmail) {
+      return;
+    }
+
+    const obs = this.isCreateMode
+      ? this.clientService.createClient(this.currentCom)
+      : this.clientService.updateClient(this.currentCom);
+
+    obs.subscribe({
+      next: () => {
+        const action = this.isCreateMode ? '新增' : '更新';
+        this.messageService.add({ severity: 'success', summary: '成功', detail: `客戶${action}成功` });
+        this.displayComDialog = false;
+        // 新增時回第一頁，編輯時維持目前頁碼
+        this.loadLazyData({ first: this.isCreateMode ? 0 : this.first, rows: this.rows } as any);
+      },
+      error: () => {
+        const action = this.isCreateMode ? '新增' : '更新';
+        this.messageService.add({ severity: 'error', summary: '失敗', detail: `客戶${action}失敗` });
+      }
+    });
+  }
+
+  // === 4. 刪除單一客戶 ===
+  deleteClient(com: CompanyListDTO): void {
+    this.confirmationService.confirm({
+      message: `確定刪除 ${com.companyName}？`,
+      accept: () => {
+        this.clientService.deleteClient(com.companyId).subscribe({
+          next: () => {
+            this.messageService.add({ severity: 'success', summary: '刪除成功', detail: `${com.companyName} 已刪除` });
+            this.loadLazyData({ first: this.first, rows: this.rows } as any);
+          },
+          error: () => {
+            this.messageService.add({ severity: 'error', summary: '失敗', detail: '刪除客戶失敗' });
+          }
+        });
+      }
+    });
+  }
+
+  // === 5. 批次刪除 ===
+  deleteClientsBulk(): void {
+    if (!this.selectedComs.length) return;
+    this.confirmationService.confirm({
+      message: `確定刪除已選取的 ${this.selectedComs.length} 筆資料？`,
+      accept: () => {
+        const ids = this.selectedComs.map(c => c.companyId);
+        this.clientService.deleteClientsBulk(ids).subscribe({
+          next: () => {
+            this.messageService.add({ severity: 'success', summary: '刪除成功', detail: `${this.selectedComs.length} 筆資料已刪除` });
+            this.selectedComs = [];
+            this.loadLazyData({ first: this.first, rows: this.rows } as any);
+          },
+          error: () => {
+            this.messageService.add({ severity: 'error', summary: '失敗', detail: '批次刪除失敗' });
+          }
+        });
+      }
+    });
+  }
+
+  // Utility：清空一個空公司物件
+  emptyCompany(): CompanyListDTO {
+  return {
+    companyId: 0,
+    companyName: '',
+    companyEmail: '',
+    isActive: false,
+    createdAt: new Date().toISOString()   // 或直接 '' 也行，但用 ISO 字串比較安全
+  };
+}
 
   onInputFilter(event: Event, field: string, dt: any): void {
     const input = (event.target as HTMLInputElement).value;
@@ -84,90 +177,7 @@ export class ClientComponent implements OnInit {
     return filter?.value ?? '';
   }
 
-  emptyEmployee(): empDTO {
-    return { userID: 0, username: '', email: '', department: '', isEmailConfirmed: false, statusLabel: '未驗證' } as empDTO;
-  }
-
-  showCreateDialog(): void {
-    this.isCreateMode = true;
-    this.currentEmp = this.emptyEmployee();
-    this.displayEmpDialog = true;
-  }
-
-  showEditDialog(emp: empDTO): void {
-    this.isCreateMode = false;
-    this.currentEmp = { ...emp };
-    this.displayEmpDialog = true;
-  }
-
   onDialogHide(): void {
-    this.currentEmp = this.emptyEmployee();
-  }
-
-  saveEmployee(): void {
-    if (!this.currentEmp.username || !this.currentEmp.email) return;
-
-    if (this.isCreateMode) {
-      this.empService.createEmployee(this.currentEmp).subscribe({
-        next: () => {
-          this.messageService.add({ severity: 'success', summary: '成功', detail: '員工新增成功' });
-          this.displayEmpDialog = false;
-          this.first = 0;
-          this.loadLazyData({ first: 0, rows: 10 } as TableLazyLoadEvent);
-        },
-        error: () => {
-          this.messageService.add({ severity: 'error', summary: '錯誤', detail: '新增員工失敗' });
-        }
-      });
-    } else {
-      this.empService.updateEmployee(this.currentEmp).subscribe({
-        next: () => {
-          this.messageService.add({ severity: 'success', summary: '成功', detail: '員工更新成功' });
-          this.displayEmpDialog = false;
-          this.loadLazyData({ first: this.first, rows: 10 } as TableLazyLoadEvent);
-        },
-        error: () => {
-          this.messageService.add({ severity: 'error', summary: '錯誤', detail: '更新員工失敗' });
-        }
-      });
-    }
-  }
-
-  confirmDelete(emp: empDTO): void {
-    this.confirmationService.confirm({
-      message: `您確定要刪除 ${emp.username} 嗎？`,
-      accept: () => {
-        this.empService.deleteEmployee(emp.userID).subscribe({
-          next: () => {
-            this.messageService.add({ severity: 'success', summary: '刪除成功', detail: `${emp.username} 已被刪除` });
-            this.loadLazyData({ first: this.first, rows: 10 } as TableLazyLoadEvent);
-          },
-          error: () => {
-            this.messageService.add({ severity: 'error', summary: '錯誤', detail: '刪除員工失敗' });
-          }
-        });
-      }
-    });
-  }
-
-  confirmDeleteSelected(): void {
-    if (!this.selectedEmps || this.selectedEmps.length === 0) return;
-
-    this.confirmationService.confirm({
-      message: `您確定要刪除已勾選的 ${this.selectedEmps.length} 位員工嗎？`,
-      accept: () => {
-        const idsToDelete = this.selectedEmps.map(e => e.userID);
-        this.empService.deleteEmployeesBulk(idsToDelete).subscribe({
-          next: () => {
-            this.messageService.add({ severity: 'success', summary: '批次刪除成功', detail: `${this.selectedEmps.length} 位員工已被刪除` });
-            this.selectedEmps = [];
-            this.loadLazyData({ first: this.first, rows: 10 } as TableLazyLoadEvent);
-          },
-          error: () => {
-            this.messageService.add({ severity: 'error', summary: '錯誤', detail: '批次刪除失敗' });
-          }
-        });
-      }
-    });
+    this.currentCom = this.emptyCompany();
   }
 }

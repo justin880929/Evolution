@@ -70,21 +70,29 @@ export class AuthService {
     return of(this.jwtService.UnpackJWT());
   } else {
     return this.resultService
-      .postResult<AuthResponseDto>(`${this.authUrl}/login`, { email, password })
-      .pipe(
-        tap(res => {
-          // 1. 設定新的 Token
-          this._loggedIn$$.next(true);
-          this.jwtService.setToken(res.accessToken, res.refreshToken);
-          // 2. 立刻拉一次完整的 userDto 出來更新 user$
-          this.userService.refreshUserInfo().subscribe();
-        }),
-        // 只回傳解好的 JWT payload
-        map(() => this.jwtService.UnpackJWT()),
-        catchError(err => throwError(() => err))
-      );
+    .postResult<AuthResponseDto>(`${this.authUrl}/login`, { email, password })
+    .pipe(
+      // 1. 先把 token 存好
+      tap(res => {
+        this.jwtService.setToken(res.accessToken, res.refreshToken);
+      }),
+      // 2. 然後載入使用者資料
+      switchMap(() => {
+        // refreshUserInfo 內部會推到 userSubject
+        return this.userService.refreshUserInfo();  // 假設它回傳 Observable<UserDTO>
+      }),
+      // 3. 載完 userInfo 再通知已登入
+      tap(() => {
+        this._loggedIn$$.next(true);
+      }),
+      // 4. 最後回傳 JWT payload
+      map(() => {
+        return this.jwtService.UnpackJWT()!;
+      }),
+      catchError(err => throwError(() => err))
+    );
+    }
   }
-}
 
 
   sendResetLink(email: string): Observable<ApiResponse<string>> {

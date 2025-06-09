@@ -16,6 +16,11 @@
             "outputPath": "dist/evolution",
             "index": "src/index.html",
             "main": "src/main.ts",
+            "allowedCommonJsDependencies": [
+              "outlayer",
+              "ev-emitter",
+              "imagesloaded"
+            ],
             "polyfills": [
               "zone.js"
             ],
