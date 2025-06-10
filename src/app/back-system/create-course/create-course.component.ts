@@ -5,6 +5,7 @@ import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
 import { CourseSignalrService } from 'src/app/services/course.service/course-signalr.service';
 import { courseDTO, chapterDTO, videoDTO, RePutDTO } from "../../Interface/createCourseDTO";
 import { BehaviorSubject, Observable, Subscription, delay, firstValueFrom } from 'rxjs';
+import { v4 as uuidv4 } from 'uuid';
 @Component({
   selector: 'app-create-course',
   templateUrl: './create-course.component.html',
@@ -36,39 +37,50 @@ export class CreateCourseComponent {
   }
   // 在 component 中改為：
   originalCoverImageUrl$ = new BehaviorSubject<string | null>(null);
-
+  lockButton = false
   //課程表單
   courseForm = new FormGroup<courseDTO>({
     CompanyId: new FormControl(1),
-    CourseTitle: new FormControl("", Validators.required),
-    CourseDes: new FormControl("", Validators.required),
-    IsPublic: new FormControl(true, Validators.required),
-    CoverImage: new FormControl('', Validators.required), // 這裡先不給字串，會用 <input type="file"> 補上 File
-    Price: new FormControl(null, Validators.required),
+    CourseTitle: new FormControl({ value: '', disabled: this.lockButton }, Validators.required),
+    CourseDes: new FormControl({ value: '', disabled: this.lockButton }, Validators.required),
+    IsPublic: new FormControl({ value: 'true', disabled: this.lockButton }, Validators.required),
+    CoverImage: new FormControl({ value: '', disabled: this.lockButton }, Validators.required), // 這裡先不給字串，會用 <input type="file"> 補上 File
+    Price: new FormControl({ value: null, disabled: this.lockButton }, Validators.required),
   });
   //章節表單
   chapterForm = new FormGroup<chapterDTO>({
-    ChapterTitle: new FormControl('', Validators.required),
-    ChapterDes: new FormControl('', Validators.required)
+    ChapterTitle: new FormControl({ value: '', disabled: this.lockButton }, Validators.required),
+    ChapterDes: new FormControl({ value: '', disabled: this.lockButton }, Validators.required)
   })
   //影片表單
   videoForm = new FormGroup<videoDTO>({
-    Title: new FormControl('', Validators.required),
-    VideoFile: new FormControl('', Validators.required)
+    Title: new FormControl({ value: '', disabled: this.lockButton }, Validators.required),
+    VideoFile: new FormControl({ value: '', disabled: this.lockButton }, Validators.required)
   })
   //初始化課程表單
   InitCourseForm() {
     this.courseForm.reset()
     this.originalCoverImageUrl$.next(null)
+    this.courseForm.markAsPristine()
+    this.courseForm.markAsUntouched()
   }
   //初始化章節表單
   InitChapterForm() {
     this.chapterForm.reset()
+    this.chapterForm.markAsPristine()
+    this.chapterForm.markAsUntouched()
   }
   //初始化影片表單
   InitVideoForm() {
     this.videoForm.reset()
+    // 手動清除檔案 input 的值
+    if (this.videoInputRef) {
+      this.videoInputRef.nativeElement.value = '';
+    }
     this.selectedVideoFileName = null
+    this.videoForm.markAsPristine(); // 加上這行
+    this.videoForm.markAsUntouched();
+
   }
   //自訂 Validator 檢查封面 File 或 字串都視為有效
   coverImageValidator(): ValidatorFn {
@@ -94,6 +106,7 @@ export class CreateCourseComponent {
     }
   }
   //自訂 Validator 檢查影片 File 或 字串都視為有效
+  @ViewChild('videoInput') videoInputRef!: ElementRef<HTMLInputElement>;
   videoFileValidator(): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
       const value = control.value;
@@ -116,7 +129,7 @@ export class CreateCourseComponent {
     if (input.files && input.files.length > 0) {
       const file = input.files[0];
       this.videoForm.get('VideoFile')?.setValue(file);
-      this.selectedVideoFileName = file.name;
+      this.videoForm.get('VideoFile')?.markAsDirty(); // ✅ 加上這行
     }
   }
   findParentChapterID(index: number): number {
@@ -130,49 +143,60 @@ export class CreateCourseComponent {
 
   //上一步
   async onPrev() {
-    if (this.currentStep < 0) {
-      return
-    }
-    console.log(this.steps);
-    const CourseID = parseInt(this.steps[0].id!)
-    const nowStepId = parseInt(this.steps[this.currentStep].id!)
-    const nowSteLable = this.steps[this.currentStep].label
+    if (this.currentStep <= 0) return;
+
+    const nowStep = this.steps[this.currentStep];
+    const nowStepId = parseInt(nowStep.id!);
+
+    // ⚠️ 若還沒儲存，要補儲存
     if (nowStepId === 0) {
-      switch (nowSteLable) {
-        case "新增章節":
-          await this.AddChapterAPI(CourseID)
-          break;
-        case "新增影片":
-          const ParentChapterID = this.findParentChapterID(this.currentStep)
-          await this.AddVideoAPI(ParentChapterID)
+      const CourseID = parseInt(this.steps[0].id!);
+      const label = nowStep.label;
+
+      try {
+        switch (label) {
+          case "新增章節":
+            await this.AddChapterAPI(CourseID);
+            break;
+          case "新增影片":
+            const chapterID = this.findParentChapterID(this.currentStep);
+            await this.AddVideoAPI(chapterID);
+            break;
+        }
+      } catch (err) {
+        // 若儲存失敗就不繼續執行
+        return;
       }
     }
-    const Prevlabel = this.steps[this.currentStep - 1].label
-    const PrevID = parseInt(this.steps[this.currentStep - 1].id!)
+
+    // 抓上一步資料
+    const prevStep = this.steps[this.currentStep - 1];
+    const prevID = parseInt(prevStep.id!);
+
     try {
-      switch (Prevlabel) {
+      switch (prevStep.label) {
         case "建立課程":
-          await this.GetCourseAPI(PrevID)
+          await this.GetCourseAPI(prevID);
           break;
         case "新增章節":
-          await this.GetChapterAPI(PrevID)
+          await this.GetChapterAPI(prevID);
           break;
         case "新增影片":
-          await this.GetVideoAPI(PrevID)
+          await this.GetVideoAPI(prevID);
           break;
       }
-      // ✅ 用微任務確保資料與 DOM 渲染一致
+
       Promise.resolve().then(() => {
         this.currentStep--;
         this.watchFormDirty();
       });
     } catch (error) {
-      this.ShowMessage("error", "錯誤", `抓不到步驟${this.currentStep - 1}${this.steps[this.currentStep - 1].label}的資料`)
+      this.ShowMessage("error", "錯誤", `抓不到步驟${this.currentStep - 1}${prevStep.label}的資料`)
     }
-
   }
+
   //下一步
-  lockButton = false //控制按鈕是否解鎖
+  //控制按鈕是否解鎖
   progressPercent = 0//顯示上傳進度
   isUploading = false;//顯示 loading bar 或是停用按鈕
   //切換下一步按鈕禁用
@@ -228,6 +252,9 @@ export class CreateCourseComponent {
     if (this.currentStep !== this.steps.length - 1) {
       return
     }
+    this.formValueChangeSub?.unsubscribe()
+    // 2. 隱藏按鈕
+    this.showEditButton = false;
     const label = this.steps[this.currentStep].label
     switch (label) {
       case "新增章節":
@@ -241,7 +268,9 @@ export class CreateCourseComponent {
   //是否顯示修改按鈕
   showEditButton = false;
   private formValueChangeSub?: Subscription;
+  originalVideoFormValue: any = null;
   watchFormDirty() {
+    this.showEditButton = false;
     if (this.formValueChangeSub) {
       this.formValueChangeSub.unsubscribe(); // 清掉上一次的訂閱
     }
@@ -269,8 +298,18 @@ export class CreateCourseComponent {
       return;
     }
     this.formValueChangeSub = form.valueChanges.subscribe(() => {
-      this.showEditButton = form.dirty;
+      switch (label) {
+        case '新增影片':
+          const current = JSON.stringify(this.videoForm.getRawValue());
+          const baseline = JSON.stringify(this.originalVideoFormValue);
+          this.showEditButton = current !== baseline;
+          break;
+        default:
+          this.showEditButton = form.dirty;
+          break;
+      }
     });
+
   }
 
   async EditSteps() {
@@ -278,13 +317,24 @@ export class CreateCourseComponent {
     const EditLabel = this.steps[this.currentStep].label
     switch (EditLabel) {
       case "建立課程":
-        this.UpCourseAPI(EditID)
+        await this.UpCourseAPI(EditID)
+        Promise.resolve().then(() => {
+          this.GetCourseAPI(EditID)
+          this.watchFormDirty();
+        });
         break;
       case "新增章節":
-        this.UpChapterAPI(EditID)
+        await this.UpChapterAPI(EditID)
+        Promise.resolve().then(() => {
+          this.GetChapterAPI(EditID)
+          this.watchFormDirty();
+        });
         break;
       case "新增影片":
-        this.UpVideoAPI(EditID)
+        await this.UpVideoAPI(EditID)
+        await this.GetVideoAPI(EditID)
+        this.watchFormDirty();
+
         break;
     }
   }
@@ -300,16 +350,26 @@ export class CreateCourseComponent {
         if (HasChapter) {
           await this.DelChapterAPI(id)
         }
-        this.StepsRemoveLast()
-        this.currentStep--
+        Promise.resolve().then(() => {
+          const PrevID = parseInt(this.steps[this.currentStep].id!)
+          this.GetChapterAPI(PrevID)
+          this.watchFormDirty();
+          this.StepsRemoveLast()
+          this.currentStep--
+        });
         break;
       case "新增影片":
         const HasVideo = await this.CheckHasVideoAPI(id)
         if (HasVideo) {
           await this.DelVideoAPI(id)
         }
-        this.StepsRemoveLast()
-        this.currentStep--
+        Promise.resolve().then(() => {
+          const PrevID = parseInt(this.steps[this.currentStep].id!)
+          this.GetVideoAPI(PrevID)
+          this.watchFormDirty();
+          this.StepsRemoveLast()
+          this.currentStep--
+        });
         break;
     }
   }
@@ -329,6 +389,8 @@ export class CreateCourseComponent {
         if (parseInt(this.steps[this.currentStep].id!) === 0) {
           await this.AddChapterAPI(parseInt(this.steps[0].id!))
         }
+        this.InitChapterForm()
+        this.InitVideoForm()
         this.StepsPushVideo()
       },
       reject: async () => {
@@ -345,7 +407,11 @@ export class CreateCourseComponent {
         if (parseInt(this.steps[this.currentStep].id!) === 0) {
           await this.AddVideoAPI(ParentChapterID)
         }
-        this.StepsPushVideo()
+        Promise.resolve().then(() => {
+          this.InitChapterForm()
+          this.InitVideoForm()
+          this.StepsPushVideo()
+        });
       },
       reject: async () => {
         await delay(200);
@@ -361,12 +427,16 @@ export class CreateCourseComponent {
           if (parseInt(this.steps[this.currentStep].id!) === 0) {
             await this.AddChapterAPI(parseInt(this.steps[0].id!))
           }
+          this.InitChapterForm()
+          this.InitVideoForm()
           this.StepsPushChapter()
         } else {
           const ParentChapterID = this.findParentChapterID(this.currentStep)
           if (parseInt(this.steps[this.currentStep].id!) === 0) {
             await this.AddVideoAPI(ParentChapterID)
           }
+          this.InitChapterForm()
+          this.InitVideoForm()
           this.StepsPushChapter()
         }
       },
@@ -403,27 +473,24 @@ export class CreateCourseComponent {
   }
   //打API
   ///-------------------
+  clientRequestId = ""; // ✅ 產生唯一 ID
+  private lastSub?: Subscription;
   private handleProgressAndTimeout(
     stepNames: string[] | string,
+    clientRequestId: string, // ✅ 加這行
     resolve: () => void,
     reject: (reason?: any) => void
   ): Subscription {
-    let sub: Subscription; // ✅ 提前宣告
-
+    this.progressPercent = 0;
+    let sub: Subscription;
     const steps = Array.isArray(stepNames) ? stepNames : [stepNames];
-
-    // ✅ timeout 可以安全使用 sub
-    const timeout = setTimeout(() => {
-      sub.unsubscribe();
-      this.ChangeBtnStatus();
-      this.ChangeUploadingStatus();
-      this.progressPercent = 0;
-      this.ShowMessage("error", "逾時", `上傳逾時，請重試`);
-      reject(new Error("SignalR timeout"));
-    }, 180000);
+    let timeout: any;
 
     sub = this.signalR.progress$.subscribe(update => {
       console.log('📡 收到進度更新：', update);
+
+      // ✅ 忽略非當前請求的推播
+      if (update?.clientRequestId !== clientRequestId) return;
 
       if (update && update.step && steps.includes(update.step)) {
         const percent = update.data?.percent ?? 0;
@@ -431,7 +498,7 @@ export class CreateCourseComponent {
 
         if (percent === 100) {
           clearTimeout(timeout);
-          sub.unsubscribe();
+          sub.unsubscribe?.();
           this.ChangeBtnStatus();
           this.ChangeUploadingStatus();
           this.ShowMessage("success", "成功", `成功建立`);
@@ -443,47 +510,62 @@ export class CreateCourseComponent {
       }
     });
 
+    timeout = setTimeout(() => {
+      sub.unsubscribe?.();
+      this.ChangeBtnStatus();
+      this.ChangeUploadingStatus();
+      this.progressPercent = 0;
+      this.ShowMessage("error", "逾時", `上傳逾時，請重試`);
+      reject(new Error("SignalR timeout"));
+    }, 180000);
 
     return sub;
   }
 
-
   private callApiWithProgress<T>(
     request$: Observable<T>,
     stepNames: string[] | string,
+    clientRequestId: string,
     onSuccess?: (res: T) => void
   ): Promise<void> {
     return new Promise((resolve, reject) => {
+
       this.ChangeUploadingStatus();
       this.ChangeBtnStatus();
       this.ShowMessage("info", "上傳中", "請稍後...");
       this.ShowMessage("success", "成功", `已送出，等待進度...`);
-      // ✅ 監聽進度（百分比、逾時等）
-      this.handleProgressAndTimeout(stepNames, resolve, reject);
+
+      // ✅ 取消上一個未完成的訂閱（防錯）
+      if (this.lastSub?.unsubscribe) {
+        this.lastSub.unsubscribe();
+        this.lastSub = undefined;
+      }
+      // ✅ 儲存新的進度訂閱
+      this.lastSub = this.handleProgressAndTimeout(stepNames, clientRequestId, resolve, reject);
 
       request$.subscribe({
         next: res => {
-          // ✅ 呼叫外部處理邏輯（你可以塞不同的處理邏輯進來）
           onSuccess?.(res);
         },
         error: err => {
           this.ShowMessage("error", "失敗", err.message);
+          this.lastSub?.unsubscribe(); // 防止永遠卡住
           reject(err);
         }
-        // ❌ 不用寫 complete，避免與進度訂閱衝突
       });
     });
   }
-
 
   AddCourseAPI(): Promise<void> {
     if (!this.courseForm.valid) {
       this.ShowMessage('warn', "警告", "請輸入正確的資訊");
       return Promise.reject();
     }
+    this.clientRequestId = uuidv4()
     return this.callApiWithProgress<number>(
-      this.signalR.postCourse(this.courseForm),
+      this.signalR.postCourse(this.courseForm, this.clientRequestId),
       ['Course:Started', 'Course:SavingToDb', 'Course:SavingImage', 'Course:Completed'],
+      this.clientRequestId,
       res => {
         this.steps[0].id = res.toString();
         console.log(this.steps);
@@ -499,11 +581,14 @@ export class CreateCourseComponent {
     }
 
     try {
+      const stepIndexForChapter = this.currentStep; // ✅ 先記下當下步驟索引
+      this.clientRequestId = uuidv4();
       await this.callApiWithProgress<number>(
-        this.signalR.postChapter(this.chapterForm, courseId),
+        this.signalR.postChapter(this.chapterForm, courseId, this.clientRequestId),
         ["Chapter:Started", "Chapter:SavingToDb", "Chapter:Completed"],
+        this.clientRequestId,
         res => {
-          this.steps[this.currentStep].id = res.toString();
+          this.steps[stepIndexForChapter].id = res.toString();
           console.log(this.steps);
         }
       );
@@ -520,11 +605,14 @@ export class CreateCourseComponent {
       return Promise.reject();
     }
     try {
+      const stepIndexForVideo = this.currentStep
+      this.clientRequestId = uuidv4()
       await this.callApiWithProgress<number>(
-        this.signalR.postVideo(this.videoForm, id),
+        this.signalR.postVideo(this.videoForm, id, this.clientRequestId),
         ["Video:Upload", "Video:Started", "Video:SavingToDb", "Video:SavingFile", "Video:Completed"],
+        this.clientRequestId,
         res => {
-          this.steps[this.currentStep].id = res.toString();
+          this.steps[stepIndexForVideo].id = res.toString();
           console.log(this.steps);
         }
       );
@@ -629,12 +717,35 @@ export class CreateCourseComponent {
         VideoFile: video.videoFile
       });
       this.selectedVideoFileName = video.videoFile;
+      // 標記為 pristine，避免 dirty 判斷為 true
+      this.videoForm.markAsPristine();
+      // 深複製 baseline 值（因為 Angular 會共享 reference）
+      this.originalVideoFormValue = JSON.parse(JSON.stringify(this.videoForm.getRawValue()));
     } catch (error) {
       console.log(error);
       this.ShowMessage("error", "取得影片失敗", "無法載入影片資料");
     }
   }
-
+  Test() {
+    this.GetDepListAPI()
+    this.GetHashTagListAPI()
+  }
+  async GetDepListAPI() {
+    try {
+      const depList = await firstValueFrom(this.signalR.getDepList());
+      console.log('部門清單：', depList);
+    } catch (error) {
+      console.error('讀取部門失敗：', error);
+    }
+  }
+  async GetHashTagListAPI() {
+    try {
+      const hashTagList = await firstValueFrom(this.signalR.getHashTagList());
+      console.log('Hashtag 清單：', hashTagList);
+    } catch (error) {
+      console.error('讀取 Hashtag 失敗：', error);
+    }
+  }
   async UpCourseAPI(id: number): Promise<void> {
     if (!this.courseForm.valid) {
       console.log(this.courseForm.errors);
@@ -646,17 +757,19 @@ export class CreateCourseComponent {
     try {
       const coverValue = this.courseForm.get('CoverImage')?.value;
       const originalUrl = this.originalCoverImageUrl$.getValue();
+      this.clientRequestId = uuidv4()
       if (typeof coverValue === 'string' && coverValue === originalUrl) {
         // 沒變更過封面圖，設為 null，避免 service API 驗證失敗
         this.courseForm.get('CoverImage')?.setValue(null);
       }
       await this.callApiWithProgress<RePutDTO>(
-        this.signalR.putCourse(this.courseForm, id),
+        this.signalR.putCourse(this.courseForm, id, this.clientRequestId),
         ["Course:Started", "Course:Processing", "Course:Completed"],  // ✅ 這才是後端實際使用的事件名稱
+        this.clientRequestId,
         res => {
-          if (!res.success) {
-            this.ShowMessage("warn", "警告", res.message ?? "更新失敗");
-          }
+
+          this.ShowMessage("success", "成功", res.message);
+
           this.showEditButton = false
         }
       );
@@ -673,13 +786,15 @@ export class CreateCourseComponent {
     }
 
     try {
+      this.clientRequestId = uuidv4()
       await this.callApiWithProgress<RePutDTO>(
-        this.signalR.putChapter(this.chapterForm, id),
+        this.signalR.putChapter(this.chapterForm, id, this.clientRequestId),
         ["Chapter:Started", "Chapter:SavingToDb", "Chapter:Completed"], // ⚠️ 根據實際 signalR 事件名稱調整
+        this.clientRequestId,
         res => {
-          if (!res.success) {
-            this.ShowMessage("warn", "警告", res.message ?? "更新失敗");
-          }
+
+          this.ShowMessage("success", "成功", res.message);
+
           this.showEditButton = false
           // 可視需要處理回傳訊息
         }
@@ -704,13 +819,15 @@ export class CreateCourseComponent {
       const steps = hasNewFile
         ? ['Video:Upload', "Video:Started", "Video:SavingToDb", "Video:SavingFile", 'Video:Completed']
         : ["Video:Started", 'Video:Completed'];
+      this.clientRequestId = uuidv4()
       await this.callApiWithProgress<RePutDTO>(
-        this.signalR.putVideo(this.videoForm, id),
+        this.signalR.putVideo(this.videoForm, id, this.clientRequestId),
         steps, // ✅ 更新時仍可沿用相同步驟
+        this.clientRequestId,
         res => {
-          if (!res.success) {
-            this.ShowMessage("warn", "警告", res.message ?? "更新失敗");
-          }
+
+          this.ShowMessage("success", "成功", res.message);
+
           this.showEditButton = false
           // 可視需要處理回傳訊息
         }

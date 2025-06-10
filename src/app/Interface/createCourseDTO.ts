@@ -26,11 +26,20 @@ export interface ReqChapterDTO {
   CourseId: number,          // CourseID
   ChapterTitle: string,      // ChapterTitle
   ChapterDes: string,       // CourseDescription
-  ConnectionId: string
+  ConnectionId: string,
+  clientRequestId: string
 }
 export interface ReqFinalDTO {
   IsDraft: boolean,
   ConnectionId: string
+}
+export interface ReqCourseAccessDTO {
+  courseId: number,
+  depIds: number[]
+}
+export interface ReqCourseHashTagDTO {
+  courseId: number,
+  hashTagIds: number[]
 }
 //Response回傳格式
 export interface ResCourseDTO {
@@ -53,4 +62,12 @@ export interface ResVideoDTO {
   chapterId: number,         // ChapterId
   title: string,             // VideoTitle
   videoFile: string           // VideoFile
+}
+export interface ResDepDTO {
+  depId: number,               // depId
+  depName: string,             // depName
+}
+export interface ResHashTagDTO {
+  hashTagId: number,            // hashTagId
+  hashTagName: string,          // hashTagName
 }

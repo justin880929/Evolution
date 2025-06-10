@@ -21,7 +21,11 @@ export class InterceptorService implements HttpInterceptor {
     '/api/course',
     '/api/chapter',
     '/api/video',
-    '/courseHub'
+    '/courseHub',
+    '/api/hashtaglist',
+    '/api/deplist',
+    '/api/coursehashtag',
+    '/api/courseaccess',
   ];
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     const url = req.url.toLowerCase();

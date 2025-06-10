@@ -6,6 +6,7 @@ import { ResultService } from 'src/app/Share/result.service';
 import { BehaviorSubject, catchError, map, Observable, of, tap, throwError } from 'rxjs';
 import { FormControl, FormGroup } from '@angular/forms';
 import { ResCourseDTO, ReqChapterDTO, ResChapterDTO, ResVideoDTO, RePutDTO, chapterDTO, videoDTO, ReqFinalDTO } from 'src/app/Interface/createCourseDTO';
+import { ResDepDTO, ResHashTagDTO, ReqCourseAccessDTO, ReqCourseHashTagDTO } from 'src/app/Interface/createCourseDTO';
 @Injectable({
   providedIn: 'root',
 })
@@ -17,9 +18,13 @@ export class CourseSignalrService {
   CourseUrl = 'https://localhost:7073/api/course'
   ChapterUrl = "https://localhost:7073/api/chapter"
   VideoUrl = "https://localhost:7073/api/video"
+  DepListUrl = "https://localhost:7073/api/deplist"
+  HashTagListUrl = "https://localhost:7073/api/hashtaglist"
+  CourseAccessUrl = "https://localhost:7073/api/courseaccess"
+  CourseHashTagUrl = "https://localhost:7073/api/coursehashtag"
   connectionId = ""
   // 在 Service 裡加上：
-  private progressSubject = new BehaviorSubject<{ step: string; data: any } | null>(null);
+  private progressSubject = new BehaviorSubject<{ step: string; data: any; clientRequestId?: string } | null>(null);
   progress$ = this.progressSubject.asObservable();
 
   async connect(): Promise<void> {
@@ -57,7 +62,7 @@ export class CourseSignalrService {
   }
 
   //新增課程
-  postCourse(courseForm: FormGroup): Observable<number> {
+  postCourse(courseForm: FormGroup, clientRequestId: string): Observable<number> {
     console.log(courseForm.value);
 
     const file = courseForm.get('CoverImage')?.value;
@@ -76,6 +81,7 @@ export class CourseSignalrService {
     }
 
     const formData = new FormData();
+    formData.append('clientRequestId', clientRequestId);
     formData.append('ConnectionId', this.connectionId);
     formData.append('CompanyId', courseForm.get('CompanyId')?.value.toString());
     formData.append('CourseTitle', courseForm.get('CourseTitle')?.value);
@@ -90,19 +96,9 @@ export class CourseSignalrService {
       formData
     );
   }
-  //告訴後端確認建立課程
-  putCourseFinal(courseID: number, IsDraft: boolean): Observable<RePutDTO> {
-    const req: ReqFinalDTO = {
-      IsDraft: IsDraft,
-      ConnectionId: this.connectionId
-    }
-    return this.resultService.putResult<RePutDTO>(
-      `${this.CourseUrl}/final/${courseID}`,
-      req
-    );
-  }
+
   //更新課程
-  putCourse(courseForm: FormGroup, courseID: number): Observable<RePutDTO> {
+  putCourse(courseForm: FormGroup, courseID: number, clientRequestId: string): Observable<RePutDTO> {
     const file = courseForm.get('CoverImage')?.value;
     const formData = new FormData();
     if (file != null) {
@@ -118,6 +114,7 @@ export class CourseSignalrService {
       }
       formData.append('CoverImage', file);
     }
+    formData.append('clientRequestId', clientRequestId);
     formData.append('ConnectionId', this.connectionId);
     formData.append('CourseTitle', courseForm.get('CourseTitle')?.value);
     formData.append('CourseDes', courseForm.get('CourseDes')?.value);
@@ -148,12 +145,13 @@ export class CourseSignalrService {
     )
   }
   //新增章節
-  postChapter(chapterForm: FormGroup<chapterDTO>, courseID: number): Observable<number> {
+  postChapter(chapterForm: FormGroup<chapterDTO>, courseID: number, clientRequestId: string): Observable<number> {
     const transChapterForm: ReqChapterDTO = {
       CourseId: courseID,
       ChapterTitle: chapterForm.get("ChapterTitle")?.value,
       ChapterDes: chapterForm.get("ChapterDes")?.value,
-      ConnectionId: this.connectionId
+      ConnectionId: this.connectionId,
+      clientRequestId: clientRequestId
     }
     return this.resultService.postResult<number>(
       this.ChapterUrl,
@@ -161,11 +159,12 @@ export class CourseSignalrService {
     );
   }
   // 更新章節
-  putChapter(chapterForm: FormGroup<chapterDTO>, chapterID: number): Observable<RePutDTO> {
+  putChapter(chapterForm: FormGroup<chapterDTO>, chapterID: number, clientRequestId: string): Observable<RePutDTO> {
     const transChapterForm = {
       ChapterTitle: chapterForm.get("ChapterTitle")?.value,
       ChapterDes: chapterForm.get("ChapterDes")?.value,
-      ConnectionId: this.connectionId
+      ConnectionId: this.connectionId,
+      clientRequestId: clientRequestId
     }
     return this.resultService.putResult<RePutDTO>(
       `${this.ChapterUrl}/${chapterID}`,
@@ -215,7 +214,7 @@ export class CourseSignalrService {
     )
   }
   //新增影片
-  postVideo(videoForm: FormGroup<videoDTO>, chapterID: number): Observable<number> {
+  postVideo(videoForm: FormGroup<videoDTO>, chapterID: number, clientRequestId: string): Observable<number> {
     const file = videoForm.get('VideoFile')?.value;
     if (file == null) {
       return throwError(() => new Error('沒有上傳檔案'));
@@ -231,6 +230,7 @@ export class CourseSignalrService {
       return throwError(() => new Error('❌ 影片格式錯誤，僅支援 mp4'));
     }
     const formData = new FormData();
+    formData.append('clientRequestId', clientRequestId);
     formData.append('ConnectionId', this.connectionId);
     formData.append('ChapterId', chapterID.toString());
     formData.append('Title', videoForm.get('Title')?.value);
@@ -241,7 +241,7 @@ export class CourseSignalrService {
     )
   }
   //更新影片
-  putVideo(videoForm: FormGroup<videoDTO>, videoID: number): Observable<RePutDTO> {
+  putVideo(videoForm: FormGroup<videoDTO>, videoID: number, clientRequestId: string): Observable<RePutDTO> {
     const file = videoForm.get('VideoFile')?.value;
     const formData = new FormData();
     if (file !== null) {
@@ -256,6 +256,7 @@ export class CourseSignalrService {
       }
       formData.append('VideoFile', file);
     }
+    formData.append('clientRequestId', clientRequestId);
     formData.append('ConnectionId', this.connectionId);
     formData.append('Title', videoForm.get('Title')?.value);
     return this.resultService.putResult<ResVideoDTO>(
@@ -298,6 +299,48 @@ export class CourseSignalrService {
         } as RePutDTO);
       })
     );
+  }
+  //最終
+  //告訴後端確認建立課程
+  putCourseFinal(courseID: number, IsDraft: boolean): Observable<RePutDTO> {
+    const req: ReqFinalDTO = {
+      IsDraft: IsDraft,
+      ConnectionId: this.connectionId
+    }
+    return this.resultService.putResult<RePutDTO>(
+      `${this.CourseUrl}/final/${courseID}`,
+      req
+    );
+  }
+  //建立課程全限
+  putCourseAccess(): Observable<boolean> {
+    const req: ReqCourseAccessDTO = {
+      courseId: 0,
+      depIds: [0]
+    }
+    return this.resultService.postResult(
+      this.CourseAccessUrl,
+      req
+    )
+  }
+  //建立課程標籤HashTag
+  putCourseHashTag(): Observable<boolean> {
+    const req: ReqCourseHashTagDTO = {
+      courseId: 0,
+      hashTagIds: [0]
+    }
+    return this.resultService.postResult(
+      this.CourseHashTagUrl,
+      req
+    )
+  }
+  //獲取部門清單
+  getDepList(): Observable<ResDepDTO[]> {
+    return this.resultService.getResult<ResDepDTO[]>(this.DepListUrl)
+  }
+  //獲取HashTag清單
+  getHashTagList(): Observable<ResHashTagDTO[]> {
+    return this.resultService.getResult<ResHashTagDTO[]>(this.HashTagListUrl)
   }
   disconnect(): void {
     if (this.hubConnection) {

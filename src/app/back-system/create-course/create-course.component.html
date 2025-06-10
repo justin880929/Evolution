@@ -38,14 +38,13 @@
 
       <div class="mb-3">
         <label class="form-label">課程封面</label>
-        <input type="file" class="form-control" (change)="onCoverSelected($event)" accept=".jpg,.jpeg,.png" />
+        <input type="file" class="form-control" (change)="onCoverSelected($event)" accept=".jpg,.jpeg,.png"
+          [disabled]="lockButton" />
         <ng-container *ngIf="originalCoverImageUrl$ | async as originalCover">
           <div *ngIf="originalCover">
             已選擇：{{ originalCover }}
           </div>
         </ng-container>
-
-
         <img [src]="coverPreviewUrl" class="img-thumbnail mt-2" style="max-width: 300px;" *ngIf="coverPreviewUrl" />
       </div>
     </form>
@@ -70,7 +69,8 @@
 
       <div class="mb-3">
         <label class="form-label">上傳影片</label>
-        <input type="file" class="form-control" (change)="onVideoSelected($event)" #videofile />
+        <input type="file" #videoInput class="form-control" (change)="onVideoSelected($event)" #videofile
+          [disabled]="lockButton" />
         <div *ngIf="selectedVideoFileName" class="mt-1 text-muted">
           已選擇：{{ selectedVideoFileName }}
         </div>
@@ -80,7 +80,8 @@
     <div class="mt-4 d-flex justify-content-between">
       <!-- 上一步 -->
       <div>
-        <button *ngIf="currentStep>0" [disabled]="lockButton" class="btn btn-secondary" (click)="onPrev()">上一步</button>
+        <button *ngIf="!showEditButton&&currentStep>0" [disabled]="lockButton" class="btn btn-secondary"
+          (click)="onPrev()">上一步</button>
       </div>
       <div class="d-flex gap-2">
         <button *ngIf="showEditButton" class="btn btn-warning" (click)="EditSteps()" [disabled]="lockButton">
@@ -91,17 +92,18 @@
           刪除此步驟
         </button>
         <!-- 步驟過程中的下一步 -->
-        <button *ngIf="currentStep<steps.length-1&&steps[currentStep].label!=='確認建立課程'" class="btn btn-primary"
-          (click)="onNext()" [disabled]="lockButton">
+        <button *ngIf="!showEditButton&&currentStep<steps.length-1&&steps[currentStep].label!=='確認建立課程'"
+          class="btn btn-primary" (click)="onNext()" [disabled]="lockButton">
           下一步
         </button>
 
         <!-- 只有在最後一步，才顯示 addNewSteps -->
-        <button [disabled]="lockButton" *ngIf="currentStep === steps.length - 1 &&steps[currentStep].label!=='確認建立課程'"
+        <button [disabled]="lockButton"
+          *ngIf="!showEditButton&&currentStep === steps.length - 1 &&steps[currentStep].label!=='確認建立課程'"
           class="btn btn-primary" (click)="addNewSteps()">
           下一步
         </button>
-
+        <button (click)="Test()">Test</button>
         <!-- <button *ngIf="isFinalStep&&(currentStep===steps.length-1)" class="btn btn-success" (click)="finalizeCourse()">
         確認建立
       </button> -->
