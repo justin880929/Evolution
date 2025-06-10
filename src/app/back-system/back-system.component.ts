@@ -27,7 +27,7 @@ export class BackSystemComponent implements OnInit, OnDestroy {
   username = '使用者';
   role = '';
   userPhotoUrl = '';
-  defaultPhoto = '';
+  defaultPhoto = '../../../assets/img/NoprofilePhoto.png';
   isLoggedIn = false;
   userRole = '';
   isAdmin = false;
@@ -82,7 +82,7 @@ export class BackSystemComponent implements OnInit, OnDestroy {
     });
 
 
-      try {
+    try {
       // 1. 初始化設定與輔助工具
       await this.loadScript('assets/BackSystem/js/config.js');
       await this.loadScript('assets/BackSystem/js/helpers.js');

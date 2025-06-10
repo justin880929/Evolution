@@ -75,3 +75,10 @@
   color: #fff !important;
   border-color: #00C853 !important;
 }
+
+.custom-inputswitch {
+  margin-top: 0.5rem;
+  /* 往下推 */
+  margin-left: 1rem;
+  /* 往右推 */
+}

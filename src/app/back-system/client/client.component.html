@@ -1,62 +1,32 @@
 <p-toolbar class="mb-2">
   <div class="p-toolbar-group-left">
     <!-- 新增客戶按鈕 -->
-    <button
-      pButton
-      type="button"
-      icon="pi pi-plus"
-      label="新增客戶"
-      class="p-button-success mr-2 rounded"
-      (click)="createClient()"
-    ></button>
-
-    <!-- 批次刪除按鈕，只有當已選擇 selectedComs.length > 0 時才可點擊 -->
-    <button
-      pButton
-      type="button"
-      icon="pi pi-trash"
-      label="刪除選取"
-      class="p-button-danger rounded"
-      [disabled]="selectedComs.length === 0"
-      (click)="deleteClientsBulk()"
-    ></button>
+    <button pButton type="button" icon="pi pi-plus" label="新增客戶" class="p-button-success mr-2 rounded"
+      (click)="createClient()"></button>
   </div>
 </p-toolbar>
 
 <div class="card table-container">
-  <p-table
-    #dt1
-    [value]="clientList"
-    [lazy]="true"
-    (onLazyLoad)="loadLazyData($event)"
-    [paginator]="true"
-    [rows]="rows"
-    [totalRecords]="totalRecords"
-    [loading]="loading"
-    [first]="first"
-    selectionMode="multiple"
-    [(selection)]="selectedComs"
-    dataKey="companyId"
-    [tableStyle]="{ 'min-width': '50rem' }"
-    stateStorage="session"
-    stateKey="client-session"
-  >
+  <p-table #dt1 [value]="clientList" [lazy]="true" (onLazyLoad)="loadLazyData($event)" [paginator]="true" [rows]="rows"
+    [totalRecords]="totalRecords" [loading]="loading" [first]="first" selectionMode="multiple"
+    [(selection)]="selectedComs" dataKey="companyId" [tableStyle]="{ 'min-width': '50rem' }" stateStorage="session"
+    stateKey="client-session">
     <!-- 表頭：Checkbox + 排序 + 篩選 -->
     <ng-template pTemplate="header">
       <tr>
         <th style="width: 3rem">
           <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
         </th>
-        <th pSortableColumn="companyName" style="width: 25%">
+        <th pSortableColumn="companyName" style="width: 35%">
           客戶名稱 <p-sortIcon field="companyName"></p-sortIcon>
         </th>
-        <th pSortableColumn="companyEmail" style="width: 25%">
+        <th pSortableColumn="companyEmail" style="width: 30%">
           客戶信箱 <p-sortIcon field="companyEmail"></p-sortIcon>
         </th>
-        <th pSortableColumn="isActive" style="width: 15%">
+        <th pSortableColumn="isActive" style="width: 10%">
           帳號狀態 <p-sortIcon field="isActive"></p-sortIcon>
         </th>
-        <th pSortableColumn="createdAt" style="width: 25%">
+        <th pSortableColumn="createdAt" style="width: 15%">
           建立日期 <p-sortIcon field="createdAt"></p-sortIcon>
         </th>
         <th style="width: 10%">操作</th>
@@ -64,44 +34,23 @@
       <tr>
         <th></th>
         <th>
-          <input
-            pInputText
-            type="text"
-            (input)="onInputFilter($event, 'companyName', dt1)"
-            [value]="getFilterValue(dt1.filters['companyName'])"
-            placeholder="Search Name"
-            class="w-full custom-input"
-          />
+          <input pInputText type="text" (input)="onInputFilter($event, 'companyName', dt1)"
+            [value]="getFilterValue(dt1.filters['companyName'])" placeholder="Search Name"
+            class="w-full custom-input" />
         </th>
         <th>
-          <input
-            pInputText
-            type="text"
-            (input)="onInputFilter($event, 'companyEmail', dt1)"
-            [value]="getFilterValue(dt1.filters['companyEmail'])"
-            placeholder="Search Email"
-            class="w-full custom-input"
-          />
+          <input pInputText type="text" (input)="onInputFilter($event, 'companyEmail', dt1)"
+            [value]="getFilterValue(dt1.filters['companyEmail'])" placeholder="Search Email"
+            class="w-full custom-input" />
         </th>
         <th>
-          <input
-            pInputText
-            type="text"
-            (input)="onInputFilter($event, 'isActiveLabel', dt1)"
-            [value]="getFilterValue(dt1.filters['isActiveLabel'])"
-            placeholder="Search Status"
-            class="w-full custom-input"
-          />
+          <input pInputText type="text" (input)="onInputFilter($event, 'isActiveLabel', dt1)"
+            [value]="getFilterValue(dt1.filters['isActiveLabel'])" placeholder="Search Status"
+            class="w-full custom-input" />
         </th>
         <th>
-          <input
-            pInputText
-            type="text"
-            (input)="onInputFilter($event, 'createdAt', dt1)"
-            [value]="getFilterValue(dt1.filters['createdAt'])"
-            placeholder="Search Date"
-            class="w-full custom-input"
-          />
+          <input pInputText type="text" (input)="onInputFilter($event, 'createdAt', dt1)"
+            [value]="getFilterValue(dt1.filters['createdAt'])" placeholder="Search Date" class="w-full custom-input" />
         </th>
         <th></th>
       </tr>
@@ -116,21 +65,15 @@
         <td>{{ com?.companyName }}</td>
         <td>{{ com?.companyEmail }}</td>
         <td>
-          <p-tag
-            [value]="com?.isActive ? '啟用' : '停用'"
-            [severity]="com?.isActive ? 'success' : 'warning'"
-          ></p-tag>
+          <p-tag [value]="com?.isActive ? '啟用' : '停用'" [severity]="com?.isActive ? 'success' : 'warning'"></p-tag>
         </td>
         <td>{{ com?.createdAt | date : "yyyy-MM-dd" }}</td>
         <td>
-          <button
-            pButton
-            type="button"
-            icon="pi pi-trash"
-            class="p-button-rounded p-button-text p-button-danger"
-            (click)="deleteClient(com)"
-          ></button>
+          <!-- 修改按鈕 -->
+          <button pButton type="button" icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-help"
+            (click)="editClient(com)" style="margin-left: 0.5rem;"></button>
         </td>
+
       </tr>
     </ng-template>
 
@@ -144,56 +87,38 @@
 </div>
 
 <!-- 新增／編輯 Dialog -->
-<p-dialog
-  header="{{ isCreateMode ? '新增客戶' : '編輯客戶' }}"
-  [(visible)]="displayComDialog"
-  [modal]="true"
-  [style]="{ width: '400px' }"
-  [closable]="false"
-  (onHide)="onDialogHide()"
->
+<p-dialog header="{{ isCreateMode ? '新增客戶' : '編輯客戶' }}" [(visible)]="displayComDialog" [modal]="true"
+  [style]="{ width: '400px' }" [closable]="false" (onHide)="onDialogHide()">
   <div class="p-fluid">
     <div class="p-field">
       <label for="companyName">客戶名稱</label>
-      <input
-        id="companyName"
-        type="text"
-        pInputText
-        [(ngModel)]="currentCom.companyName"
-        required
-      />
+      <input id="companyName" type="text" pInputText [(ngModel)]="currentCom.companyName" required />
     </div>
     <div class="p-field">
       <label for="companyEmail">電子郵件</label>
-      <input
-        id="companyEmail"
-        type="email"
-        pInputText
-        [(ngModel)]="currentCom.companyEmail"
-        required
-      />
+      <input id="companyEmail" type="email" pInputText [(ngModel)]="currentCom.companyEmail" required />
+    </div>
+
+    <!-- 新增：權限／啟用狀態 -->
+    <div class="p-field">
+      <label for="isActive">是否啟用</label>
+    </div>
+    <div class="p-field">
+      <p-inputSwitch id="isActive" name="isActive" [(ngModel)]="currentCom.isActive" onLabel="ON" offLabel="OFF"
+        styleClass="custom-inputswitch"></p-inputSwitch>
     </div>
   </div>
+
   <p-footer>
-    <button
-      pButton
-      type="button"
-      label="取消"
-      icon="pi pi-times"
-      class="p-button-text"
-      (click)="displayComDialog = false"
-    ></button>
-    <button
-      pButton
-      type="button"
-      label="儲存"
-      icon="pi pi-check"
-      class="p-button-success"
-      (click)="saveClient()"
-      [disabled]="!currentCom.companyName || !currentCom.companyEmail"
-    ></button>
+    <button pButton type="button" label="取消" icon="pi pi-times" class="p-button-text"
+      (click)="displayComDialog = false"></button>
+    <button pButton type="button" label="儲存" icon="pi pi-check" class="p-button-success" (click)="saveClient()"
+      [disabled]="!currentCom.companyName || !currentCom.companyEmail">
+    </button>
   </p-footer>
 </p-dialog>
+
+
 
 <!-- 確認刪除對話框 -->
 <p-confirmDialog></p-confirmDialog>
