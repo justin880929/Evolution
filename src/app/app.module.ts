@@ -14,6 +14,7 @@ import { CourseProductPipe } from './Pipe/course-product.pipe';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { StatusToTagPipe } from './Pipe/emp.pipe';
 import { InterceptorService } from "./Share/Interceptor/interceptor.service";
+import { InitPasswordComponent } from './pages/init-password/init-password.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -21,6 +22,7 @@ import { InterceptorService } from "./Share/Interceptor/interceptor.service";
     ResetPasswordComponent,
     LoginComponent,
     CourseProductPipe,
+    InitPasswordComponent,
   ],
   imports: [
     BrowserModule,

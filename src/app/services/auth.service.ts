@@ -117,8 +117,13 @@ export class AuthService {
         })
       );
   }
+
   resetPassword(data: ResetPasswordDTO): Observable<ApiResponse<ResetPasswordResponse>> {
     return this.http.post<ApiResponse<ResetPasswordResponse>>(`${this.accountUrl}/reset-password`, data);
+  }
+
+  initPassword(data: ResetPasswordDTO): Observable<ApiResponse<ResetPasswordResponse>> {
+    return this.http.post<ApiResponse<ResetPasswordResponse>>(`${this.accountUrl}/init-password`, data);
   }
 
   /** ✅ 登出 */

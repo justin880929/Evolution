@@ -31,8 +31,6 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { RippleModule } from 'primeng/ripple';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { FeaturedCoursesComponent } from './featured-courses/featured-courses.component';
-import { InitPasswordComponent } from './init-password/init-password.component';
-
 @NgModule({
   declarations: [
     HomeComponent,
@@ -46,7 +44,6 @@ import { InitPasswordComponent } from './init-password/init-password.component';
     UserComponent,
     LearingListComponent,
     FeaturedCoursesComponent,
-    InitPasswordComponent,
   ],
   imports: [
     CommonModule,

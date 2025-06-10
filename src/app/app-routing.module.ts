@@ -5,7 +5,7 @@ import { LoginComponent } from './pages/login/login.component';
 import { ResetPasswordComponent } from './pages/reset-password/reset-password.component';
 import { ForgotComponent } from './pages/forgot/forgot.component';
 import { guardsChildGuard, guardsGuard, loginGuard } from './Share/Guards/guards.guard';
-import { InitPasswordComponent } from './pages/home/init-password/init-password.component';
+import { InitPasswordComponent } from './pages/init-password/init-password.component';
 
 const routes: Routes = [
   {
