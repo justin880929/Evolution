@@ -1,12 +1,14 @@
 // src/app/back-system/emp-manage/emp-manage.component.ts
 // （以下略微示意，實際可保留你原本貼的那份不動）
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { empDTO } from '../../Interface/empDTO';
 import { EmpService } from '../../services/emp.service/emp.service';
 import { Router } from '@angular/router';
-import { TableLazyLoadEvent } from 'primeng/table';
+import { Table, TableLazyLoadEvent } from 'primeng/table';
 import { ConfirmationService, MessageService } from 'primeng/api';
+import { EmployeesListDto } from 'src/app/Interface/employeesListDTO';
+import { RegisteremployeeDTO } from 'src/app/Interface/RegisteremployeeDTO';
 
 @Component({
   selector: 'app-emp-manage',
@@ -15,60 +17,64 @@ import { ConfirmationService, MessageService } from 'primeng/api';
   providers: [ConfirmationService, MessageService],
 })
 export class EmpManageComponent implements OnInit {
-  empList: empDTO[] = [];
+  @ViewChild('dt1') dt1!: Table;
+  empList: EmployeesListDto[] = [];
   totalRecords: number = 0;
   loading: boolean = false;
   first: number = 0;
+  rows = 10;
 
-  selectEmp!: empDTO;
-  selectedEmps: empDTO[] = [];
+  currentEmp!: EmployeesListDto;
+  selectedEmps: EmployeesListDto[] = [];
 
   displayEmpDialog: boolean = false;
   isCreateMode: boolean = true;
-  currentEmp: empDTO = {
-    userID: 0,
-    username: '',
-    email: '',
-    department: '',
-    isEmailConfirmed: false,
-  };
+
 
   constructor(
     private empService: EmpService,
-    private router: Router,
     private confirmationService: ConfirmationService,
     private messageService: MessageService
   ) {}
 
   ngOnInit(): void {
-    this.loading = true;
-    setTimeout(() => this.loadLazyData({ first: 0, rows: 10 }), 100);
+    this.currentEmp = this.emptyEmployee();
   }
 
-  loadLazyData(event: TableLazyLoadEvent): void {
-    const first = event.first ?? 0;
-    const rows = event.rows ?? 10;
-    let sortFieldRaw = event.sortField;
-    const sortField: string = Array.isArray(sortFieldRaw) ? sortFieldRaw[0] ?? '' : sortFieldRaw ?? '';
-    const sortOrder = event.sortOrder ?? 1;
-    const filters = event.filters ?? {};
+  ngAfterViewInit() {
+    this.dt1.clearState();      // 清掉所有儲存的狀態
+    this.dt1.reset();           // 觸發一次 loadLazyData({ first:0, rows:this.rows, … })
+  }
 
+  loadLazyData(event: TableLazyLoadEvent) {
     this.loading = true;
-    this.first = first;
+    this.first = event.first ?? 0;
+    const pageSize = event.rows ?? this.rows;
+    const sortFieldValue: string = Array.isArray(event.sortField)
+    ? (event.sortField[0] ?? '')    // 如果是陣列就取第一個，沒值就空字串
+    : (event.sortField ?? '');
+
+    // 2. 處理 sortOrder：這邊如果你的 API 接受 null，就保留 null，否則給預設值（例如 1 或 0）
+    const sortOrderValue: number | null = event.sortOrder ?? 1;
 
     this.empService
-      .getPagedResult(first, rows, sortField, sortOrder, filters)
+      .getPagedResult(
+        this.first,
+        pageSize,
+        sortFieldValue,
+        sortOrderValue,
+        event.filters ?? {}
+      )
       .subscribe({
-        next: res => {
-          this.empList = res.data.map(emp => ({
-            ...emp,
-            statusLabel: emp.isEmailConfirmed ? '已驗證' : '未驗證'
+        next: ({ data, total }) => {
+          this.empList = data.map(employee => ({
+            ...employee,
           }));
-          this.totalRecords = res.total;
+          this.totalRecords = total;
           this.loading = false;
         },
         error: () => {
-          this.messageService.add({ severity: 'error', summary: '錯誤', detail: '取得員工列表失敗' });
+          this.messageService.add({ severity: 'error', summary: '錯誤', detail: '取得客戶列表失敗' });
           this.loading = false;
         }
       });
@@ -86,8 +92,18 @@ export class EmpManageComponent implements OnInit {
     return filter?.value ?? '';
   }
 
-  emptyEmployee(): empDTO {
-    return { userID: 0, username: '', email: '', department: '', isEmailConfirmed: false, statusLabel: '未驗證' } as empDTO;
+  emptyEmployee(): EmployeesListDto {
+    return {
+      userId: 0,
+      /** 使用者名稱 */
+      username: '',
+      /** 電子郵件 */
+      email: '',
+      /** 部門 */
+      userDep: '',
+      /** 帳號狀態 */
+      userStatus: '',
+    };
   }
 
   showCreateDialog(): void {
@@ -96,7 +112,7 @@ export class EmpManageComponent implements OnInit {
     this.displayEmpDialog = true;
   }
 
-  showEditDialog(emp: empDTO): void {
+  showEditDialog(emp: EmployeesListDto): void {
     this.isCreateMode = false;
     this.currentEmp = { ...emp };
     this.displayEmpDialog = true;
@@ -107,42 +123,44 @@ export class EmpManageComponent implements OnInit {
   }
 
   saveEmployee(): void {
-    if (!this.currentEmp.username || !this.currentEmp.email) return;
-
-    if (this.isCreateMode) {
-      this.empService.createEmployee(this.currentEmp).subscribe({
-        next: () => {
-          this.messageService.add({ severity: 'success', summary: '成功', detail: '員工新增成功' });
-          this.displayEmpDialog = false;
-          this.first = 0;
-          this.loadLazyData({ first: 0, rows: 10 } as TableLazyLoadEvent);
-        },
-        error: () => {
-          this.messageService.add({ severity: 'error', summary: '錯誤', detail: '新增員工失敗' });
+    if (!this.currentEmp.username || !this.currentEmp.email) {
+          return;
         }
-      });
-    } else {
-      this.empService.updateEmployee(this.currentEmp).subscribe({
-        next: () => {
-          this.messageService.add({ severity: 'success', summary: '成功', detail: '員工更新成功' });
-          this.displayEmpDialog = false;
-          this.loadLazyData({ first: this.first, rows: 10 } as TableLazyLoadEvent);
-        },
-        error: () => {
-          this.messageService.add({ severity: 'error', summary: '錯誤', detail: '更新員工失敗' });
-        }
-      });
-    }
-  }
 
-  confirmDelete(emp: empDTO): void {
+        const payload: RegisteremployeeDTO = {
+          username: this.currentEmp.username,
+          email: this.currentEmp.email,
+          depName: this.currentEmp.userDep
+        };
+
+        const obs = this.isCreateMode
+          ? this.empService.createEmployee(payload)
+          : this.empService.updateEmployee(this.currentEmp); // ← update 另處理
+
+
+        obs.subscribe({
+          next: () => {
+            const action = this.isCreateMode ? '新增' : '更新';
+            this.messageService.add({ severity: 'success', summary: '成功', detail: `客戶${action}成功` });
+            this.displayEmpDialog = false;
+            this.loadLazyData({ first: this.isCreateMode ? 0 : this.first, rows: this.rows });
+          },
+          error: (err) => {
+            const action = this.isCreateMode ? '新增' : '更新';
+            const errorMsg = err.error?.message ?? `客戶${action}失敗`;
+            this.messageService.add({ severity: 'error', summary: '失敗', detail: errorMsg });
+          }
+        });
+      }
+
+  confirmDelete(emp: EmployeesListDto): void {
     this.confirmationService.confirm({
       message: `您確定要刪除 ${emp.username} 嗎？`,
       accept: () => {
-        this.empService.deleteEmployee(emp.userID).subscribe({
+        this.empService.deleteEmployee(emp.userId).subscribe({
           next: () => {
             this.messageService.add({ severity: 'success', summary: '刪除成功', detail: `${emp.username} 已被刪除` });
-            this.loadLazyData({ first: this.first, rows: 10 } as TableLazyLoadEvent);
+            this.loadLazyData({ first: this.first, rows: this.rows } as TableLazyLoadEvent);
           },
           error: () => {
             this.messageService.add({ severity: 'error', summary: '錯誤', detail: '刪除員工失敗' });
@@ -153,23 +171,28 @@ export class EmpManageComponent implements OnInit {
   }
 
   confirmDeleteSelected(): void {
-    if (!this.selectedEmps || this.selectedEmps.length === 0) return;
-
+    if (!this.selectedEmps.length) return;
     this.confirmationService.confirm({
-      message: `您確定要刪除已勾選的 ${this.selectedEmps.length} 位員工嗎？`,
+      message: `確定刪除已選取的 ${this.selectedEmps.length} 筆資料？`,
       accept: () => {
-        const idsToDelete = this.selectedEmps.map(e => e.userID);
-        this.empService.deleteEmployeesBulk(idsToDelete).subscribe({
+        const ids = this.selectedEmps.map(c => c.userId);
+        this.empService.deleteEmployeesBulk(ids).subscribe({
           next: () => {
-            this.messageService.add({ severity: 'success', summary: '批次刪除成功', detail: `${this.selectedEmps.length} 位員工已被刪除` });
+            this.messageService.add({ severity: 'success', summary: '刪除成功', detail: `${this.selectedEmps.length} 筆資料已刪除` });
             this.selectedEmps = [];
-            this.loadLazyData({ first: this.first, rows: 10 } as TableLazyLoadEvent);
+            this.loadLazyData({ first: this.first, rows: this.rows } as any);
           },
           error: () => {
-            this.messageService.add({ severity: 'error', summary: '錯誤', detail: '批次刪除失敗' });
+            this.messageService.add({ severity: 'error', summary: '失敗', detail: '批次刪除失敗' });
           }
         });
       }
     });
   }
+
+    editEmployee(com: EmployeesListDto) {
+      this.currentEmp = { ...com };
+      this.isCreateMode = false;      // 進入編輯模式
+      this.displayEmpDialog = true;   // 顯示對話框
+    }
 }
