@@ -3,16 +3,27 @@
   <div class="layout-container">
     <!-- Menu -->
 
-    <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+    <aside
+      id="layout-menu"
+      class="layout-menu menu-vertical menu bg-menu-theme"
+    >
       <div class="app-brand demo">
         <a href="/home" class="app-brand-link">
           <span class="app-brand-logo demo">
-            <img src="../../assets/img/EvolutionLogo.png" alt="Evolution Logo" />
+            <img
+              src="../../assets/img/EvolutionLogo.png"
+              alt="Evolution Logo"
+            />
           </span>
-          <span class="app-brand-text demo menu-text fw-bolder ms-2">Evolution</span>
+          <span class="app-brand-text demo menu-text fw-bolder ms-2"
+            >Evolution</span
+          >
         </a>
 
-        <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto d-block d-xl-none">
+        <a
+          href="javascript:void(0);"
+          class="layout-menu-toggle menu-link text-large ms-auto d-block d-xl-none"
+        >
           <i class="bx bx-chevron-left bx-sm align-middle"></i>
         </a>
       </div>
@@ -29,11 +40,16 @@
         </li>
 
         <!-- 客戶管理 Start -->
-        <li class="menu-header small text-uppercase">
-          <span class="menu-header-text">客戶</span>
+        <li
+          class="menu-header small text-uppercase"
+          *ngIf="userRole === 'SuperAdmin'"
+        >
+          <span class="menu-header-text" *ngIf="userRole === 'SuperAdmin'"
+            >客戶</span
+          >
         </li>
         <!-- Layouts -->
-        <li class="menu-item">
+        <li class="menu-item" *ngIf="userRole === 'SuperAdmin'">
           <a href="javascript:void(0);" class="menu-link menu-toggle">
             <i class="menu-icon tf-icons bx bx-layout"></i>
             <div data-i18n="Layouts">客戶管理</div>
@@ -45,8 +61,8 @@
               </a>
             </li>
           </ul>
-          <!-- 客戶管理 End -->
         </li>
+        <!-- 客戶管理 End -->
 
         <li class="menu-header small text-uppercase">
           <span class="menu-header-text">訂單與金流</span>
@@ -103,9 +119,15 @@
           <!-- Search -->
 
           <div
-            class="container-xxl navbar-nav-right d-flex flex-grow-1 container-p-y align-items-center text-center top-color">
-            <div class="layout-menu-toggle navbar-nav align-items-xl-center me-3 me-xl-0 d-xl-none">
-              <a class="nav-item nav-link px-0 me-xl-4" href="javascript:void(0)">
+            class="container-xxl navbar-nav-right d-flex flex-grow-1 container-p-y align-items-center text-center top-color"
+          >
+            <div
+              class="layout-menu-toggle navbar-nav align-items-xl-center me-3 me-xl-0 d-xl-none"
+            >
+              <a
+                class="nav-item nav-link px-0 me-xl-4"
+                href="javascript:void(0)"
+              >
                 <i class="bx bx-menu bx-sm"></i>
               </a>
             </div>
@@ -114,11 +136,23 @@
             </h4>
             <div class="navbar-nav flex-row align-items-center ms-auto">
               <!-- ✅ 使用者選單（Sneat 風格 + Angular 整合） -->
-              <div class="nav-item navbar-dropdown dropdown-user dropdown" *ngIf="isLoggedIn">
-                <a class="nav-link dropdown-toggle hide-arrow" href="#" data-bs-toggle="dropdown">
+              <div
+                class="nav-item navbar-dropdown dropdown-user dropdown"
+                *ngIf="isLoggedIn"
+              >
+                <a
+                  class="nav-link dropdown-toggle hide-arrow"
+                  href="#"
+                  data-bs-toggle="dropdown"
+                >
                   <div class="avatar avatar-online">
-                    <img [src]="userPhotoUrl" (error)="userPhotoUrl = defaultPhoto" alt="User Photo"
-                      class="rounded-circle w-px-40 h-px-40" style="object-fit: cover" />
+                    <img
+                      [src]="userPhotoUrl"
+                      (error)="userPhotoUrl = defaultPhoto"
+                      alt="User Photo"
+                      class="rounded-circle w-px-40 h-px-40"
+                      style="object-fit: cover"
+                    />
                   </div>
                 </a>
 
@@ -130,14 +164,19 @@
                       <div class="d-flex">
                         <div class="flex-shrink-0 me-3">
                           <div class="">
-                            <img [src]="userPhotoUrl" (error)="userPhotoUrl = defaultPhoto" alt="User Photo"
-                              class="rounded-circle w-px-40 h-px-40" style="object-fit: cover" />
+                            <img
+                              [src]="userPhotoUrl"
+                              (error)="userPhotoUrl = defaultPhoto"
+                              alt="User Photo"
+                              class="rounded-circle w-px-40 h-px-40"
+                              style="object-fit: cover"
+                            />
                           </div>
                         </div>
                         <div class="flex-grow-1">
                           <span class="fw-semibold d-block">{{
                             username
-                            }}</span>
+                          }}</span>
                           <small class="text-muted">{{ role }}</small>
                         </div>
                       </div>
@@ -190,7 +229,11 @@
 
                   <!-- 🔴 登出 -->
                   <li>
-                    <a class="dropdown-item text-danger" href="#" (click)="logout($event)">
+                    <a
+                      class="dropdown-item text-danger"
+                      href="#"
+                      (click)="logout($event)"
+                    >
                       <i class="bx bx-power-off me-2"></i>
                       <span class="align-middle">登出</span>
                     </a>

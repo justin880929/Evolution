@@ -134,10 +134,10 @@ export class BackSystemComponent implements OnInit, OnDestroy {
       { label: '課程權限管理', link: 'emp-permissions' },
     ],
     EmpDep: [
-      { label: '部門管理', link: 'dep-manage' },
-      { label: '建立部門', link: 'create-dep' },
+      // { label: '部門管理', link: 'dep-manage' },
+      // { label: '建立部門', link: 'create-dep' },
       { label: '員工管理', link: 'emp-manage' },
-      { label: '建立員工帳號', link: 'create-emp' },
+      // { label: '建立員工帳號', link: 'create-emp' },
     ],
     Client: [
       { label: '客戶帳號管理', link: 'client' },
