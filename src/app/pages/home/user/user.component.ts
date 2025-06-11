@@ -2,9 +2,9 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { UserService } from './../../../services/user.service';
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { courseDTO } from 'src/app/Interface/courseDTO';
 import { UserDTO } from 'src/app/Interface/userDTO';
 import { CourseService } from 'src/app/services/course.service/course.service';
+import { EmpOrderDTO } from 'src/app/Interface/empOrderDTO';
 
 @Component({
   selector: 'app-user',
@@ -21,6 +21,7 @@ export class UserComponent implements OnInit {
   userForm!: FormGroup;
   isEditing = false;
 
+
   // 用來暫存「新大頭照的 Data URL」或「本地檔案路徑」以便畫面預覽
   previewPicUrl: string | null = null;
   // 用來暫存使用者挑選的 File，方便 onSubmit 時把它放到 FormData 傳給後端
@@ -33,44 +34,64 @@ export class UserComponent implements OnInit {
   // 取得隱藏的 <input type="file">，讓我們可以透過程式觸發 click()
   @ViewChild('fileInput') fileInputRef!: ElementRef<HTMLInputElement>;
 
-  courses: courseDTO[] = [];
+  courses: EmpOrderDTO[] = [];
+  departments: string[] = [];
 
   constructor(private courseService: CourseService,private userService:UserService,private fb: FormBuilder) { }
 
   ngOnInit(): void {
     // 1. 先初始化一個 FormGroup，但先留空值。拿到 this.user 後再 patchValue
     this.userForm = this.fb.group({
-      name: ['', [Validators.required]],
-      email: ['', [Validators.required, Validators.email]],
-      company: [''],
-      dep: [''],
-      // 可以額外在 form 裡加一個「pic」欄位，讓 onSubmit 讀到
-      pic: [''],
-    });
-
+  username:  ['', [Validators.required]],             // 對應後端 DTO.Username
+  userEmail: ['', [Validators.required, Validators.email]], // 對應後端 DTO.UserEmail
+  company:   [''],  // 如果後端不處理就放空或只做顯示
+  dep:       ['', Validators.required],
+  photoFile: ['']   // 對應後端 DTO.PhotoFile
+});
     // 2. 拿課程列表
-    this.courseService.getCourses().subscribe((data) => {
+    this.userService.getMyOrders().subscribe((data) => {
       this.courses = data;
     });
 
     // 3. 拿使用者資訊後，把它 patch 到 form，也存到 this.user
     this.sub = this.userService.getUserInfo().subscribe({
-      next: (data: UserDTO) => {
-        this.user = data;
+    next: (data: UserDTO) => {
+    this.user = data;
 
-        // 把 user 的資料灌到 Form 裡（包括 pic URL）
-        this.userForm.patchValue({
-          name: this.user.name,
-          email: this.user.email,
-          company: this.user.company,
-          dep: this.user.dep,
-          pic: this.user.pic,
+    // patchValue 要用跟上面 formGroup 一致的 key
+    this.userForm.patchValue({
+      username:  this.user.name,   // 原本撈到的 name → 塞進 username
+      userEmail: this.user.email,  // 對應 email → 塞進 userEmail
+      company:   this.user.company,
+      dep:       this.user.dep,
+      // photoFile 並不直接放 url，只要在預覽時自行設 this.previewPicUrl
+    });
+
+    // 預覽從 this.user.pic (完整 URL) 直接顯示
+    this.previewPicUrl = this.user.pic;
+
+ // → 呼叫後端的 GetDepList API，取得部門名稱清單
+        this.userService.getDepList().subscribe({
+          next: (deps: string[]) => {
+            this.departments = deps;
+
+            // 如果原本 user.dep 在清單裡，就選中它；否則設空字串
+            if (this.departments.includes(this.user.dep)) {
+              this.userForm.get('dep')!.setValue(this.user.dep);
+            } else {
+              this.userForm.get('dep')!.setValue('');
+            }
+          },
+          error: (err) => {
+            console.error('取得部門列表失敗：', err);
+            this.errorMsg = '部門清單載入失敗';
+          }
         });
       },
       error: (err) => {
         console.error('取得使用者資訊失敗：', err);
         this.errorMsg = '無法取得使用者資訊，請稍後再試。';
-      },
+      }
     });
   }
 
@@ -80,32 +101,22 @@ export class UserComponent implements OnInit {
 
   // 按下「編輯」按鈕
   enterEdit() {
-    this.isEditing = true;
-    // 確保 form 裡的值與 this.user 同步
-    this.userForm.patchValue({
-      name: this.user.name,
-      email: this.user.email,
-      company: this.user.company,
-      dep: this.user.dep,
-      pic: this.user.pic,
-    });
+      this.userForm.patchValue({
+    username:  this.user.name,
+    userEmail: this.user.email,
+    company:   this.user.company,
+    dep:       this.user.dep
+  });
+  this.isEditing = true;
   }
 
   // 按下「取消」按鈕
   cancelEdit() {
-    // 清除選到的檔案、預覽
-    this.selectedFile = null;
-    this.previewPicUrl = null;
-
-    // 把 form 還原為 this.user 的舊值
-    this.userForm.patchValue({
-      name: this.user.name,
-      email: this.user.email,
-      company: this.user.company,
-      dep: this.user.dep,
-      pic: this.user.pic,
-    });
-    this.isEditing = false;
+  this.userForm.reset();
+  this.previewPicUrl = this.user.pic;
+  this.selectedFile = null;
+  this.isEditing = false;
+  this.userForm.get('dep')!.setValue(this.user.dep);
   }
 
   // 當使用者透過檔案選擇器選擇新大頭照
@@ -133,60 +144,40 @@ export class UserComponent implements OnInit {
 
   // 按下「儲存」按鈕時，包含文字欄位＋大頭照一起上傳
   onSubmit() {
-    if (this.userForm.invalid) {
-      return;
-    }
-
-    // 先把 form 裡的文字欄位值讀出來
+    if (this.userForm.invalid) return;
     const formValues = this.userForm.value;
-
-    // 如果有挑選新大頭照，就用 FormData 才能傳檔案
+    const formData = new FormData();
+    formData.append('Username',  formValues.username);
+    formData.append('UserEmail', formValues.userEmail);
+    formData.append('Department', formValues.dep);
     if (this.selectedFile) {
-      const formData = new FormData();
-      // 將文字欄位加入 FormData
-      formData.append('name', formValues.name);
-      formData.append('email', formValues.email);
-      formData.append('company', formValues.company);
-      formData.append('dep', formValues.dep);
-      // 再加入檔案
-      formData.append('avatar', this.selectedFile, this.selectedFile.name);
-
-      // 呼叫 userService.updateUserWithAvatar(formData)
-      this.userService.updateUserWithAvatar(formData).subscribe({
-        next: (res: UserDTO) => {
-          // 假設後端回傳的是新的 user 物件，包含更新後的 avatar URL
-          this.user = res;
-          // 重置表單與狀態
-          this.selectedFile = null;
-          this.previewPicUrl = null;
-          this.isEditing = false;
-        },
-        error: (err) => {
-          console.error('更新使用者含大頭照失敗：', err);
-          this.errorMsg = '更新失敗，請稍後再試。';
-        },
-      });
-    } else {
-      // 如果沒有選照片，就像之前一樣只更新文字欄位
-      const updated: UserDTO = {
-        ...this.user,
-        name: formValues.name,
-        email: formValues.email,
-        company: formValues.company,
-        dep: formValues.dep,
-        pic: this.user.pic, // 保持原本 pic URL
-      };
-
-      this.userService.updateUser(updated).subscribe({
-        next: (res) => {
-          this.user = res;
-          this.isEditing = false;
-        },
-        error: (err) => {
-          console.error('更新使用者資訊失敗：', err);
-          this.errorMsg = '更新失敗，請稍後再試。';
-        },
-      });
+      formData.append('PhotoFile', this.selectedFile, this.selectedFile.name);
     }
+
+    this.userService.editUserInfo(formData).subscribe({
+      next: (res) => {
+        if (res.success && res.data) {
+          const payload = res.data;
+          localStorage.setItem('access_token', payload.newAccessToken);
+          this.user = {
+            ...this.user,
+            name:  payload.userInfo.username,
+            email: payload.userInfo.email,
+            dep:   payload.userInfo.depName,
+            pic:   payload.userInfo.photoUrl
+          };
+          this.previewPicUrl = payload.userInfo.photoUrl;
+          this.isEditing = false;
+          this.selectedFile = null;
+          this.errorMsg = null;
+        } else {
+          this.errorMsg = res.message || '更新失敗';
+        }
+      },
+      error: (err) => {
+        console.error('更新使用者資訊失敗：', err);
+        this.errorMsg = '更新失敗，請稍後再試。';
+      }
+    });
   }
 }

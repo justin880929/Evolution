@@ -1,0 +1,84 @@
+/* 統一輸入框綠色主題樣式 */
+.custom-input {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 0.375rem;
+  font-size: 0.95rem;
+  transition: all 0.2s ease-in-out;
+  width: 100%;
+}
+
+.custom-input:focus {
+  border-color: #00C853 !important;
+  /* Evolution 綠色 */
+  box-shadow: 0 0 0 0.25rem rgba(0, 200, 83, 0.25);
+  outline: none;
+}
+
+.input-group:focus-within {
+  border: 1px solid #00C853;
+  border-radius: 0.375rem;
+  box-shadow: 0 0 0 0.25rem rgba(0, 200, 83, 0.25);
+}
+
+/* ✅ 覆寫被點選列的背景顏色 */
+::ng-deep .p-datatable .p-datatable-tbody>tr.p-highlight {
+  background-color: #E6F7EC !important;
+  /* 你想要的選取背景色（例如淺綠） */
+  color: #2E7D32;
+  /* 字體顏色可一起設置 */
+}
+
+/* ✅ 如果你想要 hover 狀態也有一致性 */
+::ng-deep .p-datatable .p-datatable-tbody>tr.p-highlight:hover {
+  background-color: #D2F2DC !important;
+}
+
+/* ✅ 改變正在排序的欄位標頭底色與文字顏色 */
+::ng-deep .p-datatable .p-sortable-column.p-highlight {
+  background-color: #E6F7EC !important;
+  /* 淺綠底 */
+  color: #00C853 !important;
+  /* 品牌綠字 */
+  border-color: #00C853 !important;
+}
+
+/* ✅ 調整 icon 顏色 */
+::ng-deep .p-sortable-column-icon {
+  color: #00C853 !important;
+}
+
+/* 分頁容器背景與分隔線 */
+::ng-deep .p-paginator {
+  border-top: 1px solid #e0e0e0;
+  padding-top: 1rem;
+}
+
+/* 所有頁碼按鈕樣式 */
+::ng-deep .p-paginator .p-paginator-page {
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+  margin: 0 0.25rem;
+  color: #333;
+}
+
+/* hover 效果 */
+::ng-deep .p-paginator .p-paginator-page:hover {
+  background-color: #E6F7EC;
+  color: #00C853;
+  border-color: #00C853;
+}
+
+/* ✅ 目前選中的頁碼按鈕樣式 */
+::ng-deep .p-paginator .p-paginator-page.p-highlight {
+  background-color: #00C853 !important;
+  color: #fff !important;
+  border-color: #00C853 !important;
+}
+
+.custom-inputswitch {
+  margin-top: 0.5rem;
+  /* 往下推 */
+  margin-left: 1rem;
+  /* 往右推 */
+}

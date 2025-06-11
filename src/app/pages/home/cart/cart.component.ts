@@ -1,8 +1,10 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { Subscription } from 'rxjs';
+import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
+import { forkJoin, Subscription } from 'rxjs';
 import { CartService } from 'src/app/services/cart.service';
-import { courseDTO } from 'src/app/Interface/courseDTO';
+import { CourseDto } from 'src/app/Interface/courseDTO';
 import { ConfirmationService, MessageService } from 'primeng/api';
+import { CourseService } from 'src/app/services/course.service/course.service';
+import { Table } from 'primeng/table';
 
 @Component({
   selector: 'app-cart',
@@ -10,32 +12,46 @@ import { ConfirmationService, MessageService } from 'primeng/api';
   styleUrls: ['./cart.component.css'],
 })
 export class CartComponent implements OnInit, OnDestroy {
+  //  @ViewChild('dt') dt!: Table;
+
   // 由 Service 推送過來的購物車陣列
-  cartItems: courseDTO[] = [];
+  cartItems: CourseDto[] = [];
   // PrimeNG Table 勾選後的資料陣列
-  selectedItems: courseDTO[] = [];
+  selectedItems: CourseDto[] = [];
 
   // 訂閱用的 Subscription
   private cartSub!: Subscription;
 
   constructor(
     private cartService: CartService,
+    private courseService: CourseService,
     private confirmationService: ConfirmationService,
     private messageService: MessageService
   ) {}
 
   ngOnInit(): void {
-    // 1. （可選）一進到頁面就先拿一次 localStorage 裡的資料
-    this.cartItems = this.cartService.getCart();
-
-    // 2. 訂閱 cartItems$，Service 一旦有 saveCart()、clearCart() 等呼叫，就會推送最新陣列
-    this.cartSub = this.cartService.cartItems$.subscribe(items => {
-      this.cartItems = items;
+    this.cartSub = this.cartService.cartIds$.subscribe(ids => {
+      if (ids.length === 0) {
+        this.cartItems = [];
+        return;
+      }
+      // → 只呼一次 batch API
+      this.cartService.getCoursesByIds(ids).subscribe({
+        next: courses => this.cartItems = courses,
+        error: err => {
+          console.error('載入失敗', err);
+          this.messageService.add({
+            severity: 'error',
+            summary: '載入失敗',
+            detail: '無法取得課程資料',
+            life: 3000
+          });
+        }
+      });
     });
   }
 
   ngOnDestroy(): void {
-    // 離開元件時取消訂閱，避免 memory leak
     this.cartSub.unsubscribe();
   }
 
@@ -52,21 +68,21 @@ export class CartComponent implements OnInit, OnDestroy {
 }
 
   // 單筆刪除，按下垃圾桶圖示時觸發
-  deleteItem(item: courseDTO): void {
+  deleteItem(item: CourseDto): void {
     this.confirmationService.confirm({
-      message: `確定要刪除「${item.title}」嗎？`,
+      message: `確定要刪除「${item.courseTitle}」嗎？`,
       header: '刪除確認',
       icon: 'pi pi-exclamation-triangle',
       accept: () => {
         // 呼叫 Service 刪除，Service 會自動推送新陣列
-        this.cartService.removeFromCart(item.id);
+        this.cartService.removeFromCart(item.courseId);
         // 同步把已勾選裡的那筆移除
-        this.selectedItems = this.selectedItems.filter(si => si.id !== item.id);
+        this.selectedItems = this.selectedItems.filter(si => si.courseId !== item.courseId);
         // 顯示成功訊息
         this.messageService.add({
           severity: 'success',
           summary: '刪除成功',
-          detail: `已移除「${item.title}」`,
+          detail: `已移除「${item.courseTitle}」`,
           life: 3000
         });
       }
@@ -75,32 +91,29 @@ export class CartComponent implements OnInit, OnDestroy {
   }
 
   // 批次刪除：按下 Toolbar 的「Delete」按鈕時觸發
-  deleteSelectedItems(): void {
-    if (!this.selectedItems || this.selectedItems.length === 0) {
-      return;
-    }
+   deleteSelectedItems(): void {
+  if (!this.selectedItems.length) return;
 
-    this.confirmationService.confirm({
-      message: `確定要刪除已選擇的 ${this.selectedItems.length} 項商品嗎？`,
-      header: '刪除確認',
-      icon: 'pi pi-exclamation-triangle',
-      accept: () => {
-        // 依序呼叫 Service.removeFromCart(), Service 會推送新陣列
-        this.selectedItems.forEach(item => {
-          this.cartService.removeFromCart(item.id);
-        });
-        // 清空勾選陣列
-        this.selectedItems = [];
-        // 顯示成功訊息
-        this.messageService.add({
-          severity: 'success',
-          summary: '刪除成功',
-          detail: '已移除所有已選擇項目',
-          life: 3000
-        });
-      }
-    });
-  }
+  this.confirmationService.confirm({
+    message: `確定要刪除已選擇的 ${this.selectedItems.length} 項商品嗎？`,
+    header: '刪除確認',
+    icon: 'pi pi-exclamation-triangle',
+    accept: () => {
+      const toRemoveIds = this.selectedItems.map(i => i.courseId);
+      this.cartService.removeMultiple(toRemoveIds);
+
+      // 清空選取陣列 → UI 會自動 uncheck
+      this.selectedItems = [];
+
+      this.messageService.add({
+        severity: 'success',
+        summary: '刪除成功',
+        detail: '已移除所有已選擇項目',
+        life: 3000
+      });
+    }
+  });
+}
 
   // 清空整個購物車
   clearCart(): void {

@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService, UserIdentity } from 'src/app/services/auth.service';
+import { UserService } from 'src/app/services/user.service';    // ← 匯入
 import { Router } from '@angular/router';
-import { jwtDecode } from 'jwt-decode';
+
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
@@ -18,9 +19,9 @@ export class LoginComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
+    private userService: UserService,   // ← 注入
     private router: Router
   ) {
-    // 建立表單驗證規則
     this.loginForm = this.fb.group({
       email: ['tommyispan@gmail.com', [Validators.required, Validators.email]],
       password: ['tommy880929', Validators.required],
@@ -29,60 +30,57 @@ export class LoginComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // 2) 如果 localStorage 有存 email，就預填並幫使用者勾選 rememberMe
     const savedEmail = localStorage.getItem('savedEmail');
     if (savedEmail) {
-      this.loginForm.patchValue({
-        email: savedEmail,
-        rememberMe: true
-      });
+      this.loginForm.patchValue({ email: savedEmail, rememberMe: true });
     }
-
-    // 當使用者修改表單時，自動清除錯誤訊息
-    this.loginForm.valueChanges.subscribe(() => {
-      this.loginError = null;
-    });
+    this.loginForm.valueChanges.subscribe(() => this.loginError = null);
   }
 
   onSubmit(): void {
     if (this.loginForm.invalid) return;
 
-    // 3) 解構出 rememberMe
     const { email, password, rememberMe } = this.loginForm.value;
-
-    // 4) 依 rememberMe 存／移除 savedEmail
     if (rememberMe) {
       localStorage.setItem('savedEmail', email);
     } else {
       localStorage.removeItem('savedEmail');
     }
 
-    // 5) 呼叫登入 API
     this.authService.login(email, password).subscribe({
       next: (userIdentity: UserIdentity | null) => {
         if (userIdentity) {
-          this.loginError = null;
-          this.loginSuccess = true;
+          // 把 JWT payload 放到 username
           this.username = userIdentity.username;
-          // 1.5 秒後導向
-          setTimeout(() => this.router.navigate(['/home']), 1500);
+          this.loginSuccess = true;
+
+          // 👉 在此呼叫 refreshUserInfo()，才能拿到最新的 pic
+          this.userService.refreshUserInfo().subscribe({
+            next: () => {
+              // 完成 refresh 後再導頁
+              setTimeout(() => this.router.navigate(['/home']), 1500);
+            },
+            error: err => {
+              console.error('取得使用者完整資訊失敗', err);
+              // 即便失敗，也導頁
+              setTimeout(() => this.router.navigate(['/home']), 1500);
+            }
+          });
         } else {
           this.loginError = '登入失敗，無法取得身分資料';
         }
       },
-      error: (err) => {
+      error: err => {
         this.loginError = err.message;
-        setTimeout(() => {
-          this.loginError = null;
-        }, 3000);
         const card = document.querySelector('.login-box');
         card?.classList.add('shake');
         setTimeout(() => card?.classList.remove('shake'), 500);
+        setTimeout(() => this.loginError = null, 3000);
       }
     });
   }
+
   togglePassword() {
     this.showPassword = !this.showPassword;
   }
 }
-

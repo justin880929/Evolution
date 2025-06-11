@@ -5,6 +5,7 @@ import { map, Observable, tap, throwError, of, BehaviorSubject } from 'rxjs';
 import { ResultService } from "../Share/result.service";
 import { JWTService } from '../Share/JWT/jwt.service';
 import { ConfigService } from './config.service';
+import { UserService } from './user.service';
 interface AuthResponseDto {
   accessToken: string;
   refreshToken: string;
@@ -51,29 +52,48 @@ export class AuthService {
     }
   };
 
-  constructor(private http: HttpClient, private resultService: ResultService, private jwtService: JWTService,private configService: ConfigService) { }
+  constructor(private http: HttpClient, private resultService: ResultService, private jwtService: JWTService,private configService: ConfigService,private userService: UserService ) { }
   private _loggedIn$$ = new BehaviorSubject<boolean>(!!localStorage.getItem('jwt'));
   public isLoggedIn$ = this._loggedIn$$.asObservable();
   login(email: string, password: string): Observable<UserIdentity | null> {
-    if (this.configService.useMock) {
-      this.jwtService.setToken(this.fakeResponse.data.accessToken, this.fakeResponse.data.refreshToken)
-      const user = this.jwtService.UnpackJWT();
-      console.log('Mock 登入 user:', user); // ✅ 加這行檢查
-      this._loggedIn$$.next(true);
-      return of(user);// 回傳解碼後的身分資料
-    } else {
-      return this.resultService.postResult<AuthResponseDto>(`${this.authUrl}/login`, { email, password })
-        .pipe(
-          tap(res => {
-            this._loggedIn$$.next(true);
-            this.jwtService.setToken(res.accessToken, res.refreshToken);
-          }),
-          map(() => this.jwtService.UnpackJWT()),
-          catchError(err => throwError(() => err))
-        );
-    }
+  // 先清空舊 Token
+  this.jwtService.clearToken();
 
+  if (this.configService.useMock) {
+    this.jwtService.setToken(
+      this.fakeResponse.data.accessToken,
+      this.fakeResponse.data.refreshToken
+    );
+    // 把 userSubject.next(newUserDto) 的事情做一下
+    this.userService.refreshUserInfo().subscribe();
+    this._loggedIn$$.next(true);
+    return of(this.jwtService.UnpackJWT());
+  } else {
+    return this.resultService
+    .postResult<AuthResponseDto>(`${this.authUrl}/login`, { email, password })
+    .pipe(
+      // 1. 先把 token 存好
+      tap(res => {
+        this.jwtService.setToken(res.accessToken, res.refreshToken);
+      }),
+      // 2. 然後載入使用者資料
+      switchMap(() => {
+        // refreshUserInfo 內部會推到 userSubject
+        return this.userService.refreshUserInfo();  // 假設它回傳 Observable<UserDTO>
+      }),
+      // 3. 載完 userInfo 再通知已登入
+      tap(() => {
+        this._loggedIn$$.next(true);
+      }),
+      // 4. 最後回傳 JWT payload
+      map(() => {
+        return this.jwtService.UnpackJWT()!;
+      }),
+      catchError(err => throwError(() => err))
+    );
+    }
   }
+
 
   sendResetLink(email: string): Observable<ApiResponse<string>> {
     return this.http.post<ApiResponse<string>>(
@@ -97,34 +117,52 @@ export class AuthService {
         })
       );
   }
+
   resetPassword(data: ResetPasswordDTO): Observable<ApiResponse<ResetPasswordResponse>> {
     return this.http.post<ApiResponse<ResetPasswordResponse>>(`${this.accountUrl}/reset-password`, data);
   }
 
+  initPassword(data: ResetPasswordDTO): Observable<ApiResponse<ResetPasswordResponse>> {
+    return this.http.post<ApiResponse<ResetPasswordResponse>>(`${this.accountUrl}/init-password`, data);
+  }
+
   /** ✅ 登出 */
   logout(): Observable<ApiResponse<string>> {
-    console.log("logout");
+  console.log("logout");
 
-    if (this.configService.useMock) {
-      // 清除邏輯不應寫在 service，應交由 component 控制
-      this.jwtService.clearToken();
-      this._loggedIn$$.next(false);
-      return of({
-        success: true,
-        message: 'Mock 登出成功',
-        statusCode: 200,
-        data: 'mock-logout'
-      });
-    }
-
-    const refreshToken = localStorage.getItem('refresh_token');
-    if (!refreshToken) return of(); // 無 refreshToken 也不送出請求
-
-    return this.http.post<ApiResponse<string>>(`${this.authUrl}/logout`, {
-      refreshToken
-    }).pipe(finalize(() => {
-      this.jwtService.clearToken();
-      this._loggedIn$$.next(false);
-    }));
+  if (this.configService.useMock) {
+    this.jwtService.clearToken();
+    this._loggedIn$$.next(false);
+    this.userService.clearUser();   // ← 清空 user$
+    return of({
+      success: true,
+      message: 'Mock 登出成功',
+      statusCode: 200,
+      data: 'mock-logout'
+    });
   }
+
+  const refreshToken = localStorage.getItem('refresh_token');
+  if (!refreshToken) {
+    // 沒 Token 也要清
+    this.jwtService.clearToken();
+    this._loggedIn$$.next(false);
+    this.userService.clearUser();
+    return of({
+      success: true,
+      message: 'No token to logout',
+      statusCode: 200,
+      data: ''
+    });
+  }
+
+  return this.http.post<ApiResponse<string>>(`${this.authUrl}/logout`, { refreshToken })
+    .pipe(
+      finalize(() => {
+        this.jwtService.clearToken();
+        this._loggedIn$$.next(false);
+        this.userService.clearUser();  // ← 這裡！
+      })
+    );
+}
 }

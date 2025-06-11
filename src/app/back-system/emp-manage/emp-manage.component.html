@@ -15,7 +15,7 @@
       pButton
       type="button"
       icon="pi pi-trash"
-      label="刪除選取"
+      label="停用選取"
       class="p-button-danger rounded"
       [disabled]="!selectedEmps || selectedEmps.length === 0"
       (click)="confirmDeleteSelected()"
@@ -30,13 +30,13 @@
     [lazy]="true"
     (onLazyLoad)="loadLazyData($event)"
     [paginator]="true"
-    [rows]="10"
+    [rows]="rows"
     [totalRecords]="totalRecords"
     [loading]="loading"
     [first]="first"
     selectionMode="multiple"
     [(selection)]="selectedEmps"
-    dataKey="userID"
+    dataKey="userId"
     [tableStyle]="{ 'min-width': '50rem' }"
     stateStorage="session"
     stateKey="emp-session"
@@ -50,17 +50,17 @@
         </th>
 
         <!-- 1-2. 其他欄位：姓名/信箱/部門/狀態/操作 -->
-        <th pSortableColumn="username" style="width: 20%">
+        <th pSortableColumn="username" style="width: 25%">
           員工姓名 <p-sortIcon field="username"></p-sortIcon>
         </th>
-        <th pSortableColumn="email" style="width: 20%">
+        <th pSortableColumn="email" style="width: 25%">
           員工信箱 <p-sortIcon field="email"></p-sortIcon>
         </th>
-        <th pSortableColumn="department" style="width: 20%">
-          所屬部門 <p-sortIcon field="department"></p-sortIcon>
+        <th pSortableColumn="userDep" style="width: 25%">
+          所屬部門 <p-sortIcon field="userDep"></p-sortIcon>
         </th>
-        <th pSortableColumn="statusLabel" style="width: 15%">
-          帳號狀態 <p-sortIcon field="statusLabel"></p-sortIcon>
+        <th pSortableColumn="userStatus" style="width: 15%">
+          帳號狀態 <p-sortIcon field="userStatus"></p-sortIcon>
         </th>
         <th style="width: 10%">操作</th>
       </tr>
@@ -92,9 +92,9 @@
           <input
             pInputText
             type="text"
-            (input)="onInputFilter($event, 'department', dt1)"
-            [value]="getFilterValue(dt1.filters['department'])"
-            placeholder="Search Department"
+            (input)="onInputFilter($event, 'userDep', dt1)"
+            [value]="getFilterValue(dt1.filters['userDep'])"
+            placeholder="Search userDep"
             class="w-full custom-input"
           />
         </th>
@@ -102,8 +102,8 @@
           <input
             pInputText
             type="text"
-            (input)="onInputFilter($event, 'statusLabel', dt1)"
-            [value]="getFilterValue(dt1.filters['statusLabel'])"
+            (input)="onInputFilter($event, 'userStatus', dt1)"
+            [value]="getFilterValue(dt1.filters['userStatus'])"
             placeholder="Search Status"
             class="w-full custom-input"
           />
@@ -124,22 +124,18 @@
         <!-- 2-2. 其他欄位：都改成 emp?.xxx -->
         <td>{{ emp?.username }}</td>
         <td>{{ emp?.email }}</td>
-        <td>{{ emp?.department }}</td>
-        <td>
-          <p-tag
-            [value]="emp?.statusLabel"
-            [severity]="emp?.isEmailConfirmed ? 'success' : 'warning'"
-          ></p-tag>
-        </td>
+        <td>{{ emp?.userDep }}</td>
+        <td>{{ emp?.userStatus }}</td>
 
         <!-- 2-3. 單筆刪除按鈕 -->
         <td>
           <button
             pButton
             type="button"
-            icon="pi pi-trash"
-            class="p-button-rounded p-button-text p-button-danger"
-            (click)="confirmDelete(emp)"
+            icon="pi pi-pencil"
+            class="p-button-rounded p-button-text p-button-help"
+            (click)="editEmployee(emp)"
+            style="margin-left: 0.5rem"
           ></button>
         </td>
       </tr>
@@ -188,22 +184,13 @@
     </div>
 
     <div class="p-field">
-      <label for="department">部門</label>
+      <label for="userDep">部門</label>
       <input
-        id="department"
+        id="userDep"
         type="text"
         pInputText
-        [(ngModel)]="currentEmp.department"
+        [(ngModel)]="currentEmp.userDep"
       />
-    </div>
-
-    <div class="p-field-checkbox">
-      <p-checkbox
-        inputId="activeStatus"
-        [(ngModel)]="currentEmp.isEmailConfirmed"
-        [binary]="true"
-      ></p-checkbox>
-      <label for="activeStatus">是否啟用 (Email 已驗證)</label>
     </div>
   </div>
 

@@ -10,6 +10,8 @@ import { JWTService } from '../Share/JWT/jwt.service';
 import { AuthService } from '../services/auth.service';
 import { Router } from '@angular/router';
 import { Location } from '@angular/common';
+import { Subscription } from 'rxjs';
+import { UserService } from '../services/user.service';
 
 
 declare var Menu: any; // Sneat 的選單初始化函式
@@ -25,37 +27,62 @@ export class BackSystemComponent implements OnInit, OnDestroy {
   username = '使用者';
   role = '';
   userPhotoUrl = '';
-  defaultPhoto = '';
+  defaultPhoto = '../../../assets/img/NoprofilePhoto.png';
   isLoggedIn = false;
+  userRole = '';
+  isAdmin = false;
+
+  private loginSub!: Subscription;
 
   private scripts: HTMLScriptElement[] = [];
+
+  private userSub!: Subscription;
 
   constructor(
     private renderer: Renderer2,
     private jwtService: JWTService,
     private authService: AuthService,   // ← 注入 AuthService
     private router: Router,              // ← 注入 Router
-    private location: Location
+    private location: Location,
+    private userService: UserService
   ) {
     // 設定預設 fallback 圖
     this.defaultPhoto = this.location.prepareExternalUrl('assets/img/default-user.png');
   }
 
   async ngOnInit(): Promise<void> {
+    this.loginSub = this.authService.isLoggedIn$.subscribe((flag) => {
+      this.isLoggedIn = flag;
+      if (flag) {
+        // 從 JWT 解析 username / role
+        const payload = this.jwtService.UnpackJWT();
+        this.username = payload?.username ?? '使用者';
+        this.userRole = payload?.role ?? '';
+        const roleLower = this.userRole.toLowerCase();
+        this.isAdmin = roleLower === 'admin' || roleLower === 'superadmin';
+      } else {
+        // 登出時重置
+        this.username = '';
+        this.userRole = '';
+        this.isAdmin = false;
+        this.userPhotoUrl = 'assets/img/NoprofilePhoto.png';
+      }
+    });
+
+    // 3. **訂閱 userService.user$**：凡是 Service 裡有 next()，這邊都會收到
+    this.userSub = this.userService.user$.subscribe((userDto) => {
+      if (userDto) {
+        this.username = userDto.name;
+        this.userPhotoUrl = userDto.pic || 'assets/img/NoprofilePhoto.png';
+      } else {
+        // 如果你想讓載入初始值時 userSubject 為 null，就顯示預設
+        // this.username = '';
+        // this.userPhotoUrl = 'assets/img/NoprofilePhoto.png';
+      }
+    });
+
+
     try {
-    const user = this.jwtService.UnpackJWT();
-    this.isLoggedIn = !!user;
-
-    if (user) {
-      this.username = user.username;
-      this.role     = user.role;
-      // ← 這裡改成絕對路徑，開頭加斜線
-      this.userPhotoUrl = '/assets/img/NoprofilePhoto.png';
-    } else {
-      // 同樣用絕對路徑
-      this.userPhotoUrl = '/assets/img/default-user.png';
-    }
-
       // 1. 初始化設定與輔助工具
       await this.loadScript('assets/BackSystem/js/config.js');
       await this.loadScript('assets/BackSystem/js/helpers.js');
@@ -107,10 +134,13 @@ export class BackSystemComponent implements OnInit, OnDestroy {
       { label: '課程權限管理', link: 'emp-permissions' },
     ],
     EmpDep: [
-      { label: '部門管理', link: 'dep-manage' },
-      { label: '建立部門', link: 'create-dep' },
+      // { label: '部門管理', link: 'dep-manage' },
+      // { label: '建立部門', link: 'create-dep' },
       { label: '員工管理', link: 'emp-manage' },
-      { label: '建立員工帳號', link: 'create-emp' },
+      // { label: '建立員工帳號', link: 'create-emp' },
+    ],
+    Client: [
+      { label: '客戶帳號管理', link: 'client' },
     ],
   };
 
@@ -147,7 +177,10 @@ export class BackSystemComponent implements OnInit, OnDestroy {
         script.parentNode.removeChild(script);
       }
     });
+
     this.scripts = [];
+
+    this.userSub?.unsubscribe();
   }
 
   logout(event: Event): void {

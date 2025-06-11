@@ -30,7 +30,7 @@ import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { RippleModule } from 'primeng/ripple';
 import { ConfirmationService, MessageService } from 'primeng/api';
-
+import { FeaturedCoursesComponent } from './featured-courses/featured-courses.component';
 @NgModule({
   declarations: [
     HomeComponent,
@@ -43,6 +43,7 @@ import { ConfirmationService, MessageService } from 'primeng/api';
     CartComponent,
     UserComponent,
     LearingListComponent,
+    FeaturedCoursesComponent,
   ],
   imports: [
     CommonModule,

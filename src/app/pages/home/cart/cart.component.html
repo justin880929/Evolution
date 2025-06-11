@@ -28,9 +28,9 @@
             #dt
             [value]="cartItems"
             [(selection)]="selectedItems"
-            dataKey="id"
+            dataKey="courseId"
             [rowHover]="true"
-            [globalFilterFields]="['title', 'price']"
+            [globalFilterFields]="['courseTitle', 'price']"
             [tableStyle]="{ 'min-width': '40rem' }"
             currentPageReportTemplate="Showing {first} to {last} of {totalRecords} items"
             [showCurrentPageReport]="true"
@@ -62,9 +62,9 @@
                 <!-- 照片欄位 -->
                 <th style="width: 6rem">照片</th>
                 <!-- 課程名稱 -->
-                <th pSortableColumn="title" style="min-width: 15rem">
+                <th pSortableColumn="courseTitle" style="min-width: 15rem">
                   課程名稱
-                  <p-sortIcon field="title"></p-sortIcon>
+                  <p-sortIcon field="courseTitle"></p-sortIcon>
                 </th>
                 <!-- 價格 -->
                 <th pSortableColumn="price">
@@ -86,7 +86,7 @@
                 <!-- 照片欄位 -->
                 <td>
                   <img
-                    [src]="item.coverImage"
+                    [src]="item.coverImagePath"
                     alt="{{ item.title }} 圖片"
                     style="
                       width: 50px;
@@ -94,11 +94,13 @@
                       object-fit: cover;
                       border-radius: 0.25rem;
                     "
-                    (error)="item.coverImage = 'assets/img/course-product.png'"
+                    (error)="
+                      item.coverImagePath = 'assets/img/course-product.png'
+                    "
                   />
                 </td>
                 <!-- 課程名稱 -->
-                <td>{{ item.title }}</td>
+                <td>{{ item.courseTitle }}</td>
                 <!-- 價格 -->
                 <td>NT$ {{ item.price }}</td>
                 <!-- 操作按鈕 -->

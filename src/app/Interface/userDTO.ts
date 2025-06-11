@@ -1,7 +1,7 @@
 export interface UserDTO {
-  name: string;          // 顯示
-  email: string;             // 顯示
-  dep: string;        // 顯示：會轉換 UserDep -> Dep 名稱
-  pic:string;          // 顯示：使用者頭像圖片 URL，若沒有則為 null 或空字串
-  company: string;      // 顯示：公司名稱，若沒有則為 null 或空字串
+  name:    string;   // 顯示用的 username
+  email:   string;   // 顯示用的 email
+  dep:     string;   // 顯示用的 部門名稱
+  pic:     string;   // 顯示用的 頭像完整 URL（後端 photoUrl）
+  company: string;   // 顯示用的 公司名稱（後端 userCompany）
 }

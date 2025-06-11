@@ -1,66 +1,93 @@
-<div class="container-xxl flex-grow-1 container-p-y">
-  <div class="card p-3">
-    <div class="card table-container">
-      <p-table #dt1 [value]="empList" [lazy]="true" (onLazyLoad)="loadLazyData($event)" [paginator]="true" [rows]="10"
-        [totalRecords]="totalRecords" [loading]="loading" [first]="first" (onRowSelect)="onRowSelect($event)"
-        selectionMode="single" [(selection)]="selectEmp" dataKey="userID" [tableStyle]="{ 'min-width': '50rem' }"
-        stateStorage="session" stateKey="emp-session">
-        <!-- 🔹 表頭區 -->
-        <ng-template pTemplate="header">
-          <tr>
-            <th pSortableColumn="username" style="width:25%">
-              員工姓名 <p-sortIcon field="username"></p-sortIcon>
-            </th>
-            <th pSortableColumn="email" style="width:25%">
-              員工信箱 <p-sortIcon field="email"></p-sortIcon>
-            </th>
-            <th pSortableColumn="department" style="width:25%">
-              所屬部門 <p-sortIcon field="department"></p-sortIcon>
-            </th>
-            <th pSortableColumn="statusLabel">帳號狀態 <p-sortIcon field="statusLabel"></p-sortIcon></th>
-          </tr>
-          <tr>
-            <th>
-              <input pInputText type="text" (input)="onInputFilter($event, 'username', dt1)"
-                [value]="getFilterValue(dt1.filters['username'])" placeholder="Search Name"
-                class="w-full custom-input" />
-            </th>
-            <th>
-              <input pInputText type="text" (input)="onInputFilter($event, 'email', dt1)"
-                [value]="getFilterValue(dt1.filters['email'])" placeholder="Search Email" class="w-full custom-input" />
-            </th>
-            <th>
-              <input pInputText type="text" (input)="onInputFilter($event, 'department', dt1)"
-                [value]="getFilterValue(dt1.filters['department'])" placeholder="Search Department"
-                class="w-full custom-input" />
-            </th>
-            <th>
-              <input pInputText type="text" (input)="onInputFilter($event, 'statusLabel', dt1)"
-                [value]="getFilterValue(dt1.filters['statusLabel'])" placeholder="Search Status"
-                class="w-full custom-input" />
-            </th>
-          </tr>
-        </ng-template>
-
-        <!-- 🔸 資料列 -->
-        <ng-template pTemplate="body" let-emp>
-          <tr [pSelectableRow]="emp">
-            <td>{{ emp.username }}</td>
-            <td>{{ emp.email }}</td>
-            <td>{{ emp.department }}</td>
-            <td>
-              <p-tag [value]="emp.statusLabel" [severity]="emp.isEmailConfirmed ? 'success' : 'warning'"></p-tag>
-            </td>
-          </tr>
-        </ng-template>
-
-        <!-- ⛔ 沒資料 -->
-        <ng-template pTemplate="emptymessage">
-          <tr>
-            <td colspan="4">No employee found.</td>
-          </tr>
-        </ng-template>
-      </p-table>
-    </div>
+<p-toolbar class="mb-2">
+  <div class="p-toolbar-group-left">
+    <!-- 新增員工按鈕 -->
+    <button
+      pButton
+      type="button"
+      icon="pi pi-plus"
+      label="變更"
+      class="p-button-success mr-2 rounded"
+    ></button>
   </div>
+</p-toolbar>
+
+<div class="card table-container">
+  <!-- <p-table #dt1 [value]="empList" [lazy]="true" (onLazyLoad)="loadLazyData($event)" [paginator]="true" [rows]="10"
+    [totalRecords]="totalRecords" [loading]="loading" [first]="first" selectionMode="multiple"
+    [(selection)]="selectedEmps" dataKey="userID" [tableStyle]="{ 'min-width': '50rem' }" stateStorage="session"
+    stateKey="emp-session"> -->
+  <!-- 🔹 表頭區：先加上 checkbox 欄位，再加欄位排序與篩選 -->
+  <ng-template pTemplate="header">
+    <tr>
+      <!-- 1-1. 多選 CheckBox 欄位 -->
+      <th style="width: 3rem">
+        <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+      </th>
+
+      <!-- 1-2. 其他欄位：姓名/信箱/部門/狀態/操作 -->
+      <th pSortableColumn="username" style="width: 20%">
+        員工姓名 <p-sortIcon field="username"></p-sortIcon>
+      </th>
+      <th pSortableColumn="email" style="width: 30%">
+        員工信箱 <p-sortIcon field="email"></p-sortIcon>
+      </th>
+      <th pSortableColumn="department" style="width: 20%">
+        所屬部門 <p-sortIcon field="department"></p-sortIcon>
+      </th>
+      <th pSortableColumn="statusLabel" style="width: 20%">
+        帳號狀態 <p-sortIcon field="statusLabel"></p-sortIcon>
+      </th>
+    </tr>
+    <tr>
+      <!-- 1-3. 篩選列：多選欄位這裡留空 -->
+      <th></th>
+
+      <!-- <th>
+          <input pInputText type="text" (input)="onInputFilter($event, 'username', dt1)"
+            [value]="getFilterValue(dt1.filters['username'])" placeholder="Search Name" class="w-full custom-input" />
+        </th>
+        <th>
+          <input pInputText type="text" (input)="onInputFilter($event, 'email', dt1)"
+            [value]="getFilterValue(dt1.filters['email'])" placeholder="Search Email" class="w-full custom-input" />
+        </th>
+        <th>
+          <input pInputText type="text" (input)="onInputFilter($event, 'department', dt1)"
+            [value]="getFilterValue(dt1.filters['department'])" placeholder="Search Department"
+            class="w-full custom-input" />
+        </th> -->
+      <!-- 篩選列最後一格（操作）的格子留空 -->
+      <th></th>
+    </tr>
+  </ng-template>
+
+  <!-- 🔸 資料列：先顯示 checkbox，再顯示其他欄位、最後一欄顯示「刪除圖示」-->
+  <ng-template pTemplate="body" let-emp>
+    <tr [pSelectableRow]="emp">
+      <!-- 2-1. 多選 CheckBox -->
+      <td>
+        <p-tableCheckbox [value]="emp"></p-tableCheckbox>
+      </td>
+
+      <!-- 2-2. 其他欄位：都改成 emp?.xxx -->
+      <td>{{ emp?.username }}</td>
+      <td>{{ emp?.email }}</td>
+      <td>{{ emp?.department }}</td>
+      <td>
+        <p-tag
+          [value]="emp?.statusLabel"
+          [severity]="emp?.isEmailConfirmed ? 'success' : 'warning'"
+        ></p-tag>
+      </td>
+    </tr>
+  </ng-template>
+
+  <!-- ⛔ 空資料顯示 -->
+  <ng-template pTemplate="emptymessage">
+    <tr>
+      <td colspan="6">No employee found.</td>
+    </tr>
+  </ng-template>
+  <!-- </p-table> -->
 </div>
+<!-- 4. 確認刪除 (ConfirmDialog) -->
+<p-confirmDialog></p-confirmDialog>

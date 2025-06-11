@@ -1,20 +1,24 @@
-import { ResultService } from './../Share/result.service';
-import { jwtDecode } from 'jwt-decode';
-import { JWTService } from './../Share/JWT/jwt.service';
-import { ConfigService } from './config.service';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { catchError, map, Observable, of, throwError } from 'rxjs';
+import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
+import { map, catchError, tap } from 'rxjs/operators';
+import { ConfigService } from './config.service';
+import { ResultService } from '../Share/result.service';
 import { UserDTO } from '../Interface/userDTO';
 import { ApiResponse } from '../Share/interface/resultDTO';
-
+import { UserInfoDTO } from '../Interface/userInfoDTO';                 // ← 確認這行
+import { EditUserResponseDTO } from '../Interface/editUserResponseDTO'; // ← 確認這行
+import { DepListResponseDTO } from '../Interface/depListResponseDTO';
+import { EmpOrderDTO } from '../Interface/empOrderDTO';
 
 @Injectable({
   providedIn: 'root',
 })
-
 export class UserService {
   private apiUrl = 'https://localhost:7274/api';
+
+  private userSubject = new BehaviorSubject<UserDTO | null>(null);
+  public user$ = this.userSubject.asObservable();
 
   constructor(
     private http: HttpClient,
@@ -35,14 +39,25 @@ export class UserService {
       return of(mockUser);
     }
 
-    return this.resultService
-      .postResult<ApiResponse<UserDTO>>(`${this.apiUrl}/userinfo`, {})
+    // 真實環境：打 GET /api/users/useridfo （注意要加 /users 前綴）
+    return this.http
+      .get<ApiResponse<UserInfoDTO>>(`${this.apiUrl}/users/userinfo`)
       .pipe(
         map((apiRes) => {
           if (!apiRes.success || !apiRes.data) {
             throw new Error(apiRes.message || '無法取得使用者資訊');
           }
-          return apiRes.data;
+
+          // 後端回傳的是 UserInfoDTO，要轉成前端的 UserDTO
+          const dto: UserInfoDTO = apiRes.data;
+          const result: UserDTO = {
+            name:    dto.username,
+            email:   dto.email,
+            dep:     dto.depName,           // 如果後端有回 depName，就直接帶回來
+            pic:     dto.photoUrl || '',
+            company: dto.userCompany || ''
+          };
+          return result;
         }),
         catchError((err) => {
           console.error('getUserInfo 發生錯誤：', err);
@@ -51,50 +66,68 @@ export class UserService {
       );
   }
 
-  /** 更新使用者文字欄位 */
-  updateUser(user: UserDTO): Observable<UserDTO> {
-    if (this.configService.useMock) {
-      return of(user);
-    }
+  /** 既有：一開始 App 啟動時用的載入方法 */
+  loadUserInfo(): void {
+    this.getUserInfo()
+      .subscribe({
+        next: user => this.userSubject.next(user),
+        error: err => console.error('載入使用者資訊失敗：', err)
+      });
+  }
 
-    return this.resultService
-      .postResult<ApiResponse<UserDTO>>(`${this.apiUrl}/userinfo`, user)
+ /** 編輯使用者資訊（含大頭照上傳） */
+  editUserInfo(formData: FormData): Observable<ApiResponse<EditUserResponseDTO>> {
+    return this.http
+      .put<ApiResponse<EditUserResponseDTO>>(
+        `${this.apiUrl}/users/edituseridfo`,
+        formData
+      )
       .pipe(
-        map((apiRes) => {
-          if (!apiRes.success || !apiRes.data) {
-            throw new Error(apiRes.message || '無法更新使用者資訊');
+        tap((apiRes) => {
+          if (apiRes.success && apiRes.data) {
+            // ← 這裡要先把 userInfo 解構出來
+            const ui = apiRes.data.userInfo;
+
+            const updated: UserDTO = {
+              name: ui.username,
+              email: ui.email,
+              dep: ui.depName,
+              pic: ui.photoUrl || '',
+              // 如果後端還有回 companyName 或 userCompany，可以在 ui 內多加一個屬性，再這裡填上
+              company: ''
+            };
+            this.userSubject.next(updated);
           }
-          return apiRes.data;
         }),
-        catchError((err) => {
-          console.error('updateUser 發生錯誤：', err);
-          return throwError(() => err);
-        })
+        catchError((err) => throwError(() => err))
       );
   }
 
-  /**
-   * 更新使用者資料（含大頭照上傳）。
-   * 這裡假設後端路由是 POST /api/userinfo/avatar，並且 expect multipart/form-data。
-   * 如果你的後端將檔案更新放在同一個 endpoint，只要把 URL 換成 `/userinfo` 也行。
-   */
+  /** 手動強制刷新使用者資料，再推到 BehaviorSubject */
+   refreshUserInfo(): Observable<UserDTO> {
+    return this.getUserInfo().pipe(
+      tap(user => this.userSubject.next(user)),
+      catchError(err => {
+        console.error('手動刷新使用者資訊失敗：', err);
+        // 將錯誤往外拋，呼叫端（AuthService / Component）可繼續 subscribe 處理
+        return throwError(() => err);
+      })
+    );
+  }
+
+  /** 如果還需要：更新大頭照範例 */
   updateUserWithAvatar(formData: FormData): Observable<UserDTO> {
     if (this.configService.useMock) {
-      // 在 mock 狀況下，我們可以只模擬「把文字＋pic 放回去」
-      // 假設 formData 裡有 name、email、company、dep 與 avatar
       const mockUser: UserDTO = {
         name: formData.get('name') as string,
         email: formData.get('email') as string,
         company: formData.get('company') as string,
         dep: formData.get('dep') as string,
-        // 由於是 mock，所以隨便用一個 Data URL 或固定字串都行，
-        // 這裡假設使用者剛才用 FileReader 生成的 Base64 串存在 formData.get('avatarPreview')（可自行決定）
         pic: (formData.get('avatarPreview') as string) || 'assets/img/NoprofilePhoto.png',
       };
       return of(mockUser);
     }
 
-    // 真實情況下把 FormData 送到後端
     return this.http
       .post<ApiResponse<UserDTO>>(`${this.apiUrl}/userinfo/avatar`, formData)
       .pipe(
@@ -104,35 +137,37 @@ export class UserService {
           }
           return apiRes.data;
         }),
-        catchError((err) => {
-          console.error('updateUserWithAvatar 發生錯誤：', err);
-          return throwError(() => err);
+        catchError((err) => throwError(() => err))
+      );
+  }
+
+    getDepList(): Observable<string[]> {
+    return this.http
+      .get<ApiResponse<DepListResponseDTO[]>>(`${this.apiUrl}/Users/dept-list`)
+      .pipe(
+        // 先檢查 success，如果不是就拋錯
+        map(resp => {
+          if (!resp.success || !resp.data) {
+            throw new Error(resp.message || '取得部門列表失敗');
+          }
+          // 將 DTO 陣列轉成只要 depName 的 string[]
+          return resp.data.map(item => item.depName || '');
         })
       );
   }
 
-  /** 取得使用者資訊 */
-  // getUserInfo(): Observable<UserInfoDTO> {
-  //   if (this.configService.useMock) {
-  //     const mockUser: UserInfoDTO = {
-  //       userId:   123,
-  //       username: 'tommy',
-  //       email:    'tommy@test.com'
-  //     };
-  //     return of(mockUser);
-  //   }
-
-  //   return this.http
-  //   .get<ApiResponse<UserInfoDTO>>(`${this.apiUrl}/users/useridfo`)
-  //   .pipe(
-  //     map(res =>{
-  //       if (!res.success || !res.data){
-  //         throw new Error(res.message || '無法取得使用者資訊');
-  //       }
-
-  //       return res.data;
-  //     }),
-  //     catchError(err => throwError(()=> err))
-  //   );
-  // }
+  getMyOrders(): Observable<EmpOrderDTO[]> {
+    return this.http
+    .get<ApiResponse<EmpOrderDTO[]>>(`${this.apiUrl}/Users/user-order`)
+    .pipe(
+      map(res =>{
+        if(!res.success)
+          throw new Error(res.message || '取得已購買課程失敗');
+        return res.data ?? [];
+      })
+    )
+  }
+   clearUser(): void {
+    this.userSubject.next(null);
+  }
 }

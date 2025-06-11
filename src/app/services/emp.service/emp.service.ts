@@ -2,12 +2,15 @@
 
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, of, throwError } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 import { empDTO } from '../../Interface/empDTO';
 import { MOCK_EMPLOYEES } from '../../mock/mock-emp';
 import { FilterMetadata } from 'primeng/api';
 import { ConfigService } from '../config.service';
+import { EmployeesListDto } from 'src/app/Interface/employeesListDTO';
+import { ApiResponse } from 'src/app/Share/interface/resultDTO';
+import { RegisteremployeeDTO } from 'src/app/Interface/RegisteremployeeDTO';
 
 interface PagedResult<T> {
   data: T[];
@@ -19,8 +22,7 @@ interface PagedResult<T> {
 })
 export class EmpService {
 
-  private apiUrl = '/api/employees'; // 或你實際的 API 路徑
-
+  private baseUrl = 'https://localhost:7274/api/CompanyManage';
   private mockData: empDTO[] = [...MOCK_EMPLOYEES];
 
   constructor(
@@ -31,7 +33,7 @@ export class EmpService {
   private fetchData(): Observable<empDTO[]> {
     return this.configService.useMock
       ? of(this.mockData)
-      : this.http.get<empDTO[]>(`${this.apiUrl}`);
+      : this.http.get<empDTO[]>(`${this.baseUrl}`);
   }
 
   getAll(): Observable<empDTO[]> {
@@ -42,112 +44,104 @@ export class EmpService {
     if (this.configService.useMock) {
       return of(this.mockData.find(e => e.userID === id));
     }
-    return this.http.get<empDTO>(`${this.apiUrl}/${id}`);
+    return this.http.get<empDTO>(`${this.baseUrl}/${id}`);
   }
 
   getPagedResult(
-    startIndex: number,
-    pageSize: number,
-    sortField: string,
-    sortOrder: number,
-    filters: { [s: string]: FilterMetadata | FilterMetadata[] | undefined }
-  ): Observable<{ data: empDTO[]; total: number }> {
-    if (this.configService.useMock) {
-      let data = [...this.mockData];
+  startIndex: number,
+  pageSize: number,
+  sortField: string,
+  sortOrder: number,
+  filters: { [s: string]: FilterMetadata | FilterMetadata[] | undefined }
+): Observable<{ data: EmployeesListDto[]; total: number }> {
+  // 1. 排序參數，預設 userId、-1（DESC）
+  const field = sortField || 'userId';
+  const order = sortOrder ?? -1;
 
-      // 1. 加上 statusLabel
-      data = data.map(emp => ({
-        ...emp,
-        statusLabel: emp.isEmailConfirmed ? '已驗證' : '未驗證'
-      }));
+  // 2. 建立 HttpParams
+  let params = new HttpParams()
+    .set('start', startIndex.toString())
+    .set('limit', pageSize.toString())
+    .set('sortField', field)
+    .set('sortOrder', order.toString());
 
-      // 2. 篩選
-      Object.keys(filters).forEach(field => {
-        const meta = filters[field];
-        const rawValue = Array.isArray(meta) ? meta[0]?.value : meta?.value;
-        const filterValue = (rawValue as string)?.toString().toLowerCase();
+  // 3. 對應前端欄位到後端 filter 名稱
+  const filterKeyMap: Record<string, string> = {
+    userId: 'userId',
+    username: 'userName',
+    email: 'email',
+    userDep: 'userDep',
+    userStatus: 'userStatus'
+  };
 
-        if (filterValue) {
-          data = data.filter(emp => {
-            const cell = (emp as any)[field];
-            return cell?.toString().toLowerCase().includes(filterValue);
-          });
+  // 4. 處理 filters
+  Object.entries(filters).forEach(([f, meta]) => {
+    const backendKey = filterKeyMap[f];
+    if (!backendKey) {
+      return; // 無對應，就跳過
+    }
+
+    // 取出 filter value
+    let raw = Array.isArray(meta) ? meta[0]?.value : meta?.value;
+    if (raw == null || raw.toString().trim() === '') {
+      return;
+    }
+
+    // 加入 query string
+    params = params.set(
+      `filter_${backendKey}`,
+      raw.toString()
+    );
+  });
+
+  // 5. 發出 GET 請求
+  return this.http
+    .get<ApiResponse<{ data: EmployeesListDto[]; total: number }>>(
+      `${this.baseUrl}/employeesList`,
+      { params }
+    )
+    .pipe(
+      map(res => {
+        if (!res.success) {
+          throw new Error(res.message ?? '未知錯誤');
         }
-      });
+        if (!res.data) {
+          throw new Error('回傳資料為空');
+        }
+        // 回傳後端真實的 shape
+        return {
+          data: res.data.data,
+          total: res.data.total
+        };
+      }),
+      catchError(err => throwError(() => err))
+    );
+}
 
-      const total = data.length;
+  createEmployee(emp: RegisteremployeeDTO) {
+    return this.http
+        .post<ApiResponse<EmployeesListDto>>(this.baseUrl, emp)
+        .pipe(catchError(err => throwError(() => err)));
+    }
 
-      // 3. 排序
-      if (sortField) {
-        data.sort((a, b) => {
-          const valA = (a as any)[sortField];
-          const valB = (b as any)[sortField];
-          if (valA == null || valB == null) return 0;
-          if (valA > valB) return sortOrder;
-          if (valA < valB) return -sortOrder;
-          return 0;
-        });
+  updateEmployee(emp: EmployeesListDto) {
+    return this.http
+          .put<ApiResponse<EmployeesListDto>>(
+            `${this.baseUrl}/${emp.userId}`,
+            emp
+          )
+          .pipe(catchError(err => throwError(() => err)));
       }
 
-      // 4. 分頁
-      const paged = data.slice(startIndex, startIndex + pageSize);
-      return of({ data: paged, total });
-    }
-
-    // 正式回後端
-    let params = new HttpParams()
-      .set('start', startIndex.toString())
-      .set('limit', pageSize.toString())
-      .set('sortField', sortField)
-      .set('sortOrder', sortOrder.toString());
-
-    Object.keys(filters).forEach(field => {
-      const meta = filters[field];
-      const rawValue = Array.isArray(meta) ? meta[0]?.value : meta?.value;
-      if (rawValue) {
-        params = params.set(`filter_${field}`, rawValue.toString());
-      }
-    });
-
-    return this.http.get<{ data: empDTO[]; total: number }>(`${this.apiUrl}`, { params });
+  deleteEmployee(id: number){
+    return this.http
+      .delete<ApiResponse<void>>(`${this.baseUrl}/${id}`)
+      .pipe(catchError(err => throwError(() => err)));
   }
 
-  createEmployee(emp: empDTO): Observable<any> {
-    if (this.configService.useMock) {
-      const maxId = this.mockData.reduce((acc, cur) => Math.max(acc, cur.userID), 0);
-      const newEmp = { ...emp, userID: maxId + 1 };
-      this.mockData.push(newEmp);
-      return of({ success: true, data: newEmp });
-    }
-    return this.http.post<any>(this.apiUrl, emp);
-  }
-
-  updateEmployee(emp: empDTO): Observable<any> {
-    if (this.configService.useMock) {
-      const idx = this.mockData.findIndex(e => e.userID === emp.userID);
-      if (idx !== -1) {
-        this.mockData[idx] = { ...emp };
-        return of({ success: true, data: emp });
-      } else {
-        return of({ success: false, message: '找不到該筆假資料' });
-      }
-    }
-    return this.http.put<any>(`${this.apiUrl}/${emp.userID}`, emp);
-  }
-
-  deleteEmployee(id: number): Observable<any> {
-    if (this.configService.useMock) {
-      this.mockData = this.mockData.filter(e => e.userID !== id);
-      return of({ success: true });
-    }
-    return this.http.delete<any>(`${this.apiUrl}/${id}`);
-  }
-
-  deleteEmployeesBulk(ids: number[]): Observable<any> {
-    if (this.configService.useMock) {
-      this.mockData = this.mockData.filter(e => !ids.includes(e.userID));
-      return of({ success: true });
-    }
-    return this.http.post<any>(`${this.apiUrl}/bulk-delete`, { ids });
+  deleteEmployeesBulk(ids: number[]){
+    return this.http
+      .post<ApiResponse<void>>(`${this.baseUrl}/batch`, ids)
+      .pipe(catchError(err => throwError(() => err)));
   }
 }

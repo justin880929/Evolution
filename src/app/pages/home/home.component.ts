@@ -1,5 +1,6 @@
 import {
   Component,
+  OnInit,
   AfterViewInit,
   OnDestroy,
   ViewEncapsulation,
@@ -13,8 +14,9 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { NavigationEnd } from '@angular/router';
 import { JWTService } from '../../Share/JWT/jwt.service';
-import { Subscription } from 'rxjs';
+import { catchError, filter, of, Subscription, switchMap } from 'rxjs';
 import { CartService } from '../../services/cart.service';
+import { UserService } from 'src/app/services/user.service';
 
 
 
@@ -26,9 +28,10 @@ import { CartService } from '../../services/cart.service';
   encapsulation: ViewEncapsulation.None,
 })
 export class HomeComponent implements AfterViewInit, OnDestroy {
-
   private scrollHandler = this.toggleScrolled.bind(this);
   private scrollTopHandler = this.toggleScrollTop.bind(this);
+  private userSub!: Subscription;
+
   cartCount = 0;
   isLoggedIn = false;
   username = '';
@@ -38,51 +41,62 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   private loginSub!: Subscription;
   private routerSub!: Subscription;
+  private cartSub!: Subscription;
 
 
   constructor(
     private authService: AuthService,
     private jwtService: JWTService,
+    private userService: UserService,
     private router: Router,
     private cartService: CartService,
   ) { }
 
   ngOnInit(): void {
-    this.cartService.cartCount$.subscribe(count => {
-    this.cartCount = count;
+    // 1. 訂閱購物車數量
+    this.cartSub = this.cartService.cartCount$.subscribe((count: number) => {
+      this.cartCount = count;
     });
-    // 1. 訂閱 AuthService 登入狀態
-    this.loginSub = this.authService.isLoggedIn$.subscribe(flag => {
+
+    // 2. 訂閱 AuthService 登入狀態，只用來設定 isLoggedIn、userRole、isAdmin，並不再去 getUserInfo()
+    this.loginSub = this.authService.isLoggedIn$.subscribe((flag) => {
       this.isLoggedIn = flag;
       if (flag) {
-        // 從 JWTService 拿到解析後的身分資料
-        const user = this.jwtService.UnpackJWT();
-        this.username = user?.username ?? '使用者';
-        this.userRole = user?.role ?? '';
-
-        // ← 修改這裡：同時判斷 admin 或 superadmin
+        // 從 JWT 解析 username / role
+        const payload = this.jwtService.UnpackJWT();
+        this.username = payload?.username ?? '使用者';
+        this.userRole = payload?.role ?? '';
         const roleLower = this.userRole.toLowerCase();
         this.isAdmin = roleLower === 'admin' || roleLower === 'superadmin';
-
-        // 如果喜歡用陣列寫法也可以：
-        // const adminRoles = ['admin', 'superadmin'];
-        // this.isAdmin = adminRoles.includes(roleLower);
       } else {
+        // 登出時重置
         this.username = '';
         this.userRole = '';
         this.isAdmin = false;
+        this.userPhotoUrl = 'assets/img/NoprofilePhoto.png';
       }
     });
 
-
-    // 2. 每次 route 變更時，強制重新檢查（若你希望在不同頁面手動更新可保留）
-    this.routerSub = this.router.events.subscribe(event => {
-      if (event instanceof NavigationEnd) {
-        // 這裡我們直接從 BehaviorSubject 再推一次目前狀態
-        this.authService.isLoggedIn$.pipe().subscribe();
+    // 3. **訂閱 userService.user$**：凡是 Service 裡有 next()，這邊都會收到
+    this.userSub = this.userService.user$.subscribe((userDto) => {
+      if (userDto) {
+        this.username = userDto.name;
+        this.userPhotoUrl = userDto.pic || 'assets/img/NoprofilePhoto.png';
+      } else {
+        // 如果你想讓載入初始值時 userSubject 為 null，就顯示預設
+        // this.username = '';
+        // this.userPhotoUrl = 'assets/img/NoprofilePhoto.png';
       }
     });
-  }
+
+    // 4. 若需要路由事件（選單高亮等），也可訂閱
+    this.routerSub = this.router.events
+      .pipe(filter(evt => evt instanceof NavigationEnd))
+      .subscribe(() => {
+        // 例如關閉 mobile-nav
+        document.body.classList.remove('mobile-nav-active');
+      });
+    }
 
   ngAfterViewInit(): void {
     this.initPreloader();
@@ -103,11 +117,8 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
     this.loginSub?.unsubscribe();
     this.routerSub?.unsubscribe();
-  }
-
-  /** 讓外部新增完商品後，也可以呼叫這個方法同步更新 badge */
-  updateCartCount(): void {
-    this.cartCount = this.cartService.getCartCount();
+    this.cartSub?.unsubscribe();
+    this.userSub.unsubscribe();
   }
 
   // === Preloader ===

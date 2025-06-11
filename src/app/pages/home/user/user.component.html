@@ -1,11 +1,11 @@
-<div class="container">
+<div class="container" *ngIf="user">
   <div class="row align-items-start">
     <div class="col-3">
       <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
         <div class="card mx-auto shadow bg-body" style="width: 18rem">
-          <!-- 1. 大頭照預覽 -->
+          <!-- 1. 大頭照 預覽 -->
           <div class="position-relative">
-            <!-- 顯示目前的 user.pic ；如果使用者已選新檔案，也同時把「預覽」路徑放在這裡 -->
+            <!-- 如果使用者已選新檔案，就顯示 previewPicUrl；否則顯示 user.pic -->
             <img
               [src]="previewPicUrl || user.pic"
               (error)="
@@ -16,7 +16,7 @@
               style="width: 150px; height: 150px; object-fit: cover"
             />
 
-            <!-- 2. 編輯模式才顯示「更換大頭照」按鈕 -->
+            <!-- 2. 編輯模式才顯示 更換大頭照 按鈕 -->
             <button
               *ngIf="isEditing"
               type="button"
@@ -26,6 +26,7 @@
             >
               <i class="bi bi-upload"></i>
             </button>
+
             <!-- 隱藏的 file input，只透過按鈕觸發 -->
             <input
               #fileInput
@@ -39,6 +40,7 @@
           <div class="card-body text-center">
             <!-- 姓名 -->
             <div class="mb-3">
+              <!-- 只讀模式 -->
               <input
                 *ngIf="!isEditing"
                 type="text"
@@ -46,16 +48,18 @@
                 readonly
                 [value]="user.name"
               />
+              <!-- 編輯模式：formControlName 要對應到 userForm 裡的 username -->
               <input
                 *ngIf="isEditing"
                 type="text"
                 class="form-control text-center"
-                formControlName="name"
+                formControlName="username"
               />
             </div>
 
             <!-- Email -->
             <div class="mb-3">
+              <!-- 只讀模式 -->
               <input
                 *ngIf="!isEditing"
                 type="email"
@@ -63,11 +67,12 @@
                 readonly
                 [value]="user.email"
               />
+              <!-- 編輯模式：formControlName 要對應到 userForm 裡的 userEmail -->
               <input
                 *ngIf="isEditing"
                 type="email"
                 class="form-control text-center"
-                formControlName="email"
+                formControlName="userEmail"
               />
             </div>
           </div>
@@ -80,6 +85,7 @@
                   <label class="col-form-label">公司：</label>
                 </div>
                 <div class="col-8">
+                  <!-- 只讀模式 -->
                   <input
                     *ngIf="!isEditing"
                     type="text"
@@ -87,6 +93,7 @@
                     readonly
                     [value]="user.company"
                   />
+                  <!-- 編輯模式：formControlName 要對應到 userForm 裡的 company -->
                   <input
                     *ngIf="isEditing"
                     type="text"
@@ -97,13 +104,14 @@
               </div>
             </li>
 
-            <!-- 部門 -->
+            <!-- 修改後的部門欄位 (下拉式選單) -->
             <li class="list-group-item">
               <div class="row gx-0 align-items-center">
                 <div class="col-4">
                   <label class="col-form-label">部門：</label>
                 </div>
                 <div class="col-8">
+                  <!-- 只讀模式：顯示 user.dep -->
                   <input
                     *ngIf="!isEditing"
                     type="text"
@@ -111,19 +119,24 @@
                     readonly
                     [value]="user.dep"
                   />
-                  <input
+                  <!-- 編輯模式：改成下拉選單 -->
+                  <select
                     *ngIf="isEditing"
-                    type="text"
-                    class="form-control text-center"
+                    class="form-select text-center"
                     formControlName="dep"
-                  />
+                  >
+                    <option value="" disabled>請選擇部門</option>
+                    <option *ngFor="let d of departments" [value]="d">
+                      {{ d }}
+                    </option>
+                  </select>
                 </div>
               </div>
             </li>
           </ul>
 
           <div class="card-body text-center">
-            <!-- 編輯按鈕 → 顯示時機： !isEditing -->
+            <!-- 編輯按鈕：僅在 !isEditing 時顯示 -->
             <button
               type="button"
               class="btn btn-secondary me-2"
@@ -133,7 +146,7 @@
               編輯
             </button>
 
-            <!-- 儲存 + 取消按鈕 → 顯示時機： isEditing -->
+            <!-- 儲存 + 取消按鈕：僅在 isEditing 時顯示 -->
             <button type="submit" class="btn btn-primary" *ngIf="isEditing">
               儲存
             </button>
@@ -154,6 +167,7 @@
         {{ errorMsg }}
       </div>
     </div>
+
     <div class="col-9">
       <div>
         <img

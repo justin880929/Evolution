@@ -5,6 +5,7 @@ import { LoginComponent } from './pages/login/login.component';
 import { ResetPasswordComponent } from './pages/reset-password/reset-password.component';
 import { ForgotComponent } from './pages/forgot/forgot.component';
 import { guardsChildGuard, guardsGuard, loginGuard } from './Share/Guards/guards.guard';
+import { InitPasswordComponent } from './pages/init-password/init-password.component';
 
 const routes: Routes = [
   {
@@ -31,6 +32,10 @@ const routes: Routes = [
     component: ResetPasswordComponent
   },
   {
+    path: 'init-password',
+    component: InitPasswordComponent
+  },
+  {
     path: 'forgot',
     component: ForgotComponent
   },
@@ -42,7 +47,16 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes, { onSameUrlNavigation: 'reload' })],
+  imports: [
+    RouterModule.forRoot(routes, {
+      // 前進/後退導航時，自動捲到先前儲存的位置／頂端
+      scrollPositionRestoration: 'enabled',
+      // 如果有 #fragment，也會自動捲到對應 element
+      anchorScrolling: 'enabled',
+      // 如有需要，可調整偏移量
+      scrollOffset: [0, 0]
+    })
+  ],
   exports: [RouterModule],
   providers: [{ provide: LocationStrategy, useClass: HashLocationStrategy }],
 })

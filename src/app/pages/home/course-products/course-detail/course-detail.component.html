@@ -7,13 +7,17 @@
   <!-- 顯示課程內容 -->
   <div class="row" *ngIf="course">
     <div class="col-md-6">
-      <img [src]="course.coverImage" class="img-fluid" [alt]="course.title">
+      <img
+        [src]="course.coverImagePath"
+        class="img-fluid"
+        [alt]="course.courseTitle"
+      />
     </div>
     <div class="col-md-6">
-      <h2>{{ course.title }}</h2>
+      <h2>{{ course.courseTitle }}</h2>
       <p class="text-muted">{{ course.companyName }}</p>
       <h4 class="text-danger">NT$ {{ course.price }}</h4>
-      <p>{{ course.description }}</p>
+      <p>{{ course.courseDes }}</p>
       <button class="btn btn-primary" (click)="addToCart()">加入購物車</button>
     </div>
   </div>
