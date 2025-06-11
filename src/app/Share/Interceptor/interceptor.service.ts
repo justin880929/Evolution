@@ -4,41 +4,49 @@ import {
   HttpRequest,
   HttpHandler,
   HttpEvent,
-  HttpErrorResponse
+  HttpErrorResponse,
 } from '@angular/common/http';
 import { catchError, Observable, switchMap, tap, throwError } from 'rxjs';
 import { JWTService } from '../JWT/jwt.service'; // 根據你的實際路徑調整
 import { Router } from '@angular/router';
-import { AuthService } from "../../services/auth.service";
+import { AuthService } from '../../services/auth.service';
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class InterceptorService implements HttpInterceptor {
-  constructor(private jwtService: JWTService, private router: Router, private auth: AuthService) { }
+  constructor(
+    private jwtService: JWTService,
+    private router: Router,
+    private auth: AuthService
+  ) {}
   private skipUrls = [
     '/api/auth',
     '/api/account',
-    '/api/course',
-    '/api/chapter',
-    '/api/video',
+    // '/api/course',
+    // '/api/chapter',
+    // '/api/video',
     '/courseHub',
-    '/api/hashtaglist',
-    '/api/deplist',
-    '/api/coursehashtag',
-    '/api/courseaccess',
+    // '/api/hashtaglist',
+    // '/api/deplist',
+    // '/api/coursehashtag',
+    // '/api/courseaccess',
   ];
-  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+  intercept(
+    req: HttpRequest<any>,
+    next: HttpHandler
+  ): Observable<HttpEvent<any>> {
     const url = req.url.toLowerCase();
     const urlPath = new URL(url).pathname; // 例如：/courseHub/negotiate
-    const shouldSkip = this.skipUrls.some(path => urlPath.startsWith(path));
+    const shouldSkip = this.skipUrls.some((path) => urlPath.startsWith(path));
     const token = this.jwtService.getToken();
     // console.log('[Interceptor] 處理 URL:', req.url, '是否跳過:', shouldSkip);
     if (req.url.includes('/courseHub')) {
       return next.handle(req); // 繞過 Interceptor
     }
-    const authReq = token && !shouldSkip
-      ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } })
-      : req;
+    const authReq =
+      token && !shouldSkip
+        ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } })
+        : req;
     // console.log('是否跳過：', shouldSkip);
     // console.log('Token：', token);
     // console.log('是否應該 refresh：', this.jwtService.shouldRefreshTokenSoon());
@@ -48,21 +56,26 @@ export class InterceptorService implements HttpInterceptor {
       return this.auth.refreshToken().pipe(
         switchMap(() => {
           const newToken = this.jwtService.getToken();
-          const newReq = req.clone({ setHeaders: { Authorization: `Bearer ${newToken}` } });
+          const newReq = req.clone({
+            setHeaders: { Authorization: `Bearer ${newToken}` },
+          });
           return next.handle(newReq);
         }),
 
-        catchError(error => this.handleAuthError(error, shouldSkip))
+        catchError((error) => this.handleAuthError(error, shouldSkip))
       );
     }
 
     // ✅ 直接送出請求
-    return next.handle(authReq).pipe(
-      catchError(error => this.handleAuthError(error, shouldSkip))
-    );
+    return next
+      .handle(authReq)
+      .pipe(catchError((error) => this.handleAuthError(error, shouldSkip)));
   }
 
-  private handleAuthError(error: HttpErrorResponse, shouldSkip: boolean): Observable<never> {
+  private handleAuthError(
+    error: HttpErrorResponse,
+    shouldSkip: boolean
+  ): Observable<never> {
     if (error.status === 401 && !shouldSkip) {
       console.warn('🔒 401 Unauthorized，清除 token 並導回 /login');
       this.jwtService.clearToken();
@@ -70,8 +83,7 @@ export class InterceptorService implements HttpInterceptor {
     }
     return throwError(() => {
       console.log(error);
-      return error
+      return error;
     });
   }
-
 }
