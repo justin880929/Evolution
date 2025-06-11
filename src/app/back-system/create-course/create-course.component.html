@@ -3,117 +3,118 @@
   <div class="card mb-md-3 p-md-3">
     <p-steps [model]="steps" [activeIndex]="currentStep" [readonly]="true" class="mb-4"></p-steps>
   </div>
-
   <!-- 表單內容卡片 -->
   <div class="card p-4">
-    <!-- Step: 建立課程 -->
-    <form *ngIf="steps[currentStep]?.label === '建立課程'" [formGroup]="courseDetailForm">
+    <form *ngIf="steps[currentStep]?.label === '建立課程'" [formGroup]="courseForm">
       <div class="mb-3">
         <label class="form-label">課程標題</label>
-        <input type="text" class="form-control" formControlName="courseTitle" />
+        <input type="text" class="form-control" formControlName="CourseTitle" />
       </div>
 
       <div class="mb-3">
         <label class="form-label">課程描述</label>
-        <textarea class="form-control" formControlName="courseDes"></textarea>
+        <textarea class="form-control" formControlName="CourseDes"></textarea>
       </div>
 
       <div class="mb-3">
         <label class="form-label d-block">是否公開</label>
         <div class="form-check form-check-inline">
-          <p-radioButton name="isPublic" value="true" inputId="public-yes" formControlName="isPublic"></p-radioButton>
+          <p-radioButton name="IsPublic" value="true" inputId="public-yes" formControlName="IsPublic"></p-radioButton>
           <label for="public-yes" class="form-check-label ms-1">是</label>
         </div>
         <div class="form-check form-check-inline">
-          <p-radioButton name="isPublic" value="false" inputId="public-no" formControlName="isPublic"></p-radioButton>
+          <p-radioButton name="IsPublic" value="false" inputId="public-no" formControlName="IsPublic"></p-radioButton>
           <label for="public-no" class="form-check-label ms-1">否</label>
         </div>
       </div>
 
       <div class="mb-3">
         <label class="form-label">課程價格</label>
-        <input type="number" class="form-control" formControlName="coursePrice" />
+        <div class="input-group">
+          <span class="input-group-text">TWD$</span>
+          <input type="number" class="form-control" formControlName="Price" />
+        </div>
       </div>
 
       <div class="mb-3">
         <label class="form-label">課程封面</label>
-        <input type="file" class="form-control" (change)="onCoverSelected($event)" />
+        <input type="file" class="form-control" (change)="onCoverSelected($event)" accept=".jpg,.jpeg,.png"
+          [disabled]="lockButton" />
+        <ng-container *ngIf="originalCoverImageUrl$ | async as originalCover">
+          <div *ngIf="originalCover">
+            已選擇：{{ originalCover }}
+          </div>
+        </ng-container>
         <img [src]="coverPreviewUrl" class="img-thumbnail mt-2" style="max-width: 300px;" *ngIf="coverPreviewUrl" />
       </div>
     </form>
-
     <!-- Step: 新增章節 -->
     <form *ngIf="steps[currentStep]?.label === '新增章節'" [formGroup]="chapterForm">
       <div class="mb-3">
         <label class="form-label">章節標題</label>
-        <input type="text" class="form-control" formControlName="chapterTitle" />
+        <input type="text" class="form-control" formControlName="ChapterTitle" />
       </div>
 
       <div class="mb-3">
         <label class="form-label">章節描述</label>
-        <textarea class="form-control" formControlName="chapterDes"></textarea>
+        <textarea class="form-control" formControlName="ChapterDes"></textarea>
       </div>
     </form>
-
     <!-- Step: 新增影片 -->
     <form *ngIf="steps[currentStep]?.label === '新增影片'" [formGroup]="videoForm">
       <div class="mb-3">
         <label class="form-label">影片標題</label>
-        <input type="text" class="form-control" formControlName="title" />
+        <input type="text" class="form-control" formControlName="Title" />
       </div>
 
       <div class="mb-3">
         <label class="form-label">上傳影片</label>
-        <input type="file" class="form-control" (change)="onVideoSelected($event)" #videofile />
+        <input type="file" #videoInput class="form-control" (change)="onVideoSelected($event)" #videofile
+          [disabled]="lockButton" />
         <div *ngIf="selectedVideoFileName" class="mt-1 text-muted">
           已選擇：{{ selectedVideoFileName }}
         </div>
       </div>
     </form>
-  </div>
+    <!-- 按鈕控制區 -->
+    <div class="mt-4 d-flex justify-content-between">
+      <!-- 上一步 -->
+      <div>
+        <button *ngIf="!showEditButton&&currentStep>0" [disabled]="lockButton" class="btn btn-secondary"
+          (click)="onPrev()">上一步</button>
+      </div>
+      <div class="d-flex gap-2">
+        <button *ngIf="showEditButton" class="btn btn-warning" (click)="EditSteps()" [disabled]="lockButton">
+          儲存資料修改
+        </button>
+        <button *ngIf="currentStep>1&&currentStep===steps.length-1&&steps[currentStep].label!=='確認建立課程'"
+          class="btn btn-danger" (click)="removeLastStep()" [disabled]="lockButton">
+          刪除此步驟
+        </button>
+        <!-- 步驟過程中的下一步 -->
+        <button *ngIf="!showEditButton&&currentStep<steps.length-1&&steps[currentStep].label!=='確認建立課程'"
+          class="btn btn-primary" (click)="onNext()" [disabled]="lockButton">
+          下一步
+        </button>
 
-  <!-- 按鈕控制區 -->
-  <div class="mt-4 d-flex justify-content-between">
-    <!-- 上一步 -->
-    <div>
-      <ng-container *ngIf="currentStep > 0 && !isFormDirty(); else showSaveReminder">
-        <button class="btn btn-secondary" (click)="onPrev()">上一步</button>
-      </ng-container>
-      <ng-template #showSaveReminder>
-        <span *ngIf="currentStep > 0" class="text-warning">
-          <i class="pi pi-exclamation-triangle me-1"></i>請先儲存再返回上一步</span>
-      </ng-template>
-    </div>
-    <div class="d-flex gap-2">
-      <button *ngIf="shouldShowEditButton()" class="btn btn-warning" (click)="onEdit()">
-        儲存資料修改
-      </button>
-      <button *ngIf="currentStep>1&&(currentStep===steps.length-1)&&!isFinalStep" class="btn btn-danger"
-        (click)="removeLastStep()">
-        刪除此步驟
-      </button>
-      <button
-        *ngIf="!isFormDirty() && (currentStep < steps.length - 1 || lastUnsavedChapter || lastUnsavedVideo || currentStep === 0 || getHasFinal())"
-        class="btn btn-primary" (click)="onNext()">
-        下一步
-      </button>
-
-      <!-- 只有在最後一步，且沒有要回填資料，才顯示 addNewSteps -->
-      <button *ngIf="currentStep === steps.length - 1 && !isFinalStep && !lastUnsavedChapter && !lastUnsavedVideo"
-        class="btn btn-primary" (click)="addNewSteps()">
-        下一步
-      </button>
-
-      <button *ngIf="isFinalStep&&(currentStep===steps.length-1)" class="btn btn-success" (click)="finalizeCourse()">
+        <!-- 只有在最後一步，才顯示 addNewSteps -->
+        <button [disabled]="lockButton"
+          *ngIf="!showEditButton&&currentStep === steps.length - 1 &&steps[currentStep].label!=='確認建立課程'"
+          class="btn btn-primary" (click)="addNewSteps()">
+          下一步
+        </button>
+        <button (click)="Test()">Test</button>
+        <!-- <button *ngIf="isFinalStep&&(currentStep===steps.length-1)" class="btn btn-success" (click)="finalizeCourse()">
         確認建立
-      </button>
-      <button class="btn btn-success" (click)="finalizeCourse()">
+      </button> -->
+        <!-- <button class="btn btn-success" (click)="finalizeCourse()">
         檢查
-      </button>
+      </button> -->
+      </div>
     </div>
+    <!-- 顯示上傳進度 -->
+    <p-progressBar *ngIf="isUploading" [value]="progressPercent"></p-progressBar>
+    <!-- PrimeNG ConfirmDialog & Toast -->
+    <p-confirmDialog></p-confirmDialog>
+    <p-toast></p-toast>
   </div>
-
-  <!-- PrimeNG ConfirmDialog & Toast -->
-  <p-confirmDialog></p-confirmDialog>
-  <p-toast></p-toast>
-</div>

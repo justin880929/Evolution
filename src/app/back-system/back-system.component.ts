@@ -13,7 +13,6 @@ import { Location } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { UserService } from '../services/user.service';
 
-
 declare var Menu: any; // Sneat 的選單初始化函式
 declare var Helpers: any; // Sneat 的輔助初始化（可選）
 
@@ -41,13 +40,15 @@ export class BackSystemComponent implements OnInit, OnDestroy {
   constructor(
     private renderer: Renderer2,
     private jwtService: JWTService,
-    private authService: AuthService,   // ← 注入 AuthService
-    private router: Router,              // ← 注入 Router
+    private authService: AuthService, // ← 注入 AuthService
+    private router: Router, // ← 注入 Router
     private location: Location,
     private userService: UserService
   ) {
     // 設定預設 fallback 圖
-    this.defaultPhoto = this.location.prepareExternalUrl('assets/img/default-user.png');
+    this.defaultPhoto = this.location.prepareExternalUrl(
+      'assets/img/default-user.png'
+    );
   }
 
   async ngOnInit(): Promise<void> {
@@ -81,7 +82,6 @@ export class BackSystemComponent implements OnInit, OnDestroy {
       }
     });
 
-
     try {
       // 1. 初始化設定與輔助工具
       await this.loadScript('assets/BackSystem/js/config.js');
@@ -93,7 +93,9 @@ export class BackSystemComponent implements OnInit, OnDestroy {
       await this.loadScript('assets/BackSystem/js/bootstrap.js');
 
       // 3. UI 擴充組件
-      await this.loadScript('assets/BackSystem/libs/perfect-scrollbar/perfect-scrollbar.js');
+      await this.loadScript(
+        'assets/BackSystem/libs/perfect-scrollbar/perfect-scrollbar.js'
+      );
       await this.loadScript('assets/BackSystem/js/menu.js'); // ⬅️ Menu 載入完成點
 
       // 4. ApexCharts
@@ -103,12 +105,12 @@ export class BackSystemComponent implements OnInit, OnDestroy {
       await this.loadScript('assets/BackSystem/js/main.js');
       await this.loadScript('assets/BackSystem/js/dashboards-analytics.js');
 
-      console.log('✅ 所有腳本載入完成');
+      // console.log('✅ 所有腳本載入完成');
 
       const globalWin = window as any;
       if (globalWin.Menu && typeof globalWin.Menu.init === 'function') {
         globalWin.Menu.init();
-        console.log('✅ Menu.init() 執行完成');
+        // console.log('✅ Menu.init() 執行完成');
       }
 
       if (
@@ -116,7 +118,7 @@ export class BackSystemComponent implements OnInit, OnDestroy {
         typeof globalWin.Helpers.initCustomOptionCheck === 'function'
       ) {
         globalWin.Helpers.initCustomOptionCheck();
-        console.log('✅ Helpers.initCustomOptionCheck() 執行完成');
+        // console.log('✅ Helpers.initCustomOptionCheck() 執行完成');
       }
     } catch (err) {
       console.error('❌ Script loading error:', err);
@@ -139,15 +141,13 @@ export class BackSystemComponent implements OnInit, OnDestroy {
       { label: '員工管理', link: 'emp-manage' },
       // { label: '建立員工帳號', link: 'create-emp' },
     ],
-    Client: [
-      { label: '客戶帳號管理', link: 'client' },
-    ],
+    Client: [{ label: '客戶帳號管理', link: 'client' }],
   };
 
   loadScript(src: string): Promise<void> {
     return new Promise((resolve, reject) => {
       if (document.querySelector(`script[src="${src}"]`)) {
-        console.warn(`Script already loaded: ${src}`);
+        // console.warn(`Script already loaded: ${src}`);
         return resolve();
       }
 
@@ -157,7 +157,7 @@ export class BackSystemComponent implements OnInit, OnDestroy {
       script.defer = true;
 
       script.onload = () => {
-        console.log(`✅ Script loaded: ${src}`);
+        // console.log(`✅ Script loaded: ${src}`);
         resolve();
       };
 

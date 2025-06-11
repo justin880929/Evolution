@@ -37,6 +37,7 @@ import { PaginatorModule } from 'primeng/paginator';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { ClientComponent } from './client/client.component';
 import { InputSwitchModule } from 'primeng/inputswitch';
+import { ProgressBarModule } from 'primeng/progressbar';
 @NgModule({
   declarations: [
     BackSystemComponent,
@@ -79,11 +80,12 @@ import { InputSwitchModule } from 'primeng/inputswitch';
     PaginatorModule,
     RadioButtonModule,
     ToastModule,
-    InputSwitchModule
+    InputSwitchModule,
+    ProgressBarModule,
   ],
   providers: [
     ConfirmationService,
     MessageService, // 如果你用到了 toast 或 growl 等通知功能，也要註冊這個
   ],
 })
-export class BackSystemModule { }
+export class BackSystemModule {}
