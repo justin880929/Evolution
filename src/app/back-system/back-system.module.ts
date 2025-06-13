@@ -38,6 +38,10 @@ import { RadioButtonModule } from 'primeng/radiobutton';
 import { ClientComponent } from './client/client.component';
 import { InputSwitchModule } from 'primeng/inputswitch';
 import { ProgressBarModule } from 'primeng/progressbar';
+import { TabViewModule } from 'primeng/tabview';
+import { PanelModule } from 'primeng/panel';
+import { AccordionModule } from 'primeng/accordion';
+import { MultiSelectModule } from 'primeng/multiselect';
 @NgModule({
   declarations: [
     BackSystemComponent,
@@ -82,10 +86,14 @@ import { ProgressBarModule } from 'primeng/progressbar';
     ToastModule,
     InputSwitchModule,
     ProgressBarModule,
+    TabViewModule,
+    PanelModule,
+    AccordionModule,
+    MultiSelectModule
   ],
   providers: [
     ConfirmationService,
     MessageService, // 如果你用到了 toast 或 growl 等通知功能，也要註冊這個
   ],
 })
-export class BackSystemModule {}
+export class BackSystemModule { }

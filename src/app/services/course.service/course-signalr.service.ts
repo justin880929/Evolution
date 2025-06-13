@@ -28,6 +28,7 @@ import {
   ResHashTagDTO,
   ReqCourseAccessDTO,
   ReqCourseHashTagDTO,
+  ResCourseAllDetailsDTO
 } from 'src/app/Interface/createCourseDTO';
 @Injectable({
   providedIn: 'root',
@@ -38,14 +39,16 @@ export class CourseSignalrService {
   constructor(
     private resultService: ResultService,
     private jwtService: JWTService
-  ) {}
+  ) { }
   CourseUrl = 'https://localhost:7274/api/createcourse';
   ChapterUrl = 'https://localhost:7274/api/chapter';
   VideoUrl = 'https://localhost:7274/api/video';
   DepListUrl = 'https://localhost:7274/api/deplist';
   HashTagListUrl = 'https://localhost:7274/api/hashtaglist';
-  CourseAccessUrl = 'https://localhost:7274/api/courseaccess';
-  CourseHashTagUrl = 'https://localhost:7274/api/coursehashtag';
+  CourseAccessUrl = 'https://localhost:7274/api/CourseAccess';
+  CourseHashTagUrl = 'https://localhost:7274/api/CourseHashTag';
+  CourseAllDetails = 'https://localhost:7274/api/createcourse/learn';
+  CourseFinal = 'https://localhost:7274/api/createcourse/final';
   connectionId = '';
   // 在 Service 裡加上：
   private progressSubject = new BehaviorSubject<{
@@ -351,23 +354,29 @@ export class CourseSignalrService {
       ConnectionId: this.connectionId,
     };
     return this.resultService.putResult<RePutDTO>(
-      `${this.CourseUrl}/final/${courseID}`,
+      `${this.CourseFinal}/${courseID}`,
       req
     );
   }
-  //建立課程全限
-  putCourseAccess(): Observable<boolean> {
+  //取的所有課程資訊
+  getCourseAllDetails(courseId: number): Observable<ResCourseAllDetailsDTO> {
+    return this.resultService.getResult<ResCourseAllDetailsDTO>(
+      `${this.CourseAllDetails}/${courseId}`
+    )
+  }
+  //建立課程權限
+  postCourseAccess(courseAccess: FormControl, courseId: number): Observable<boolean> {
     const req: ReqCourseAccessDTO = {
-      courseId: 0,
-      depIds: [0],
+      courseId: courseId,
+      depIds: courseAccess.value
     };
     return this.resultService.postResult(this.CourseAccessUrl, req);
   }
   //建立課程標籤HashTag
-  putCourseHashTag(): Observable<boolean> {
+  postCourseHashTag(courseHashTag: FormControl, courseId: number): Observable<boolean> {
     const req: ReqCourseHashTagDTO = {
-      courseId: 0,
-      hashTagIds: [0],
+      courseId: courseId,
+      hashTagIds: courseHashTag.value,
     };
     return this.resultService.postResult(this.CourseHashTagUrl, req);
   }

@@ -1,0 +1,16 @@
+::ng-deep .custom-chip-limit .p-multiselect-label {
+  max-width: 300px; /* 根據需求調整寬度 */
+  width: 300px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  display: block;
+}
+
+::ng-deep .custom-chip-limit .p-multiselect-token {
+  display: inline-block;
+  margin-right: 4px;
+}
+::ng-deep .p-multiselect-panel .p-multiselect-items {
+  padding-left: 0 !important;
+}
