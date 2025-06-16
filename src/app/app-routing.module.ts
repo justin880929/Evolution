@@ -6,6 +6,9 @@ import { ResetPasswordComponent } from './pages/reset-password/reset-password.co
 import { ForgotComponent } from './pages/forgot/forgot.component';
 import { guardsChildGuard, guardsGuard, loginGuard } from './Share/Guards/guards.guard';
 import { InitPasswordComponent } from './pages/init-password/init-password.component';
+import { PaymentConfirmComponent } from './pages/payment-confirm/payment-confirm.component';
+import { PaymentSuccessComponent } from './pages/payment-success/payment-success.component';
+import { PaymentFailComponent } from './pages/payment-fail/payment-fail.component';
 
 const routes: Routes = [
   {
@@ -38,6 +41,19 @@ const routes: Routes = [
   {
     path: 'forgot',
     component: ForgotComponent
+  },
+  {
+    path: 'payment',
+    children: [
+      {
+        path: 'success',
+        component: PaymentSuccessComponent
+      },
+      {
+        path: 'fail',
+        component: PaymentFailComponent
+      }
+    ]
   },
   {
     path: '',

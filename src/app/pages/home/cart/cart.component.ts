@@ -5,6 +5,7 @@ import { CourseDto } from 'src/app/Interface/courseDTO';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { CourseService } from 'src/app/services/course.service/course.service';
 import { Table } from 'primeng/table';
+import { PaymentService } from 'src/app/services/payment.service';
 
 @Component({
   selector: 'app-cart',
@@ -26,7 +27,8 @@ export class CartComponent implements OnInit, OnDestroy {
     private cartService: CartService,
     private courseService: CourseService,
     private confirmationService: ConfirmationService,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private paymentService: PaymentService,
   ) {}
 
   ngOnInit(): void {
@@ -137,5 +139,41 @@ export class CartComponent implements OnInit, OnDestroy {
     });
   }
 
-  checkout(){}
+  checkout(): void {
+    if (!this.selectedItems || this.selectedItems.length === 0) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: '尚未選擇商品',
+        detail: '請先勾選要結帳的課程',
+        life: 3000
+      });
+      return;
+    }
+
+    // 1. 呼叫後端發起付款請求
+    this.paymentService.requestPayment(this.selectedItems).subscribe({
+      next: res => {
+        if (res.success && res.data && res.data.paymentUrl) {
+          // 2. 導向 LINE Pay 網頁
+          window.location.href = res.data.paymentUrl.web;
+        } else {
+          this.messageService.add({
+            severity: 'error',
+            summary: '付款請求失敗',
+            detail: res.message || '無法取得付款網址',
+            life: 3000
+          });
+        }
+      },
+      error: err => {
+        console.error('requestPayment error', err);
+        this.messageService.add({
+          severity: 'error',
+          summary: '網路錯誤',
+          detail: '無法發起付款請求，請稍後再試',
+          life: 3000
+        });
+      }
+    });
+  }
 }

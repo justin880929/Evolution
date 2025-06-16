@@ -15,6 +15,9 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { StatusToTagPipe } from './Pipe/emp.pipe';
 import { InterceptorService } from "./Share/Interceptor/interceptor.service";
 import { InitPasswordComponent } from './pages/init-password/init-password.component';
+import { PaymentConfirmComponent } from './pages/payment-confirm/payment-confirm.component';
+import { PaymentSuccessComponent } from './pages/payment-success/payment-success.component';
+import { PaymentFailComponent } from './pages/payment-fail/payment-fail.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -23,6 +26,9 @@ import { InitPasswordComponent } from './pages/init-password/init-password.compo
     LoginComponent,
     CourseProductPipe,
     InitPasswordComponent,
+    PaymentConfirmComponent,
+    PaymentSuccessComponent,
+    PaymentFailComponent,
   ],
   imports: [
     BrowserModule,
