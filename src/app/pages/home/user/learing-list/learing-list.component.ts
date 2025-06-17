@@ -14,6 +14,7 @@ export class LearingListComponent {
   constructor(private router: Router) { }
 
   goToLearning(): void {
-    console.log('goToLearning', this.course.courseId);
+    this.router.navigate(['/home/learning', this.course.courseId]);
   }
+
 }

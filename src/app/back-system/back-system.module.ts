@@ -42,6 +42,9 @@ import { TabViewModule } from 'primeng/tabview';
 import { PanelModule } from 'primeng/panel';
 import { AccordionModule } from 'primeng/accordion';
 import { MultiSelectModule } from 'primeng/multiselect';
+import { DynamicDialogModule } from 'primeng/dynamicdialog';
+import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
+import { EditCourseComponent } from './courselist/edit-course/edit-course.component';
 @NgModule({
   declarations: [
     BackSystemComponent,
@@ -58,6 +61,7 @@ import { MultiSelectModule } from 'primeng/multiselect';
     EmpManageComponent,
     CreateEmpComponent,
     ClientComponent,
+    EditCourseComponent,
   ],
   imports: [
     CommonModule,
@@ -89,11 +93,13 @@ import { MultiSelectModule } from 'primeng/multiselect';
     TabViewModule,
     PanelModule,
     AccordionModule,
-    MultiSelectModule
+    MultiSelectModule,
+    DynamicDialogModule
   ],
   providers: [
     ConfirmationService,
     MessageService, // 如果你用到了 toast 或 growl 等通知功能，也要註冊這個
+    DialogService
   ],
 })
 export class BackSystemModule { }

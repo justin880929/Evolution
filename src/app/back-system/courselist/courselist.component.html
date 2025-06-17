@@ -4,180 +4,72 @@
     <div class="row gx-3 gy-2 align-items-center">
       <div class="col-md-3">
         <label class="form-label" for="Search">Search 搜尋</label>
-        <input id="Search" type="text" class="form-control" placeholder="Search...">
+        <input id="Search" type="text" class="form-control" placeholder="Search..." [(ngModel)]="searchKeyword">
       </div>
+
       <div class="col-md-3">
         <label class="form-label" for="selectTypeOpt">Hash Tag 標籤</label>
-        <select id="selectTypeOpt" class="form-select color-dropdown">
-          <option value="bg-primary" selected>Primary</option>
-          <option value="bg-secondary">Secondary</option>
-          <option value="bg-success">Success</option>
-          <option value="bg-danger">Danger</option>
-          <option value="bg-warning">Warning</option>
-          <option value="bg-info">Info</option>
-          <option value="bg-dark">Dark</option>
+        <select id="selectTypeOpt" class="form-select" [(ngModel)]="selectedHashTag">
+          <option [ngValue]="null">全部</option>
+          <option *ngFor="let tag of FilteredHashTags" [ngValue]="tag.hashTagId">
+            {{ tag.hashTagName }}
+          </option>
         </select>
       </div>
+
       <div class="col-md-3">
         <label class="form-label" for="selectPlacement">Public 公開與否</label>
-        <select class="form-select placement-dropdown" id="selectPlacement">
-          <option value="top-0 start-0">全部</option>
-          <option value="top-0 start-50 translate-middle-x">公開</option>
-          <option value="top-0 end-0">私有</option>
+        <select class="form-select" id="selectPlacement" [(ngModel)]="selectedPublicStatus">
+          <option [ngValue]="null">全部</option>
+          <option [ngValue]="true">公開</option>
+          <option [ngValue]="false">非公開</option>
         </select>
       </div>
+
       <div class="col-md-3">
         <label class="form-label" for="showToastPlacement">&nbsp;</label>
-        <button id="showToastPlacement" class="btn btn-primary d-block">搜尋</button>
+        <button id="showToastPlacement" class="btn btn-primary d-block" (click)="filterCourses()">搜尋</button>
       </div>
     </div>
   </div>
 </div>
-<div class="card">
+
+<div class="card ">
   <h5 class="card-header">課程總覽</h5>
   <div class="table-responsive text-nowrap">
-    <table class="table table-hover">
-      <thead class="table-light">
+    <p-table [value]="FilteredCourseList" [paginator]="true" [rows]="10" responsiveLayout="scroll">
+      <ng-template pTemplate="header">
         <tr>
-          <th>Project</th>
-          <th>Client</th>
-          <th>Users</th>
-          <th>Status</th>
-          <th>Actions</th>
+          <th>課程名稱</th>
+          <th>課程是否公開</th>
+          <th>操作</th>
         </tr>
-      </thead>
-      <tbody class="table-border-bottom-0">
+      </ng-template>
+
+      <ng-template pTemplate="body" let-course>
         <tr>
-          <td><i class="fab fa-angular fa-lg text-danger me-3"></i> <strong>Angular Project</strong></td>
-          <td>Albert Cook</td>
           <td>
-            <ul class="list-unstyled users-list m-0 avatar-group d-flex align-items-center">
-              <li data-bs-toggle="tooltip" data-popup="tooltip-custom" data-bs-placement="top"
-                class="avatar avatar-xs pull-up" title="Lilian Fuller">
-                <img src="../../../assets/img/avatars/5.png" alt="Avatar" class="rounded-circle" />
-              </li>
-              <li data-bs-toggle="tooltip" data-popup="tooltip-custom" data-bs-placement="top"
-                class="avatar avatar-xs pull-up" title="Sophia Wilkerson">
-                <img src="../../../assets/img/avatars/6.png" alt="Avatar" class="rounded-circle" />
-              </li>
-              <li data-bs-toggle="tooltip" data-popup="tooltip-custom" data-bs-placement="top"
-                class="avatar avatar-xs pull-up" title="Christina Parker">
-                <img src="../../../assets/img/avatars/7.png" alt="Avatar" class="rounded-circle" />
-              </li>
-            </ul>
+            <i class="fab fa-angular fa-lg text-danger me-3"></i>
+            <strong>{{ course.courseTitle }}</strong>
           </td>
-          <td><span class="badge bg-label-primary me-1">Active</span></td>
+
+          <td>
+            <span class="badge me-1" [ngClass]="course.isPublic ? 'bg-label-primary' : 'bg-label-secondary'">
+              {{ course.isPublic ? '公開' : '非公開' }}
+            </span>
+
+          </td>
+
           <td>
             <div class="dropdown">
-              <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                <i class="bx bx-dots-vertical-rounded"></i>
+              <button class="btn btn-sm btn-primary" (click)="openEditDialog(course.courseId)">
+                <i class="bx bx-edit-alt me-1"></i> 修改
               </button>
-              <div class="dropdown-menu">
-                <a class="dropdown-item" href="javascript:void(0);"><i class="bx bx-edit-alt me-1"></i> Edit</a>
-                <a class="dropdown-item" href="javascript:void(0);"><i class="bx bx-trash me-1"></i> Delete</a>
-              </div>
             </div>
           </td>
         </tr>
-        <tr>
-          <td><i class="fab fa-react fa-lg text-info me-3"></i> <strong>React Project</strong></td>
-          <td>Barry Hunter</td>
-          <td>
-            <ul class="list-unstyled users-list m-0 avatar-group d-flex align-items-center">
-              <li data-bs-toggle="tooltip" data-popup="tooltip-custom" data-bs-placement="top"
-                class="avatar avatar-xs pull-up" title="Lilian Fuller">
-                <img src="../../../assets/img/avatars/5.png" alt="Avatar" class="rounded-circle" />
-              </li>
-              <li data-bs-toggle="tooltip" data-popup="tooltip-custom" data-bs-placement="top"
-                class="avatar avatar-xs pull-up" title="Sophia Wilkerson">
-                <img src="../../../assets/img/avatars/6.png" alt="Avatar" class="rounded-circle" />
-              </li>
-              <li data-bs-toggle="tooltip" data-popup="tooltip-custom" data-bs-placement="top"
-                class="avatar avatar-xs pull-up" title="Christina Parker">
-                <img src="../../../assets/img/avatars/7.png" alt="Avatar" class="rounded-circle" />
-              </li>
-            </ul>
-          </td>
-          <td><span class="badge bg-label-success me-1">Completed</span></td>
-          <td>
-            <div class="dropdown">
-              <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                <i class="bx bx-dots-vertical-rounded"></i>
-              </button>
-              <div class="dropdown-menu">
-                <a class="dropdown-item" href="javascript:void(0);"><i class="bx bx-edit-alt me-1"></i> Edit</a>
-                <a class="dropdown-item" href="javascript:void(0);"><i class="bx bx-trash me-1"></i> Delete</a>
-              </div>
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <td><i class="fab fa-vuejs fa-lg text-success me-3"></i> <strong>VueJs Project</strong></td>
-          <td>Trevor Baker</td>
-          <td>
-            <ul class="list-unstyled users-list m-0 avatar-group d-flex align-items-center">
-              <li data-bs-toggle="tooltip" data-popup="tooltip-custom" data-bs-placement="top"
-                class="avatar avatar-xs pull-up" title="Lilian Fuller">
-                <img src="../../../assets/img/avatars/5.png" alt="Avatar" class="rounded-circle" />
-              </li>
-              <li data-bs-toggle="tooltip" data-popup="tooltip-custom" data-bs-placement="top"
-                class="avatar avatar-xs pull-up" title="Sophia Wilkerson">
-                <img src="../../../assets/img/avatars/6.png" alt="Avatar" class="rounded-circle" />
-              </li>
-              <li data-bs-toggle="tooltip" data-popup="tooltip-custom" data-bs-placement="top"
-                class="avatar avatar-xs pull-up" title="Christina Parker">
-                <img src="../../../assets/img/avatars/7.png" alt="Avatar" class="rounded-circle" />
-              </li>
-            </ul>
-          </td>
-          <td><span class="badge bg-label-info me-1">Scheduled</span></td>
-          <td>
-            <div class="dropdown">
-              <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                <i class="bx bx-dots-vertical-rounded"></i>
-              </button>
-              <div class="dropdown-menu">
-                <a class="dropdown-item" href="javascript:void(0);"><i class="bx bx-edit-alt me-1"></i> Edit</a>
-                <a class="dropdown-item" href="javascript:void(0);"><i class="bx bx-trash me-1"></i> Delete</a>
-              </div>
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <i class="fab fa-bootstrap fa-lg text-primary me-3"></i> <strong>Bootstrap Project</strong>
-          </td>
-          <td>Jerry Milton</td>
-          <td>
-            <ul class="list-unstyled users-list m-0 avatar-group d-flex align-items-center">
-              <li data-bs-toggle="tooltip" data-popup="tooltip-custom" data-bs-placement="top"
-                class="avatar avatar-xs pull-up" title="Lilian Fuller">
-                <img src="../../../assets/img/avatars/5.png" alt="Avatar" class="rounded-circle" />
-              </li>
-              <li data-bs-toggle="tooltip" data-popup="tooltip-custom" data-bs-placement="top"
-                class="avatar avatar-xs pull-up" title="Sophia Wilkerson">
-                <img src="../../../assets/img/avatars/6.png" alt="Avatar" class="rounded-circle" />
-              </li>
-              <li data-bs-toggle="tooltip" data-popup="tooltip-custom" data-bs-placement="top"
-                class="avatar avatar-xs pull-up" title="Christina Parker">
-                <img src="../../../assets/img/avatars/7.png" alt="Avatar" class="rounded-circle" />
-              </li>
-            </ul>
-          </td>
-          <td><span class="badge bg-label-warning me-1">Pending</span></td>
-          <td>
-            <div class="dropdown">
-              <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                <i class="bx bx-dots-vertical-rounded"></i>
-              </button>
-              <div class="dropdown-menu">
-                <a class="dropdown-item" href="javascript:void(0);"><i class="bx bx-edit-alt me-1"></i> Edit</a>
-                <a class="dropdown-item" href="javascript:void(0);"><i class="bx bx-trash me-1"></i> Delete</a>
-              </div>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+      </ng-template>
+    </p-table>
+
   </div>
 </div>
