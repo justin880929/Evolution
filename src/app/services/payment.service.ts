@@ -1,7 +1,7 @@
 import { ApiResponse } from './../Share/interface/resultDTO';
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { catchError, map, Observable, of } from 'rxjs';
 import { CourseDto } from 'src/app/Interface/courseDTO';
 import { LinePayRequestInfo } from '../Interface/linepay';
 
@@ -28,5 +28,14 @@ export class PaymentService {
       `${this.base}/confirm`, { params }
     );
   }
+
+  getOwnCourses(): Observable<number[]> {
+  return this.http
+    .get<ApiResponse<number[]>>('https://localhost:7274/api/Users/own-courses')
+    .pipe(
+      map(res => res.data ?? []),
+      catchError(() => of([]))
+    );
+}
 
 }

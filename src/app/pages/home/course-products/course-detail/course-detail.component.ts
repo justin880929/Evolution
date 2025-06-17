@@ -16,6 +16,9 @@ export class CourseDetailComponent implements OnInit {
 
   isLoggedIn = false;
 
+  private storageKey = 'own-courses';
+  ownCourses: number[] = [];
+
   constructor(
     private route: ActivatedRoute,
     private courseService: CourseService,
@@ -41,16 +44,26 @@ export class CourseDetailComponent implements OnInit {
     } else {
       this.loadError = true;
     }
+
+    const saved = localStorage.getItem(this.storageKey);
+    this.ownCourses = saved ? JSON.parse(saved) as number[] : [];
+
   }
 
   /** ✅ 加入購物車 */
  addToCart(): void {
-  // 1. 未登入就導到登入頁
-  if (!this.isLoggedIn) {
-    alert('請先登入才能加入購物車');
-    this.router.navigate(['/login']);
-    return;
-  }
+   // 0. 未登入就導到登入頁
+   if (!this.isLoggedIn) {
+     alert('請先登入才能加入購物車');
+     this.router.navigate(['/login']);
+     return;
+    }
+
+    // 1. 先檢查是否已擁有
+      if (this.course && this.ownCourses.includes(this.course.courseId)) {
+        alert('⚠️ 你已經擁有此課程，無法加入購物車');
+        return;
+      }
 
   // 2. 確保有課程物件
   if (!this.course) {

@@ -1,3 +1,4 @@
+import { CartService } from './cart.service';
 import { catchError, finalize, switchMap } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
@@ -52,7 +53,7 @@ export class AuthService {
     }
   };
 
-  constructor(private http: HttpClient, private resultService: ResultService, private jwtService: JWTService,private configService: ConfigService,private userService: UserService ) { }
+  constructor(private http: HttpClient, private resultService: ResultService, private jwtService: JWTService,private configService: ConfigService,private userService: UserService, private cartService: CartService ) { }
   private _loggedIn$$ = new BehaviorSubject<boolean>(!!localStorage.getItem('jwt'));
   public isLoggedIn$ = this._loggedIn$$.asObservable();
   login(email: string, password: string): Observable<UserIdentity | null> {
@@ -134,6 +135,7 @@ export class AuthService {
     this.jwtService.clearToken();
     this._loggedIn$$.next(false);
     this.userService.clearUser();   // ← 清空 user$
+    this.cartService.clearCart(); // 清空購物車
     return of({
       success: true,
       message: 'Mock 登出成功',
@@ -148,6 +150,7 @@ export class AuthService {
     this.jwtService.clearToken();
     this._loggedIn$$.next(false);
     this.userService.clearUser();
+    this.cartService.clearCart();
     return of({
       success: true,
       message: 'No token to logout',
@@ -162,6 +165,7 @@ export class AuthService {
         this.jwtService.clearToken();
         this._loggedIn$$.next(false);
         this.userService.clearUser();  // ← 這裡！
+        this.cartService.clearCart();
       })
     );
 }
