@@ -10,15 +10,14 @@ import { UserDTO } from './Interface/userDTO';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent implements OnInit{
+export class AppComponent implements OnInit {
 
   title = 'Evolution';
   username = '';
   userRole = '';
   userPhotoUrl = 'assets/img/NoprofilePhoto.png';
   isAdmin = false;
-  private storageKey = 'own-courses';
-  ownCourses: number[] = []; // 用來存放使用者的課程 ID
+
 
   private subs = new Subscription();
 
@@ -26,9 +25,9 @@ export class AppComponent implements OnInit{
     private authService: AuthService,
     private userService: UserService,
     private paymentService: PaymentService
-  ) {}
+  ) { }
 
-    ngOnInit(): void {
+  ngOnInit(): void {
     // 1) 使用者剛登入（flag=true）時，觸發 loadUserInfo()
     this.subs.add(
       this.authService.isLoggedIn$
@@ -42,33 +41,20 @@ export class AppComponent implements OnInit{
     this.subs.add(
       this.userService.user$.subscribe((user: UserDTO | null) => {
         if (user) {
-          this.username     = user.name;
-          this.userRole     = user.dep;          // 或你要顯示的 role
+          this.username = user.name;
+          this.userRole = user.dep;          // 或你要顯示的 role
           this.userPhotoUrl = user.pic || this.userPhotoUrl;
           // 假設 superadmin/admin 在特定 dep
-          this.isAdmin      = ['SuperAdmin','Admin'].includes(user.dep);
+          this.isAdmin = ['SuperAdmin', 'Admin'].includes(user.dep);
         } else {
           // 登出或載入失敗就重置
-          this.username     = '';
-          this.userRole     = '';
+          this.username = '';
+          this.userRole = '';
           this.userPhotoUrl = 'assets/img/NoprofilePhoto.png';
-          this.isAdmin      = false;
+          this.isAdmin = false;
         }
       })
     );
-
-    this.paymentService.getOwnCourses().subscribe({
-  next: (courses: number[]) => {
-    // courses 就已經是一個 number[]，直接指派＆存到 localStorage
-    this.ownCourses = courses;
-    localStorage.setItem(this.storageKey, JSON.stringify(courses));
-  },
-  error: err => {
-    console.error(err);
-    this.ownCourses = [];
-    localStorage.setItem(this.storageKey, JSON.stringify([]));
-  }
-});
   }
 
   ngOnDestroy(): void {
