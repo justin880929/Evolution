@@ -4,6 +4,7 @@ import { CourseService } from 'src/app/services/course.service/course.service';
 import { CartService } from 'src/app/services/cart.service';
 import { CourseDto } from 'src/app/Interface/courseDTO';
 import { AuthService } from 'src/app/services/auth.service';
+import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-course-detail',
@@ -16,7 +17,11 @@ export class CourseDetailComponent implements OnInit {
 
   isLoggedIn = false;
 
+  private storageKey = 'own-courses';
+  ownCourses: number[] = [];
+
   constructor(
+    private messageService: MessageService,  // 注入
     private route: ActivatedRoute,
     private courseService: CourseService,
     private cartService: CartService, // ⬅️ 注入購物車服務
@@ -41,33 +46,62 @@ export class CourseDetailComponent implements OnInit {
     } else {
       this.loadError = true;
     }
+
+    const saved = localStorage.getItem(this.storageKey);
+    this.ownCourses = saved ? JSON.parse(saved) as number[] : [];
+
   }
 
   /** ✅ 加入購物車 */
  addToCart(): void {
-  // 1. 未登入就導到登入頁
-  if (!this.isLoggedIn) {
-    alert('請先登入才能加入購物車');
-    this.router.navigate(['/login']);
-    return;
-  }
+    // 0. 未登入
+    if (!this.isLoggedIn) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: '請先登入',
+        detail: '請先登入才能加入購物車'
+      });
+      this.router.navigate(['/login']);
+      return;
+    }
 
-  // 2. 確保有課程物件
-  if (!this.course) {
-    alert('課程資料有誤，無法加入購物車');
-    return;
-  }
+    // 1. 已擁有
+    if (this.course && this.ownCourses.includes(this.course.courseId)) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: '已擁有課程',
+        detail: `您已擁有 "${this.course.courseTitle}"，無法重複加入`
+      });
+      return;
+    }
 
-  // 3. 呼叫 addToCart()，回傳 true=成功加入、false=已存在
-  const added = this.cartService.addToCart(this.course.courseId);
-  if (!added) {
-    // 已在購物車裡
-    alert('⚠️ 已經在購物車裡面');
-    return;
-  }
+    // 2. 資料檢查
+    if (!this.course) {
+      this.messageService.add({
+        severity: 'error',
+        summary: '錯誤',
+        detail: '課程資料有誤，無法加入購物車'
+      });
+      return;
+    }
 
-  // 4. 成功加入
-  alert('✅ 已加入購物車');
-  this.router.navigate(['/home/course-products']);
-}
+    // 3. 加入購物車
+    const added = this.cartService.addToCart(this.course.courseId);
+    if (!added) {
+      this.messageService.add({
+        severity: 'info',
+        summary: '已在購物車',
+        detail: '該課程已經在購物車中了'
+      });
+      return;
+    }
+
+    // 4. 成功
+    this.messageService.add({
+      severity: 'success',
+      summary: '加入成功',
+      detail: `"${this.course.courseTitle}" 已加入購物車`
+    });
+    this.router.navigate(['/home/course-products']);
+  }
 }

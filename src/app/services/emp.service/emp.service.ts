@@ -133,15 +133,39 @@ export class EmpService {
           .pipe(catchError(err => throwError(() => err)));
       }
 
-  deleteEmployee(id: number){
+  deactivateEmployee(id: number): Observable<boolean> {
+    const url = `${this.baseUrl}/${id}/status`;
     return this.http
-      .delete<ApiResponse<void>>(`${this.baseUrl}/${id}`)
-      .pipe(catchError(err => throwError(() => err)));
+      .delete<ApiResponse<void>>(url)
+      .pipe(
+        map(res => res.success),        // 只要 success=true 就回 true
+        catchError(err => {
+          console.error('停用員工失敗', err);
+          return of(false);            // 失敗時回 false
+        })
+      );
   }
 
-  deleteEmployeesBulk(ids: number[]){
+  deactivateEmployeesBulk(ids: number[]): Observable<boolean> {
+    if (!ids.length) {
+      // 若沒選任何人，直接回 false
+      return of(false);
+    }
+    const url = `${this.baseUrl}/batch/status`;
     return this.http
-      .post<ApiResponse<void>>(`${this.baseUrl}/batch`, ids)
-      .pipe(catchError(err => throwError(() => err)));
+      .post<ApiResponse<void>>(url, ids)
+      .pipe(
+        map(res => res.success),
+        catchError(err => {
+          console.error('批次停用員工失敗', err);
+          return of(false);
+        })
+      );
+  }
+
+  deactivate(ids: number|number[]): Observable<boolean> {
+    return Array.isArray(ids)
+      ? this.deactivateEmployeesBulk(ids)
+      : this.deactivateEmployee(ids);
   }
 }

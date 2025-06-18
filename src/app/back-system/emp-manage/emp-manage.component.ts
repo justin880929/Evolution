@@ -154,41 +154,58 @@ export class EmpManageComponent implements OnInit {
       }
 
   confirmDelete(emp: EmployeesListDto): void {
-    this.confirmationService.confirm({
-      message: `您確定要刪除 ${emp.username} 嗎？`,
-      accept: () => {
-        this.empService.deleteEmployee(emp.userId).subscribe({
-          next: () => {
-            this.messageService.add({ severity: 'success', summary: '刪除成功', detail: `${emp.username} 已被刪除` });
-            this.loadLazyData({ first: this.first, rows: this.rows } as TableLazyLoadEvent);
-          },
-          error: () => {
-            this.messageService.add({ severity: 'error', summary: '錯誤', detail: '刪除員工失敗' });
-          }
-        });
-      }
-    });
-  }
+  this.confirmationService.confirm({
+    message: `您確定要停用 ${emp.username} 嗎？`,
+    accept: () => {
+      this.empService.deactivate(emp.userId).subscribe(success => {
+        if (success) {
+          this.messageService.add({
+            severity: 'success',
+            summary: '停用成功',
+            detail: `${emp.username} 已被停用`
+          });
+          // 重新拉分頁資料
+          this.loadLazyData({ first: this.first, rows: this.rows } as TableLazyLoadEvent);
+        } else {
+          this.messageService.add({
+            severity: 'error',
+            summary: '停用失敗',
+            detail: `無法停用 ${emp.username}`
+          });
+        }
+      });
+    }
+  });
+}
 
-  confirmDeleteSelected(): void {
-    if (!this.selectedEmps.length) return;
-    this.confirmationService.confirm({
-      message: `確定刪除已選取的 ${this.selectedEmps.length} 筆資料？`,
-      accept: () => {
-        const ids = this.selectedEmps.map(c => c.userId);
-        this.empService.deleteEmployeesBulk(ids).subscribe({
-          next: () => {
-            this.messageService.add({ severity: 'success', summary: '刪除成功', detail: `${this.selectedEmps.length} 筆資料已刪除` });
-            this.selectedEmps = [];
-            this.loadLazyData({ first: this.first, rows: this.rows } as any);
-          },
-          error: () => {
-            this.messageService.add({ severity: 'error', summary: '失敗', detail: '批次刪除失敗' });
-          }
-        });
-      }
-    });
-  }
+confirmDeleteSelected(): void {
+  if (!this.selectedEmps.length) return;
+
+  this.confirmationService.confirm({
+    message: `確定停用已選取的 ${this.selectedEmps.length} 筆資料？`,
+    accept: () => {
+      const ids = this.selectedEmps.map(c => c.userId);
+      this.empService.deactivate(ids).subscribe(success => {
+        if (success) {
+          this.messageService.add({
+            severity: 'success',
+            summary: '批次停用成功',
+            detail: `${this.selectedEmps.length} 筆資料已停用`
+          });
+          // 清空選取、重載資料
+          this.selectedEmps = [];
+          this.loadLazyData({ first: this.first, rows: this.rows } as TableLazyLoadEvent);
+        } else {
+          this.messageService.add({
+            severity: 'error',
+            summary: '批次停用失敗',
+            detail: `請稍後再試`
+          });
+        }
+      });
+    }
+  });
+}
 
     editEmployee(com: EmployeesListDto) {
       this.currentEmp = { ...com };

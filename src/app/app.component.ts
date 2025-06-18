@@ -1,3 +1,4 @@
+import { PaymentService } from 'src/app/services/payment.service';
 import { Component, OnInit } from '@angular/core';
 import { UserService } from './services/user.service';
 import { AuthService } from './services/auth.service';
@@ -16,12 +17,15 @@ export class AppComponent implements OnInit{
   userRole = '';
   userPhotoUrl = 'assets/img/NoprofilePhoto.png';
   isAdmin = false;
+  private storageKey = 'own-courses';
+  ownCourses: number[] = []; // 用來存放使用者的課程 ID
 
   private subs = new Subscription();
 
   constructor(
     private authService: AuthService,
-    private userService: UserService
+    private userService: UserService,
+    private paymentService: PaymentService
   ) {}
 
     ngOnInit(): void {
@@ -52,9 +56,24 @@ export class AppComponent implements OnInit{
         }
       })
     );
+
+    this.paymentService.getOwnCourses().subscribe({
+  next: (courses: number[]) => {
+    // courses 就已經是一個 number[]，直接指派＆存到 localStorage
+    this.ownCourses = courses;
+    localStorage.setItem(this.storageKey, JSON.stringify(courses));
+  },
+  error: err => {
+    console.error(err);
+    this.ownCourses = [];
+    localStorage.setItem(this.storageKey, JSON.stringify([]));
+  }
+});
   }
 
   ngOnDestroy(): void {
     this.subs.unsubscribe();
   }
+
+
 }
