@@ -38,6 +38,13 @@ import { RadioButtonModule } from 'primeng/radiobutton';
 import { ClientComponent } from './client/client.component';
 import { InputSwitchModule } from 'primeng/inputswitch';
 import { ProgressBarModule } from 'primeng/progressbar';
+import { TabViewModule } from 'primeng/tabview';
+import { PanelModule } from 'primeng/panel';
+import { AccordionModule } from 'primeng/accordion';
+import { MultiSelectModule } from 'primeng/multiselect';
+import { DynamicDialogModule } from 'primeng/dynamicdialog';
+import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
+import { EditCourseComponent } from './courselist/edit-course/edit-course.component';
 @NgModule({
   declarations: [
     BackSystemComponent,
@@ -54,6 +61,7 @@ import { ProgressBarModule } from 'primeng/progressbar';
     EmpManageComponent,
     CreateEmpComponent,
     ClientComponent,
+    EditCourseComponent,
   ],
   imports: [
     CommonModule,
@@ -82,10 +90,16 @@ import { ProgressBarModule } from 'primeng/progressbar';
     ToastModule,
     InputSwitchModule,
     ProgressBarModule,
+    TabViewModule,
+    PanelModule,
+    AccordionModule,
+    MultiSelectModule,
+    DynamicDialogModule
   ],
   providers: [
     ConfirmationService,
     MessageService, // 如果你用到了 toast 或 growl 等通知功能，也要註冊這個
+    DialogService
   ],
 })
-export class BackSystemModule {}
+export class BackSystemModule { }

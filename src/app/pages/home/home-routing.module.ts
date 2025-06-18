@@ -18,10 +18,10 @@ const routes: Routes = [
       { path: 'description', component: DescriptionComponent },
       { path: 'course-products', component: CourseProductsComponent },
       { path: 'userrepositories', component: UserRepositoriesComponent },
-      { path: 'learning', component: LearningComponent },
+      { path: 'learning/:id', component: LearningComponent },
       { path: 'course-products/detail/:id', component: CourseDetailComponent }, // ⬅️ 新增這行
       { path: 'cart', component: CartComponent },
-      {path: 'user', component: UserComponent },
+      { path: 'user', component: UserComponent },
       { path: '**', redirectTo: 'description' }, // 可放在 children 裡，處理子路由找不到的情況
     ],
   },

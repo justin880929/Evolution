@@ -1,0 +1,46 @@
+<p-toolbar class="mb-3">
+  <div class="p-toolbar-group-left">
+    <span class="p-input-icon-left mr-2">
+      <i class="pi pi-search"></i>
+      <input #inputRef pInputText type="text" [(ngModel)]="globalFilter" placeholder="搜尋員工姓名或信箱"
+        (input)="dt!.filterGlobal(inputRef.value, 'contains')" />
+
+
+    </span>
+
+    <p-dropdown [options]="departments" [(ngModel)]="selectedDepartment" optionLabel="name" placeholder="選擇部門"
+      (onChange)="filterByDepartment()" class="mr-2"></p-dropdown>
+
+    <button pButton label="清除篩選" icon="pi pi-times" class="p-button-secondary" (click)="clearFilters()"></button>
+  </div>
+</p-toolbar>
+
+<p-table #dt [value]="filteredEmployees" [paginator]="true" [rows]="10" [globalFilterFields]="['username', 'email']"
+  [rowsPerPageOptions]="[5, 10, 20]" [responsiveLayout]="'scroll'">
+  <ng-template pTemplate="header">
+    <tr>
+      <th style="width: 4rem">授權</th>
+      <th pSortableColumn="username">員工姓名 <p-sortIcon field="username" /></th>
+      <th pSortableColumn="email">信箱 <p-sortIcon field="email" /></th>
+      <th pSortableColumn="userDep">部門 <p-sortIcon field="userDep" /></th>
+    </tr>
+  </ng-template>
+
+  <ng-template pTemplate="body" let-emp>
+    <tr>
+      <td>
+        <p-checkbox [binary]="true" [(ngModel)]="emp.hasAccess"
+          (onChange)="onCheckboxChange(emp, $event.checked)"></p-checkbox>
+      </td>
+      <td>{{ emp.username }}</td>
+      <td>{{ emp.email }}</td>
+      <td>{{ emp.userDep }}</td>
+    </tr>
+  </ng-template>
+
+  <ng-template pTemplate="emptymessage">
+    <tr>
+      <td colspan="4">查無員工資料。</td>
+    </tr>
+  </ng-template>
+</p-table>

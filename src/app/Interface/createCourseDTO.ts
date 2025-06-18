@@ -21,6 +21,7 @@ export interface videoDTO {
   Title: FormControl,             // VideoTitle
   VideoFile: FormControl           // VideoFile
 }
+
 //Request請求格式
 export interface ReqChapterDTO {
   CourseId: number,          // CourseID
@@ -52,13 +53,13 @@ export interface ResCourseDTO {
   companyId: number        // CompanyID
 }
 export interface ResChapterDTO {
-  chapterId: number
+  chapterID: number
   courseId: number,          // CourseID
   chapterTitle: string,      // ChapterTitle
   chapterDes: string        // CourseDescription
 }
 export interface ResVideoDTO {
-  videoId: number,
+  videoID: number,
   chapterId: number,         // ChapterId
   title: string,             // VideoTitle
   videoFile: string           // VideoFile
@@ -70,4 +71,22 @@ export interface ResDepDTO {
 export interface ResHashTagDTO {
   hashTagId: number,            // hashTagId
   hashTagName: string,          // hashTagName
+}
+export interface ResCourseAllDetailsDTO {
+  courseTitle: string,      // CourseTitle
+  courseDes: string,        // CourseDescription
+  isPublic: boolean,        // IsPublic（可選）
+  price: number,            // Price
+  coverImagePath: string,         // CoverImage File
+  chapterWithVideos: ChapterWithVideosDTO[]
+}
+export interface ChapterWithVideosDTO {
+  chapterTitle: string,      // ChapterTitle
+  chapterDes: string,        // CourseDescription
+  videos: FinalVideosDTO[]
+}
+
+export interface FinalVideosDTO {
+  videoTitle: string,      // ChapterTitle
+  videoFile: string        // CourseDescription
 }

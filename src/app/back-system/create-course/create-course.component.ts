@@ -1,9 +1,10 @@
+import { Router } from '@angular/router';
 import { ConfigService } from './../../services/config.service';
 import { Component, ElementRef, OnInit, ViewChild, Pipe } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormArray, FormControl, ValidatorFn, AbstractControl, ValidationErrors } from '@angular/forms';
 import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
 import { CourseSignalrService } from 'src/app/services/course.service/course-signalr.service';
-import { courseDTO, chapterDTO, videoDTO, RePutDTO } from "../../Interface/createCourseDTO";
+import { courseDTO, chapterDTO, videoDTO, RePutDTO, ResCourseAllDetailsDTO, ResDepDTO, ResHashTagDTO } from "../../Interface/createCourseDTO";
 import { BehaviorSubject, Observable, Subscription, delay, firstValueFrom } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
 @Component({
@@ -15,7 +16,8 @@ import { v4 as uuidv4 } from 'uuid';
 export class CreateCourseComponent {
   constructor(private signalR: CourseSignalrService,
     private messageService: MessageService,
-    private configService: ConfirmationService
+    private configService: ConfirmationService,
+    private router: Router
   ) { }
   steps: MenuItem[] = [
     {
@@ -38,6 +40,18 @@ export class CreateCourseComponent {
   // 在 component 中改為：
   originalCoverImageUrl$ = new BehaviorSubject<string | null>(null);
   lockButton = false
+  minLengthArray(min: number) {
+    return (control: AbstractControl): ValidationErrors | null => {
+      if ((control.value as number[]).length >= min) return null;
+      return { required: true };
+    };
+  }
+  CourseFinalGroup = new FormGroup({
+    DepFormControl: new FormControl<number[]>([], [this.minLengthArray(1)]),
+    HasTagFormControl: new FormControl<number[]>([], [this.minLengthArray(1)])
+  });
+  departmentOptions!: ResDepDTO[];
+  hashtagOptions!: ResHashTagDTO[];
   //課程表單
   courseForm = new FormGroup<courseDTO>({
     CompanyId: new FormControl(1),
@@ -57,6 +71,15 @@ export class CreateCourseComponent {
     Title: new FormControl({ value: '', disabled: this.lockButton }, Validators.required),
     VideoFile: new FormControl({ value: '', disabled: this.lockButton }, Validators.required)
   })
+  //確認建立課程
+  FinalCheck: ResCourseAllDetailsDTO = {
+    courseTitle: "",
+    courseDes: "",
+    isPublic: false,
+    price: 0,
+    coverImagePath: '',
+    chapterWithVideos: []
+  }
   //初始化課程表單
   InitCourseForm() {
     this.courseForm.reset()
@@ -202,6 +225,15 @@ export class CreateCourseComponent {
   //切換下一步按鈕禁用
   ChangeBtnStatus() {
     this.lockButton = !this.lockButton
+    if (this.lockButton) {
+      this.courseForm.disable();
+      this.chapterForm.disable();
+      this.videoForm.disable();
+    } else {
+      this.courseForm.enable();
+      this.chapterForm.enable();
+      this.videoForm.enable();
+    }
   }
   //顯示上傳進度
   ChangeUploadingStatus() {
@@ -276,7 +308,7 @@ export class CreateCourseComponent {
     }
 
     const label = this.steps[this.currentStep].label;
-    console.log(label);
+
 
     let form: FormGroup;
 
@@ -339,40 +371,41 @@ export class CreateCourseComponent {
     }
   }
   async removeLastStep() {
-    if (this.currentStep !== this.steps.length - 1) {
-      return
-    }
-    const id = parseInt(this.steps[this.currentStep].id!)
-    const label = this.steps[this.currentStep].label
+    if (this.currentStep !== this.steps.length - 1) return;
+
+    const id = parseInt(this.steps[this.currentStep].id!);
+    const label = this.steps[this.currentStep].label;
+    const PrevID = parseInt(this.steps[this.currentStep - 1].id!);
+    const PrevLabel = this.steps[this.currentStep - 1].label
     switch (label) {
       case "新增章節":
-        const HasChapter = await this.CheckHasChapterAPI(id)
+        const HasChapter = await this.CheckHasChapterAPI(id);
         if (HasChapter) {
-          await this.DelChapterAPI(id)
+          await this.DelChapterAPI(id); // <- 確保完整 await
         }
-        Promise.resolve().then(() => {
-          const PrevID = parseInt(this.steps[this.currentStep].id!)
-          this.GetChapterAPI(PrevID)
-          this.watchFormDirty();
-          this.StepsRemoveLast()
-          this.currentStep--
-        });
         break;
       case "新增影片":
-        const HasVideo = await this.CheckHasVideoAPI(id)
+        const HasVideo = await this.CheckHasVideoAPI(id);
         if (HasVideo) {
-          await this.DelVideoAPI(id)
+          await this.DelVideoAPI(id); // <- 確保完整 await
         }
-        Promise.resolve().then(() => {
-          const PrevID = parseInt(this.steps[this.currentStep].id!)
-          this.GetVideoAPI(PrevID)
-          this.watchFormDirty();
-          this.StepsRemoveLast()
-          this.currentStep--
-        });
         break;
     }
+    switch (PrevLabel) {
+      case "新增章節":
+        await this.GetChapterAPI(PrevID);
+        break;
+      case "新增影片":
+        await this.GetVideoAPI(PrevID);
+        break;
+    }
+
+    this.StepsRemoveLast();
+    this.currentStep--;
+    this.watchFormDirty();
   }
+
+
   //新增章節步驟
   addNewChapterStep() {
     this.CheckChapterAddVideoConfirm()
@@ -441,7 +474,23 @@ export class CreateCourseComponent {
         }
       },
       reject: async () => {
-        await this.CallBECompeleteAPI()
+        if (this.steps[this.currentStep].label === "新增章節") {
+          if (parseInt(this.steps[this.currentStep].id!) === 0) {
+            await this.AddChapterAPI(parseInt(this.steps[0].id!))
+          }
+          this.InitChapterForm()
+          this.InitVideoForm()
+        } else {
+          const ParentChapterID = this.findParentChapterID(this.currentStep)
+          if (parseInt(this.steps[this.currentStep].id!) === 0) {
+            await this.AddVideoAPI(ParentChapterID)
+          }
+          this.InitChapterForm()
+          this.InitVideoForm()
+        }
+        await this.GetCourseAllDetails()
+        await this.GetDepListAPI()
+        await this.GetHashTagListAPI()
         this.StepsPushFinal()
       }
     })
@@ -635,7 +684,7 @@ export class CreateCourseComponent {
   async CheckHasChapterAPI(id: number): Promise<boolean> {
     try {
       const result = await firstValueFrom(this.signalR.getChapter(id));
-      return result != null && result.chapterId === id;
+      return result != null && result.chapterID === id;
     } catch (err) {
       console.warn('❌ Chapter 不存在或錯誤:', err);
       return false;
@@ -645,50 +694,10 @@ export class CreateCourseComponent {
   async CheckHasVideoAPI(id: number): Promise<boolean> {
     try {
       const result = await firstValueFrom(this.signalR.getVideo(id));
-      return result != null && result.videoId === id;
+      return result != null && result.videoID === id;
     } catch (err) {
       console.warn('❌ Video 不存在或錯誤:', err);
       return false;
-    }
-  }
-  //告訴後端確認建立課程
-  async CallBECompeleteAPI(): Promise<void> {
-    this.ChangeBtnStatus()
-    try {
-      const courseID = parseInt(this.steps[0].id!);
-      await firstValueFrom(this.signalR.putCourseFinal(courseID, false));
-      this.ShowMessage("success", "成功", "成功建立課程");
-    } catch (error) {
-      console.error(error);
-      this.ShowMessage("error", "失敗", "無法建立課程");
-    } finally {
-      this.ChangeBtnStatus()
-    }
-  }
-
-  async GetCourseAPI(id: number): Promise<void> {
-    console.log("進入GetCourseAPI");
-
-    this.InitCourseForm(); // 清空表單
-    this.coverPreviewUrl = 'assets/img/noimage.png'
-    try {
-      const course = await firstValueFrom(this.signalR.getCourse(id));
-      this.courseForm.patchValue({
-        CourseTitle: course.courseTitle,
-        CourseDes: course.courseDes,
-        IsPublic: (course.isPublic).toString(),
-        Price: course.price,
-        CoverImage: course.coverImage
-      });
-      // 👉 等 DOM 確定渲染後再設定 originalCoverImageUrl
-      Promise.resolve().then(() => {
-        console.log("cover from api", course.coverImage);
-        this.originalCoverImageUrl$.next(course.coverImage);
-      });
-      this.coverPreviewUrl = `https://localhost:7073/images/${course.coverImage}`; // ⚠️ 請依實際網址修改
-    } catch (error) {
-      console.log(error);
-      this.ShowMessage("error", "取得課程失敗", "無法載入課程資料");
     }
   }
 
@@ -726,21 +735,121 @@ export class CreateCourseComponent {
       this.ShowMessage("error", "取得影片失敗", "無法載入影片資料");
     }
   }
+  async GetCourseAllDetails(): Promise<void> {
+    try {
+      const courseId = parseInt(this.steps[0].id!)
+      const data = await firstValueFrom(this.signalR.getCourseAllDetails(courseId))
+      console.log(data);
+      this.FinalCheck = {
+        courseTitle: data.courseTitle,
+        courseDes: data.courseDes,
+        isPublic: data.isPublic,
+        price: data.price,
+        coverImagePath: data.coverImagePath,
+        chapterWithVideos: data.chapterWithVideos
+      }
+
+    } catch (error) {
+      console.log(error);
+      this.ShowMessage('error', '錯誤', error)
+    }
+  }
+  async GetCourseAPI(id: number): Promise<void> {
+    console.log("進入GetCourseAPI");
+
+    this.InitCourseForm(); // 清空表單
+    this.coverPreviewUrl = 'assets/img/noimage.png'
+    try {
+      const course = await firstValueFrom(this.signalR.getCourse(id));
+      this.courseForm.patchValue({
+        CourseTitle: course.courseTitle,
+        CourseDes: course.courseDes,
+        IsPublic: (course.isPublic).toString(),
+        Price: course.price,
+        CoverImage: course.coverImage
+      });
+      // 👉 等 DOM 確定渲染後再設定 originalCoverImageUrl
+      Promise.resolve().then(() => {
+        console.log("cover from api", course.coverImage);
+        this.originalCoverImageUrl$.next(course.coverImage);
+      });
+      this.coverPreviewUrl = `https://localhost:7073/images/${course.coverImage}`; // ⚠️ 請依實際網址修改
+    } catch (error) {
+      console.log(error);
+      this.ShowMessage("error", "取得課程失敗", "無法載入課程資料");
+    }
+  }
+  //告訴後端確認建立課程
+  async CallBECompeleteAPI(): Promise<void> {
+    this.ChangeBtnStatus()
+    try {
+      const courseID = parseInt(this.steps[0].id!);
+      await firstValueFrom(this.signalR.putCourseFinal(courseID, false));
+      this.ShowMessage("success", "成功", "成功建立課程");
+    } catch (error) {
+      console.error(error);
+      this.ShowMessage("error", "失敗", "無法建立課程");
+    } finally {
+      this.ChangeBtnStatus()
+    }
+  }
+  async AddCourseAccess() {
+    try {
+      const CourseAccess = this.CourseFinalGroup.get('DepFormControl') as FormControl<number[]>
+      await firstValueFrom(this.signalR.postCourseAccess(CourseAccess, parseInt(this.steps[0].id!)))
+    } catch (error) {
+
+    }
+  }
+  async AddCourseHashTag() {
+    try {
+      const courseHashTag = this.CourseFinalGroup.get('HasTagFormControl') as FormControl<number[]>
+      await firstValueFrom(this.signalR.postCourseHashTag(courseHashTag, parseInt(this.steps[0].id!)))
+    } catch (error) {
+
+    }
+  }
+  async finalizeCourse(): Promise<void> {
+    try {
+      if (this.CourseFinalGroup.invalid) {
+        this.CourseFinalGroup.markAllAsTouched(); // 觸發錯誤顯示
+        this.ShowMessage('warn', "警告", "請選擇至少一個部門和 課程標籤");
+        return;
+      }
+      await this.AddCourseAccess()
+      await this.AddCourseHashTag()
+      await this.CallBECompeleteAPI()
+      // ✅ 所有動作成功後再跳轉頁面
+      this.ShowMessage("success", "成功", '成功建立課程')
+      setTimeout(() => {
+        this.router.navigate(['/back-system']);
+      }, 2000);  // ← 改成你要跳轉的路由
+    } catch (error) {
+
+    }
+
+  }
+
   Test() {
     this.GetDepListAPI()
     this.GetHashTagListAPI()
+    // this.GetCourseAllDetails()
+    console.log(this.CourseFinalGroup.value);
+
   }
-  async GetDepListAPI() {
+  async GetDepListAPI(): Promise<void> {
     try {
       const depList = await firstValueFrom(this.signalR.getDepList());
+      this.departmentOptions = depList
       console.log('部門清單：', depList);
     } catch (error) {
       console.error('讀取部門失敗：', error);
     }
   }
-  async GetHashTagListAPI() {
+  async GetHashTagListAPI(): Promise<void> {
     try {
       const hashTagList = await firstValueFrom(this.signalR.getHashTagList());
+      this.hashtagOptions = hashTagList
       console.log('Hashtag 清單：', hashTagList);
     } catch (error) {
       console.error('讀取 Hashtag 失敗：', error);

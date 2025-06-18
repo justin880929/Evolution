@@ -76,7 +76,68 @@
         </div>
       </div>
     </form>
+    <!-- Step: 確認建立課程 -->
+    <p-tabView *ngIf="steps[currentStep]?.label === '確認建立課程'">
+      <p-tabPanel header="課程細節">
+        <p-panel [header]="FinalCheck.courseTitle">
+          <p>{{FinalCheck.courseDes}}</p>
+          <div class="input-group">
+            <span class="input-group-text">是否公開課程:</span>
+            <input type="text" disabled class="form-control" [value]="FinalCheck.isPublic? '公開':'不公開'" />
+          </div>
+          <div class="input-group">
+            <span class="input-group-text">課程價格: TWD$</span>
+            <input type="number" disabled class="form-control" [value]="FinalCheck.price" />
+          </div>
+          <img [src]='"https://localhost:7274/images/"+FinalCheck.coverImagePath' class="img-thumbnail mt-2"
+            style="max-width: 300px;">
+          <form [formGroup]="CourseFinalGroup">
+            <!-- 部門選擇 -->
+            <div class="mb-3 ">
+              <label for="departments">請選擇課程權限: </label> &nbsp;&nbsp;
+              <p-multiSelect inputId="departments" [options]="departmentOptions" optionLabel="depName"
+                optionValue="depId" formControlName="DepFormControl" placeholder="請選擇部門" display="chip"
+                panelStyleClass="custom-multiselect-panel" class="custom-chip-limit">
+              </p-multiSelect>
+              <div
+                *ngIf="CourseFinalGroup.get('DepFormControl')?.invalid && CourseFinalGroup.get('DepFormControl')?.touched"
+                class="text-danger">
+                至少選擇一個部門
+              </div>
+            </div>
+            <!-- Hashtag 選擇 -->
+            <div class="mb-3">
+              <label for="hashtags">請選擇課程標籤: </label>&nbsp;&nbsp;&nbsp;
+              <p-multiSelect inputId="hashtags" [options]="hashtagOptions" optionLabel="hashTagName"
+                optionValue="hashTagId" formControlName="HasTagFormControl" placeholder="請選擇 Hashtag" display="chip"
+                panelStyleClass="custom-multiselect-panel" class="custom-chip-limit">
+              </p-multiSelect>
+              <div
+                *ngIf="CourseFinalGroup.get('HasTagFormControl')?.invalid && CourseFinalGroup.get('HasTagFormControl')?.touched"
+                class="text-danger">
+                至少選擇一個 Hashtag
+              </div>
+            </div>
+          </form>
+        </p-panel>
+      </p-tabPanel>
+      <p-tabPanel [header]="'章節'+(i+1)" *ngFor="let chapter of FinalCheck.chapterWithVideos;let i=index">
+        <p-panel [header]="chapter.chapterTitle">
+          <p>{{chapter.chapterDes}}</p>
+          <p-accordion *ngIf="chapter.videos.length>0">
+            <p-accordionTab [header]="video.videoTitle" *ngFor="let video of chapter.videos">
+              <video width="100%" controls>
+                <source [src]="'https://localhost:7274/videos/' + video.videoFile" type="video/mp4" />
+                無法播放影片，請確認影片格式是否為 mp4。
+              </video>
+            </p-accordionTab>
+          </p-accordion>
+        </p-panel>
+      </p-tabPanel>
+    </p-tabView>
     <!-- 按鈕控制區 -->
+
+
     <div class="mt-4 d-flex justify-content-between">
       <!-- 上一步 -->
       <div>
@@ -104,12 +165,11 @@
           下一步
         </button>
         <button (click)="Test()">Test</button>
-        <!-- <button *ngIf="isFinalStep&&(currentStep===steps.length-1)" class="btn btn-success" (click)="finalizeCourse()">
-        確認建立
-      </button> -->
-        <!-- <button class="btn btn-success" (click)="finalizeCourse()">
-        檢查
-      </button> -->
+
+        <button *ngIf="steps[currentStep]?.label === '確認建立課程'" class="btn btn-success" (click)="finalizeCourse()">
+          確認建立
+        </button>
+
       </div>
     </div>
     <!-- 顯示上傳進度 -->
