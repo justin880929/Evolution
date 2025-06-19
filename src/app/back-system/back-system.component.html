@@ -21,25 +21,26 @@
 
       <ul class="menu-inner py-1">
         <!-- Dashboard -->
-        <li class="menu-item active">
+        <!-- <li class="menu-item active">
           <a [routerLink]="['back-dashboard']" class="menu-link">
             <i class="menu-icon tf-icons bx bx-home-circle"></i>
             <div data-i18n="Analytics">後台主頁</div>
           </a>
-        </li>
+        </li> -->
 
         <!-- 客戶管理 Start -->
         <li class="menu-header small text-uppercase" *ngIf="userRole === 'SuperAdmin'">
           <span class="menu-header-text" *ngIf="userRole === 'SuperAdmin'">客戶</span>
         </li>
         <!-- Layouts -->
-        <li class="menu-item" *ngIf="userRole === 'SuperAdmin'">
+        <li class="menu-item" *ngIf="userRole === 'SuperAdmin'" [class.active]="isClientMenuActive()">
           <a href="javascript:void(0);" class="menu-link menu-toggle">
             <i class="menu-icon tf-icons bx bx-layout"></i>
             <div data-i18n="Layouts">客戶管理</div>
           </a>
           <ul class="menu-sub">
-            <li class="menu-item" *ngFor="let item of menuItems.Client">
+            <li class="menu-item" *ngFor="let item of menuItems.Client" routerLinkActive="active"
+              [routerLinkActiveOptions]="{ exact: true }">
               <a [routerLink]="[item.link]" class="menu-link">
                 <div data-i18n="Without menu">{{ item.label }}</div>
               </a>
@@ -48,47 +49,51 @@
         </li>
         <!-- 客戶管理 End -->
 
-        <li class="menu-header small text-uppercase">
-          <span class="menu-header-text">訂單與金流</span>
-        </li>
-        <li class="menu-header small text-uppercase">
-          <span class="menu-header-text">公告</span>
-        </li>
-        <li class="menu-header small text-uppercase">
+
+        <li class="menu-header small text-uppercase" *ngIf="userRole === 'Admin'">
           <span class="menu-header-text">課程</span>
         </li>
         <!-- Layouts -->
-        <li class="menu-item">
+        <li class="menu-item" [class.active]="isCourseMenuActive()" *ngIf="userRole === 'Admin'">
           <a href="javascript:void(0);" class="menu-link menu-toggle">
-            <i class="menu-icon tf-icons bx bx-layout"></i>
-            <div data-i18n="Layouts">課程管理</div>
+            <i class="menu-icon tf-icons bx bx-book-alt"></i>
+            <div>課程管理</div>
           </a>
 
           <ul class="menu-sub">
-            <li class="menu-item" *ngFor="let item of menuItems.course">
+            <li class="menu-item" *ngFor="let item of menuItems.course" routerLinkActive="active"
+              [routerLinkActiveOptions]="{ exact: true }">
               <a [routerLink]="[item.link]" class="menu-link">
-                <div data-i18n="Without menu">{{ item.label }}</div>
+                <div>{{ item.label }}</div>
               </a>
             </li>
           </ul>
         </li>
-        <li class="menu-header small text-uppercase">
+        <li class="menu-header small text-uppercase" *ngIf="userRole === 'Admin'">
           <span class="menu-header-text">員工與部門</span>
         </li>
         <!-- Layouts -->
-        <li class="menu-item">
+        <li class="menu-item" [class.active]="isEmpDepMenuActive()" *ngIf="userRole === 'Admin'">
           <a href="javascript:void(0);" class="menu-link menu-toggle">
-            <i class="menu-icon tf-icons bx bx-layout"></i>
-            <div data-i18n="Layouts">員工部門管理</div>
+            <i class="menu-icon tf-icons bx bx-sitemap"></i>
+            <div>員工部門管理</div>
           </a>
 
           <ul class="menu-sub">
-            <li class="menu-item" *ngFor="let item of menuItems.EmpDep">
+            <li class="menu-item" *ngFor="let item of menuItems.EmpDep" routerLinkActive="active"
+              [routerLinkActiveOptions]="{ exact: true }">
               <a [routerLink]="[item.link]" class="menu-link">
                 <div data-i18n="Without menu">{{ item.label }}</div>
               </a>
             </li>
           </ul>
+        </li>
+
+        <li class="menu-header small text-uppercase" *ngIf="userRole === 'Admin'">
+          <span class="menu-header-text">訂單與金流</span>
+        </li>
+        <li class="menu-header small text-uppercase" *ngIf="userRole === 'Admin'">
+          <span class="menu-header-text">公告</span>
         </li>
       </ul>
     </aside>
@@ -103,15 +108,19 @@
           <!-- Search -->
 
           <div
-            class="container-xxl navbar-nav-right d-flex flex-grow-1 container-p-y align-items-center text-center top-color">
+            class="container-xxl navbar-nav-right d-flex flex-grow-1 container-p-y align-items-center text-center top-color navbar navbar-expand-xl navbar-detached layout-navbar mb-4">
             <div class="layout-menu-toggle navbar-nav align-items-xl-center me-3 me-xl-0 d-xl-none">
               <a class="nav-item nav-link px-0 me-xl-4" href="javascript:void(0)">
                 <i class="bx bx-menu bx-sm"></i>
               </a>
             </div>
-            <h4 class="fw-bold">
-              <span class="text-muted fw-light">UI elements /</span> Navbar
-            </h4>
+            <div class="fw-bold fs-4">
+              <span class="text-muted  ng-star-inserted">後台 /</span>
+              <ng-container *ngFor="let crumb of breadcrumbs; let last = last">
+                <span class="text-muted  ng-star-inserted">{{ crumb }}</span><span *ngIf="!last"
+                  class="text-muted  ng-star-inserted"> / </span>
+              </ng-container>
+            </div>
             <div class="navbar-nav flex-row align-items-center ms-auto">
               <!-- ✅ 使用者選單（Sneat 風格 + Angular 整合） -->
               <div class="nav-item navbar-dropdown dropdown-user dropdown" *ngIf="isLoggedIn">

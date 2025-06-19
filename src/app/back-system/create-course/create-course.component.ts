@@ -830,13 +830,6 @@ export class CreateCourseComponent {
 
   }
 
-  Test() {
-    this.GetDepListAPI()
-    this.GetHashTagListAPI()
-    // this.GetCourseAllDetails()
-    console.log(this.CourseFinalGroup.value);
-
-  }
   async GetDepListAPI(): Promise<void> {
     try {
       const depList = await firstValueFrom(this.signalR.getDepList());

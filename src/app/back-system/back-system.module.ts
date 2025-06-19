@@ -4,10 +4,8 @@ import { BackSystemRoutingModule } from './back-system-routing.module';
 import { BackSystemComponent } from './back-system.component';
 import { CourselistComponent } from './courselist/courselist.component';
 import { CreateCourseComponent } from './create-course/create-course.component';
-import { CourseGoalsComponent } from './course-goals/course-goals.component';
 import { CourseManageComponent } from './course-manage/course-manage.component';
 import { EmpPermissionsComponent } from './emp-permissions/emp-permissions.component';
-import { HashTagManageComponent } from './hash-tag-manage/hash-tag-manage.component';
 import { QuizzesManageComponent } from './quizzes-manage/quizzes-manage.component';
 import { RouterModule } from '@angular/router';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -48,12 +46,10 @@ import { EditCourseComponent } from './courselist/edit-course/edit-course.compon
 @NgModule({
   declarations: [
     BackSystemComponent,
-    CourseGoalsComponent,
     CourseManageComponent,
     CourselistComponent,
     QuizzesManageComponent,
     EmpPermissionsComponent,
-    HashTagManageComponent,
     CreateCourseComponent,
     BackDashboardComponent,
     DepManageComponent,
