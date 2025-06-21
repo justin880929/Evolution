@@ -56,7 +56,11 @@ const routes: Routes = [
         path: 'create-emp', component: CreateEmpComponent,
         data: { breadcrumb: ['部門與員工管理', '建立部門'] }
       },
-      { path: 'client', component: ClientComponent },
+      {
+        path: 'client', component: ClientComponent,
+        data: { breadcrumb: ['客戶管理', '客戶帳號管理'] }
+      },
+
     ],
   },
   {

@@ -89,7 +89,7 @@
             <span class="input-group-text">課程價格: TWD$</span>
             <input type="number" disabled class="form-control" [value]="FinalCheck.price" />
           </div>
-          <img [src]='"https://localhost:7274/images/"+FinalCheck.coverImagePath' class="img-thumbnail mt-2"
+          <img [src]='"https://localhost:7274/"+FinalCheck.coverImagePath' class="img-thumbnail mt-2"
             style="max-width: 300px;">
           <form [formGroup]="CourseFinalGroup">
             <!-- 部門選擇 -->
