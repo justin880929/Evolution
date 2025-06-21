@@ -14,3 +14,7 @@
 ::ng-deep .p-multiselect-panel .p-multiselect-items {
   padding-left: 0 !important;
 }
+::ng-deep .p-steps .p-steps-item.p-highlight .p-steps-number {
+  background: #d3fae7;
+  color: #000;
+}

@@ -3,7 +3,7 @@
     <span class="p-input-icon-left mr-2">
       <i class="pi pi-search"></i>
       <input #inputRef pInputText type="text" [(ngModel)]="globalFilter" placeholder="搜尋員工姓名或信箱"
-        (input)="dt!.filterGlobal(inputRef.value, 'contains')" />
+        (input)="onGlobalFilterInput(inputRef.value)" />
 
 
     </span>
