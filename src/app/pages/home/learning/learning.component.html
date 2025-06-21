@@ -18,11 +18,42 @@
         </ng-container>
       </div>
 
+
+      <p-sidebar [(visible)]="isCallAI" position="right" styleClass="w-30rem">
+        <div class=" d-flex justify-content-center mb-5">
+          <img alt="logo" src="assets/img/openaiblack.svg" style="width: 5rem" />
+        </div>
+        <ng-template pTemplate="content">
+          <h3 *ngIf="summaryList.length" class="mb-2">影片摘要</h3>
+          <ol *ngIf="summaryList.length; else loadingOrError">
+            <li *ngFor="let item of summaryList" class="mb-2">{{ item }}</li>
+          </ol>
+        </ng-template>
+        <ng-template #loadingOrError>
+          <!-- 轉圈圈 -->
+          <p-progressSpinner *ngIf="isLoading" styleClass="w-4rem h-4rem d-flex justify-content-center" strokeWidth="8"
+            fill="var(--surface-ground)" animationDuration=".5s"></p-progressSpinner>
+
+          <!-- 錯誤訊息 -->
+          <p *ngIf="!isLoading && summaryList.length === 0" class="text-danger mt-3">
+            分析失敗或無摘要內容
+          </p>
+        </ng-template>
+        <ng-template pTemplate="footer">
+          <button *ngIf="summaryList.length" pButton icon="pi pi-copy" label="複製摘要" class="mt-3"
+            (click)="copyResultToClipboard()"></button>
+        </ng-template>
+
+      </p-sidebar>
+      <p-toast position="top-center" key="tc"></p-toast>
       <!-- 控制按鈕 -->
       <div class="d-flex justify-content-between mt-3">
         <button pButton label="上一步" icon="pi pi-chevron-left" (click)="prevStep()"
           [disabled]="currentStepIndex === 0"></button>
-
+        <button (click)="CallVideoAPI()" pButton *ngIf="currentStep?.type === 'video'">
+          <img alt="logo" src="assets/img/openaiwhite.svg" style="width: 1.5rem" />
+          <span class="ml-2 font-bold">OpenAI影片摘要</span>
+        </button>
         <button *ngIf="!isLastStep()" pButton label="下一步" icon="pi pi-chevron-right" iconPos="right"
           (click)="nextStep()"></button>
 

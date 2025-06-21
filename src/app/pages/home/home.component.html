@@ -1,14 +1,8 @@
 <header id="header" class="header d-flex align-items-center sticky-top">
-  <div
-    class="container-fluid container-xl position-relative d-flex align-items-center"
-  >
+  <div class="container-fluid container-xl position-relative d-flex align-items-center">
     <a [routerLink]="['home']" class="logo d-flex align-items-center me-auto">
       <!-- Uncomment the line below if you also wish to use an image logo -->
-      <img
-        src="assets/img/EvolutionLogo.png"
-        style="max-height: 100px"
-        alt=""
-      />
+      <img src="assets/img/EvolutionLogo.png" style="max-height: 100px" alt="" />
       <h1 class="sitename">Evolution</h1>
     </a>
 
@@ -20,56 +14,31 @@
 
         <!-- 已登入才顯示的購物車 -->
         <li class="nav-item" *ngIf="isLoggedIn">
-          <a
-            routerLink="/home/cart"
-            class="nav-link p-overlay-badge"
-            pBadge
-            [value]="cartCount.toString()"
-            severity="danger"
-          >
+          <a routerLink="/home/cart" class="nav-link p-overlay-badge" pBadge [value]="cartCount.toString()"
+            severity="danger">
             <i class="bx bx-cart me-2 bx-sm"></i>
           </a>
         </li>
 
         <!-- ✅ 使用者下拉選單：Sneat 樣式整合 -->
 
-        <li
-          class="nav-item navbar-dropdown dropdown-user dropdown"
-          *ngIf="isLoggedIn"
-        >
-          <a
-            class="nav-link dropdown-toggle hide-arrow"
-            href="javascript:void(0);"
-            id="userMenuDropdown"
-            role="button"
-            data-bs-toggle="dropdown"
-            aria-expanded="false"
-          >
+        <li class="nav-item navbar-dropdown dropdown-user dropdown" *ngIf="isLoggedIn">
+          <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" id="userMenuDropdown" role="button"
+            data-bs-toggle="dropdown" aria-expanded="false">
             <div class="avatar avatar-online">
-              <img
-                [src]="userPhotoUrl"
-                class="rounded-circle"
-                style="width: 32px; height: 32px; object-fit: cover"
-                alt="User Photo"
-              />
+              <img [src]="userPhotoUrl" class="rounded-circle" style="width: 32px; height: 32px; object-fit: cover"
+                alt="User Photo" />
             </div>
           </a>
 
-          <ul
-            class="dropdown-menu dropdown-menu-end text-start"
-            aria-labelledby="userMenuDropdown"
-          >
+          <ul class="dropdown-menu dropdown-menu-end text-start" aria-labelledby="userMenuDropdown">
             <!-- 使用者資訊 -->
             <li class="dropdown-item-text">
               <div class="d-flex align-items-center">
                 <div class="flex-shrink-0 me-3">
                   <div class="avatar avatar-online">
-                    <img
-                      [src]="userPhotoUrl"
-                      class="rounded-circle"
-                      style="width: 32px; height: 32px; object-fit: cover"
-                      alt="User Photo"
-                    />
+                    <img [src]="userPhotoUrl" class="rounded-circle"
+                      style="width: 32px; height: 32px; object-fit: cover" alt="User Photo" />
                   </div>
                 </div>
                 <div class="flex-grow-1">
@@ -85,16 +54,13 @@
 
             <!-- Admin 專屬 -->
             <li *ngIf="isAdmin">
-              <a
-                class="dropdown-item d-flex align-items-center justify-content-start"
-                [routerLink]="['/back-system']"
-              >
+              <a class="dropdown-item d-flex align-items-center justify-content-start" [routerLink]="['/back-system']">
                 <i class="bx bx-desktop me-2"></i>
                 <span class="align-middle">後台管理</span>
               </a>
             </li>
 
-            <li>
+            <!-- <li>
               <a
                 class="dropdown-item d-flex align-items-center justify-content-start"
                 [routerLink]="['learning']"
@@ -102,12 +68,9 @@
                 <i class="bx bxs-book-reader me-2"></i>
                 <span class="align-middle">Learning</span>
               </a>
-            </li>
+            </li> -->
             <li>
-              <a
-                class="dropdown-item d-flex align-items-center justify-content-start"
-                [routerLink]="['user']"
-              >
+              <a class="dropdown-item d-flex align-items-center justify-content-start" [routerLink]="['user']">
                 <i class="bx bx-user me-2"></i>
                 <span class="align-middle">個人資料</span>
               </a>
@@ -118,12 +81,8 @@
             </li>
 
             <li>
-              <a
-                class="dropdown-item d-flex align-items-center justify-content-start text-danger"
-                href="#"
-                (click)="logout($event)"
-                style="cursor: pointer"
-              >
+              <a class="dropdown-item d-flex align-items-center justify-content-start text-danger" href="#"
+                (click)="logout($event)" style="cursor: pointer">
                 <i class="bx bx-power-off me-2"></i>
                 <span class="align-middle">登出</span>
               </a>
@@ -132,11 +91,7 @@
         </li>
 
         <!-- 未登入的 Get Started -->
-        <a
-          *ngIf="!isLoggedIn"
-          routerLink="/login"
-          class="btn btn-primary btn-getstarted"
-        >
+        <a *ngIf="!isLoggedIn" routerLink="/login" class="btn btn-primary btn-getstarted">
           Get Started
         </a>
       </ul>
@@ -229,12 +184,8 @@
 </footer>
 
 <!-- Scroll Top -->
-<a
-  href="#"
-  id="scroll-top"
-  class="scroll-top d-flex align-items-center justify-content-center"
-  ><i class="bi bi-arrow-up-short"></i
-></a>
+<a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i
+    class="bi bi-arrow-up-short"></i></a>
 
 <!-- Preloader -->
 <div id="preloader"></div>

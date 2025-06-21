@@ -1,5 +1,5 @@
 .pass-color {
-  color: #3EC580;
+  color: #3ec580;
 }
 
 .notpass-color {
@@ -7,10 +7,26 @@
 }
 
 .pass-bg-color {
-  background: #3EC580;
+  background: #3ec580;
 }
 
 .notpass-bg-color {
   background: #c53e3e;
-  ;
+}
+::ng-deep .p-sidebar .p-sidebar-header .p-sidebar-close,
+.p-sidebar .p-sidebar-header .p-sidebar-icon {
+  border-radius: 50%;
+  margin-left: auto;
+}
+::ng-deep .p-tabview .p-tabview-nav li.p-highlight .p-tabview-nav-link {
+  border-color: #8ed7b4;
+}
+::ng-deep .p-steps .p-steps-item.p-highlight .p-steps-number {
+  background: #d3fae7;
+  color: #000;
+}
+::ng-deep .p-button {
+  border-radius: 6px;
+  background: #34c67f;
+  border: 1px solid #34c67f;
 }

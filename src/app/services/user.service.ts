@@ -6,7 +6,7 @@ import { ConfigService } from './config.service';
 import { ResultService } from '../Share/result.service';
 import { UserDTO } from '../Interface/userDTO';
 import { ApiResponse } from '../Share/interface/resultDTO';
-import { UserInfoDTO } from '../Interface/userInfoDTO';                 // ← 確認這行
+import { UserInfoDTO } from '../Interface/userInfoDTO'; // ← 確認這行
 import { EditUserResponseDTO } from '../Interface/editUserResponseDTO'; // ← 確認這行
 import { DepListResponseDTO } from '../Interface/depListResponseDTO';
 import { EmpOrderDTO } from '../Interface/empOrderDTO';
@@ -51,11 +51,11 @@ export class UserService {
           // 後端回傳的是 UserInfoDTO，要轉成前端的 UserDTO
           const dto: UserInfoDTO = apiRes.data;
           const result: UserDTO = {
-            name:    dto.username,
-            email:   dto.email,
-            dep:     dto.depName,           // 如果後端有回 depName，就直接帶回來
-            pic:     dto.photoUrl || '',
-            company: dto.userCompany || ''
+            name: dto.username,
+            email: dto.email,
+            dep: dto.depName, // 如果後端有回 depName，就直接帶回來
+            pic: dto.photoUrl || '',
+            company: dto.userCompany || '',
           };
           return result;
         }),
@@ -68,15 +68,16 @@ export class UserService {
 
   /** 既有：一開始 App 啟動時用的載入方法 */
   loadUserInfo(): void {
-    this.getUserInfo()
-      .subscribe({
-        next: user => this.userSubject.next(user),
-        error: err => console.error('載入使用者資訊失敗：', err)
-      });
+    this.getUserInfo().subscribe({
+      next: (user) => this.userSubject.next(user),
+      error: (err) => console.error('載入使用者資訊失敗：', err),
+    });
   }
 
- /** 編輯使用者資訊（含大頭照上傳） */
-  editUserInfo(formData: FormData): Observable<ApiResponse<EditUserResponseDTO>> {
+  /** 編輯使用者資訊（含大頭照上傳） */
+  editUserInfo(
+    formData: FormData
+  ): Observable<ApiResponse<EditUserResponseDTO>> {
     return this.http
       .put<ApiResponse<EditUserResponseDTO>>(
         `${this.apiUrl}/users/edituseridfo`,
@@ -94,7 +95,7 @@ export class UserService {
               dep: ui.depName,
               pic: ui.photoUrl || '',
               // 如果後端還有回 companyName 或 userCompany，可以在 ui 內多加一個屬性，再這裡填上
-              company: ''
+              company: '',
             };
             this.userSubject.next(updated);
           }
@@ -104,10 +105,10 @@ export class UserService {
   }
 
   /** 手動強制刷新使用者資料，再推到 BehaviorSubject */
-   refreshUserInfo(): Observable<UserDTO> {
+  refreshUserInfo(): Observable<UserDTO> {
     return this.getUserInfo().pipe(
-      tap(user => this.userSubject.next(user)),
-      catchError(err => {
+      tap((user) => this.userSubject.next(user)),
+      catchError((err) => {
         console.error('手動刷新使用者資訊失敗：', err);
         // 將錯誤往外拋，呼叫端（AuthService / Component）可繼續 subscribe 處理
         return throwError(() => err);
@@ -123,7 +124,9 @@ export class UserService {
         email: formData.get('email') as string,
         company: formData.get('company') as string,
         dep: formData.get('dep') as string,
-        pic: (formData.get('avatarPreview') as string) || 'assets/img/NoprofilePhoto.png',
+        pic:
+          (formData.get('avatarPreview') as string) ||
+          'assets/img/NoprofilePhoto.png',
       };
       return of(mockUser);
     }
@@ -141,33 +144,33 @@ export class UserService {
       );
   }
 
-    getDepList(): Observable<string[]> {
+  getDepList(): Observable<string[]> {
     return this.http
       .get<ApiResponse<DepListResponseDTO[]>>(`${this.apiUrl}/Users/dept-list`)
       .pipe(
         // 先檢查 success，如果不是就拋錯
-        map(resp => {
+        map((resp) => {
           if (!resp.success || !resp.data) {
             throw new Error(resp.message || '取得部門列表失敗');
           }
           // 將 DTO 陣列轉成只要 depName 的 string[]
-          return resp.data.map(item => item.depName || '');
+          return resp.data.map((item) => item.depName || '');
         })
       );
   }
 
   getMyOrders(): Observable<EmpOrderDTO[]> {
     return this.http
-    .get<ApiResponse<EmpOrderDTO[]>>(`${this.apiUrl}/Users/user-order`)
-    .pipe(
-      map(res =>{
-        if(!res.success)
-          throw new Error(res.message || '取得已購買課程失敗');
-        return res.data ?? [];
-      })
-    )
+      .get<ApiResponse<EmpOrderDTO[]>>(`${this.apiUrl}/Users/user-order`)
+      .pipe(
+        map((res) => {
+          if (!res.success)
+            throw new Error(res.message || '取得已購買課程失敗');
+          return res.data ?? [];
+        })
+      );
   }
-   clearUser(): void {
+  clearUser(): void {
     this.userSubject.next(null);
   }
 }

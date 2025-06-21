@@ -1,21 +1,27 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { CourseAccessServiceService } from 'src/app/services/CourseAccess/course-access.service.service';
 import { EmployeeAccessView } from 'src/app/Interface/CourseListDTO';
 import { forkJoin } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { Subject, Subscription } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
 @Component({
   selector: 'app-edit-course',
   templateUrl: './edit-course.component.html',
   styleUrls: ['./edit-course.component.css']
 })
-export class EditCourseComponent implements OnInit {
+export class EditCourseComponent implements OnInit, OnDestroy {
+
+
   courseId!: number;
 
   departments: { id: number; name: string }[] = [];
   selectedDepartment: any = null;
   globalFilter: string = '';
-
+  private searchSubject = new Subject<string>();
+  private searchSubscription!: Subscription;
+  @ViewChild('dt') dt!: any; // 或 p-table 的正確型別
   allEmployees: EmployeeAccessView[] = [];
   filteredEmployees: EmployeeAccessView[] = [];
 
@@ -31,9 +37,15 @@ export class EditCourseComponent implements OnInit {
 
     this.loadDepartments();
     this.loadEmployeesWithAccess(this.courseId);
-
+    this.searchSubscription = this.searchSubject
+      .pipe(debounceTime(300))
+      .subscribe(value => {
+        this.dt.filterGlobal(value, 'contains');
+      });
   }
-
+  onGlobalFilterInput(value: string) {
+    this.searchSubject.next(value);
+  }
   // 載入部門清單
   loadDepartments() {
     this.service.getDepList().subscribe(res => {
@@ -122,5 +134,8 @@ export class EditCourseComponent implements OnInit {
   // 關閉對話框
   close() {
     this.ref.close();
+  }
+  ngOnDestroy(): void {
+    this.searchSubscription?.unsubscribe();
   }
 }

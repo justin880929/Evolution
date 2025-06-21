@@ -8,9 +8,9 @@ import {
 } from '@angular/core';
 import { JWTService } from '../Share/JWT/jwt.service';
 import { AuthService } from '../services/auth.service';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { Location } from '@angular/common';
-import { Subscription } from 'rxjs';
+import { Subscription, filter } from 'rxjs';
 import { UserService } from '../services/user.service';
 
 declare var Menu: any; // Sneat 的選單初始化函式
@@ -30,6 +30,7 @@ export class BackSystemComponent implements OnInit, OnDestroy {
   isLoggedIn = false;
   userRole = '';
   isAdmin = false;
+  breadcrumbs!: string[];
 
   private loginSub!: Subscription;
 
@@ -43,7 +44,8 @@ export class BackSystemComponent implements OnInit, OnDestroy {
     private authService: AuthService, // ← 注入 AuthService
     private router: Router, // ← 注入 Router
     private location: Location,
-    private userService: UserService
+    private userService: UserService,
+    private activatedRoute: ActivatedRoute
   ) {
     // 設定預設 fallback 圖
     this.defaultPhoto = this.location.prepareExternalUrl(
@@ -52,6 +54,13 @@ export class BackSystemComponent implements OnInit, OnDestroy {
   }
 
   async ngOnInit(): Promise<void> {
+    // ✅ 先補一次 → 解決首次進入/刷新不會觸發 NavigationEnd 問題
+    this.breadcrumbs = this.buildBreadcrumbs(this.activatedRoute.root);
+    this.router.events
+      .pipe(filter(event => event instanceof NavigationEnd))
+      .subscribe(() => {
+        this.breadcrumbs = this.buildBreadcrumbs(this.activatedRoute.root);
+      });
     this.loginSub = this.authService.isLoggedIn$.subscribe((flag) => {
       this.isLoggedIn = flag;
       if (flag) {
@@ -61,6 +70,15 @@ export class BackSystemComponent implements OnInit, OnDestroy {
         this.userRole = payload?.role ?? '';
         const roleLower = this.userRole.toLowerCase();
         this.isAdmin = roleLower === 'admin' || roleLower === 'superadmin';
+        // ✅ 如果當前網址是 /back-system 或 /back-system/，就做導向
+        const currentUrl = this.router.url;
+        if (currentUrl === '/back-system' || currentUrl === '/back-system/') {
+          if (roleLower === 'superadmin') {
+            this.router.navigate(['client'], { relativeTo: this.activatedRoute });
+          } else {
+            this.router.navigate(['emp-manage'], { relativeTo: this.activatedRoute });
+          }
+        }
       } else {
         // 登出時重置
         this.username = '';
@@ -124,16 +142,38 @@ export class BackSystemComponent implements OnInit, OnDestroy {
       console.error('❌ Script loading error:', err);
     }
   }
+  private buildBreadcrumbs(route: ActivatedRoute, url: string = '', breadcrumbs: string[] = []): string[] {
+    const children: ActivatedRoute[] = route.children;
+
+    if (children.length === 0) return breadcrumbs;
+
+    for (const child of children) {
+      const routeURL: string = child.snapshot.url.map(segment => segment.path).join('/');
+      if (routeURL !== '') {
+        url += `/${routeURL}`;
+      }
+
+      const label = child.snapshot.data['breadcrumb'];
+      if (label) {
+        if (Array.isArray(label)) {
+          breadcrumbs.push(...label);
+        } else {
+          breadcrumbs.push(label);
+        }
+      }
+
+      return this.buildBreadcrumbs(child, url, breadcrumbs); // ⬅️ 遞迴下一層
+    }
+
+    return breadcrumbs;
+  }
 
   readonly menuItems = {
     course: [
       { label: '課程總覽', link: 'course-list' },
       { label: '建立課程', link: 'create-course' },
       { label: '課程章節管理', link: 'course-manage' },
-      { label: '測驗管理', link: 'quizzes-manage' },
-      { label: '標籤管理', link: 'hash-tag-manage' },
-      { label: '課程目標設定', link: 'course-goals' },
-      { label: '課程權限管理', link: 'emp-permissions' },
+      { label: '測驗管理', link: 'quizzes-manage' }
     ],
     EmpDep: [
       // { label: '部門管理', link: 'dep-manage' },
@@ -143,7 +183,17 @@ export class BackSystemComponent implements OnInit, OnDestroy {
     ],
     Client: [{ label: '客戶帳號管理', link: 'client' }],
   };
+  isCourseMenuActive(): boolean {
+    const url = this.router.url;
+    return url.includes('course-') || url.includes('create-') || url.includes('quizzes-');
+  }
 
+  isEmpDepMenuActive(): boolean {
+    return this.router.url.includes('emp-') || this.router.url.includes('dep-');
+  }
+  isClientMenuActive(): boolean {
+    return this.router.url.includes('client');
+  }
   loadScript(src: string): Promise<void> {
     return new Promise((resolve, reject) => {
       if (document.querySelector(`script[src="${src}"]`)) {

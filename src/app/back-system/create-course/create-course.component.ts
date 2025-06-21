@@ -822,7 +822,7 @@ export class CreateCourseComponent {
       // ✅ 所有動作成功後再跳轉頁面
       this.ShowMessage("success", "成功", '成功建立課程')
       setTimeout(() => {
-        this.router.navigate(['/back-system']);
+        this.router.navigate(['/back-system/course-list']);
       }, 2000);  // ← 改成你要跳轉的路由
     } catch (error) {
 
@@ -830,13 +830,6 @@ export class CreateCourseComponent {
 
   }
 
-  Test() {
-    this.GetDepListAPI()
-    this.GetHashTagListAPI()
-    // this.GetCourseAllDetails()
-    console.log(this.CourseFinalGroup.value);
-
-  }
   async GetDepListAPI(): Promise<void> {
     try {
       const depList = await firstValueFrom(this.signalR.getDepList());

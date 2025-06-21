@@ -1,4 +1,4 @@
-<div class="container-xxl flex-grow-1 container-p-y">
+<div class="flex-grow-1 container-p-y">
   <!-- 步驟條 -->
   <div class="card mb-md-3 p-md-3">
     <p-steps [model]="steps" [activeIndex]="currentStep" [readonly]="true" class="mb-4"></p-steps>
@@ -164,7 +164,6 @@
           class="btn btn-primary" (click)="addNewSteps()">
           下一步
         </button>
-        <button (click)="Test()">Test</button>
 
         <button *ngIf="steps[currentStep]?.label === '確認建立課程'" class="btn btn-success" (click)="finalizeCourse()">
           確認建立
