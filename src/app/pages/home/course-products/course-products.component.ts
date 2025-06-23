@@ -3,16 +3,22 @@ import { CourseDto } from 'src/app/Interface/courseDTO';
 import { ApiResponse } from 'src/app/Share/interface/resultDTO';
 import { PagedResult } from 'src/app/Interface/pagedResult';
 import { CourseService } from 'src/app/services/course.service/course.service';
-import { debounceTime, distinctUntilChanged, of, Subject, switchMap } from 'rxjs';
+import {
+  debounceTime,
+  distinctUntilChanged,
+  of,
+  Subject,
+  switchMap,
+} from 'rxjs';
 
 @Component({
   selector: 'app-course-products',
   templateUrl: './course-products.component.html',
-  styleUrls: ['./course-products.component.css']
+  styleUrls: ['./course-products.component.css'],
 })
 export class CourseProductsComponent implements OnInit {
-  courses: CourseDto[] = [];           // 已載入的所有課程
-  filteredCourses: CourseDto[] = [];   // 搜尋後結果
+  courses: CourseDto[] = []; // 已載入的所有課程
+  filteredCourses: CourseDto[] = []; // 搜尋後結果
   suggestions: string[] = [];
   searchText = '';
 
@@ -35,13 +41,11 @@ export class CourseProductsComponent implements OnInit {
       .pipe(
         debounceTime(300),
         distinctUntilChanged(),
-        switchMap(term =>
-          term.length >= 2
-            ? this.courseService.getSuggestions(term)
-            : of([])
+        switchMap((term) =>
+          term.length >= 2 ? this.courseService.getSuggestions(term) : of([])
         )
       )
-      .subscribe(list => this.suggestions = list);
+      .subscribe((list) => (this.suggestions = list));
   }
 
   /** 偵測滾動事件，自動載入下一頁 */
@@ -64,7 +68,7 @@ export class CourseProductsComponent implements OnInit {
     this.courseService
       .getCoursesPaged(this.pageIndex, this.pageSize)
       .subscribe({
-        next: res => {
+        next: (res) => {
           if (res.success && res.data) {
             const paged = res.data;
             this.courses.push(...paged.items);
@@ -74,16 +78,16 @@ export class CourseProductsComponent implements OnInit {
             this.hasMore = this.courses.length < this.totalCount;
 
             if (!this.searchText.trim()) {
-            this.filteredCourses = [...this.courses];
+              this.filteredCourses = [...this.courses];
             }
           }
         },
-        error: err => console.error(err),
-        complete: () => this.isLoading = false  // 重置標誌
+        error: (err) => console.error(err),
+        complete: () => (this.isLoading = false), // 重置標誌
       });
   }
 
-   /** input 每次改變就推到 subject */
+  /** input 每次改變就推到 subject */
   onSearchTextChange(term: string) {
     this.searchText = term;
 
@@ -97,7 +101,7 @@ export class CourseProductsComponent implements OnInit {
     this.searchTerm$.next(term);
   }
 
-   /** 重置所有狀態，並重新從第 0 頁載入 */
+  /** 重置所有狀態，並重新從第 0 頁載入 */
   private resetCourses(): void {
     // 先取消 suggestions
     this.suggestions = [];
@@ -116,11 +120,12 @@ export class CourseProductsComponent implements OnInit {
   selectSuggestion(title: string) {
     this.searchText = title;
     this.suggestions = [];
-    this.onSearch();  // 可立即搜尋
+    this.onSearch(); // 可立即搜尋
   }
 
   /** 按下搜尋鈕呼叫後端完整搜尋 */
   onSearch(): void {
+    this.suggestions = [];
     const q = this.searchText.trim();
     if (!q) {
       this.resetCourses();
@@ -130,11 +135,10 @@ export class CourseProductsComponent implements OnInit {
     // 關掉無限滾動
     this.hasMore = false;
 
-    this.courseService.searchCourses(q)
-      .subscribe(results => {
-        this.filteredCourses = results;
-        // 捲回頂端，避免再次觸發滾動加載
-        window.scrollTo({ top: 0 });
-      });
+    this.courseService.searchCourses(q).subscribe((results) => {
+      this.filteredCourses = results;
+      // 捲回頂端，避免再次觸發滾動加載
+      window.scrollTo({ top: 0 });
+    });
   }
 }
