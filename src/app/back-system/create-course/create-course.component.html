@@ -7,41 +7,41 @@
   <div class="card p-4">
     <form *ngIf="steps[currentStep]?.label === '建立課程'" [formGroup]="courseForm">
       <div class="mb-3">
-        <label class="form-label">課程標題</label>
+        <label class="form-label fs-5">課程標題</label>
         <input type="text" class="form-control" formControlName="CourseTitle" />
       </div>
 
       <div class="mb-3">
-        <label class="form-label">課程描述</label>
+        <label class="form-label fs-5">課程描述</label>
         <textarea class="form-control" formControlName="CourseDes"></textarea>
       </div>
 
       <div class="mb-3">
-        <label class="form-label d-block">是否公開</label>
+        <label class="form-label d-block fs-5">是否公開</label>
         <div class="form-check form-check-inline">
           <p-radioButton name="IsPublic" value="true" inputId="public-yes" formControlName="IsPublic"></p-radioButton>
-          <label for="public-yes" class="form-check-label ms-1">是</label>
+          <label for="public-yes" class="form-check-label ms-1 fs-5">是</label>
         </div>
         <div class="form-check form-check-inline">
           <p-radioButton name="IsPublic" value="false" inputId="public-no" formControlName="IsPublic"></p-radioButton>
-          <label for="public-no" class="form-check-label ms-1">否</label>
+          <label for="public-no" class="form-check-label ms-1 fs-5">否</label>
         </div>
       </div>
 
       <div class="mb-3">
-        <label class="form-label">課程價格</label>
+        <label class="form-label fs-5">課程價格</label>
         <div class="input-group">
           <span class="input-group-text">TWD$</span>
-          <input type="number" class="form-control" formControlName="Price" />
+          <input type="number" class="form-control fs-5" formControlName="Price" />
         </div>
       </div>
 
       <div class="mb-3">
-        <label class="form-label">課程封面</label>
+        <label class="form-label fs-5">課程封面</label>
         <input type="file" class="form-control" (change)="onCoverSelected($event)" accept=".jpg,.jpeg,.png"
           [disabled]="lockButton" />
         <ng-container *ngIf="originalCoverImageUrl$ | async as originalCover">
-          <div *ngIf="originalCover">
+          <div *ngIf="originalCover" class="fs-5">
             已選擇：{{ originalCover }}
           </div>
         </ng-container>
@@ -51,70 +51,70 @@
     <!-- Step: 新增章節 -->
     <form *ngIf="steps[currentStep]?.label === '新增章節'" [formGroup]="chapterForm">
       <div class="mb-3">
-        <label class="form-label">章節標題</label>
+        <label class="form-label fs-5">章節標題</label>
         <input type="text" class="form-control" formControlName="ChapterTitle" />
       </div>
 
       <div class="mb-3">
-        <label class="form-label">章節描述</label>
+        <label class="form-label fs-5">章節描述</label>
         <textarea class="form-control" formControlName="ChapterDes"></textarea>
       </div>
     </form>
     <!-- Step: 新增影片 -->
     <form *ngIf="steps[currentStep]?.label === '新增影片'" [formGroup]="videoForm">
       <div class="mb-3">
-        <label class="form-label">影片標題</label>
+        <label class="form-label fs-5">影片標題</label>
         <input type="text" class="form-control" formControlName="Title" />
       </div>
 
       <div class="mb-3">
-        <label class="form-label">上傳影片</label>
+        <label class="form-label fs-5">上傳影片</label>
         <input type="file" #videoInput class="form-control" (change)="onVideoSelected($event)" #videofile
           [disabled]="lockButton" />
-        <div *ngIf="selectedVideoFileName" class="mt-1 text-muted">
+        <div *ngIf="selectedVideoFileName" class="mt-1 text-muted fs-5">
           已選擇：{{ selectedVideoFileName }}
         </div>
       </div>
     </form>
     <!-- Step: 確認建立課程 -->
     <p-tabView *ngIf="steps[currentStep]?.label === '確認建立課程'">
-      <p-tabPanel header="課程細節">
-        <p-panel [header]="FinalCheck.courseTitle">
-          <p>{{FinalCheck.courseDes}}</p>
+      <p-tabPanel header="課程細節" class="fs-5">
+        <p-panel [header]="FinalCheck.courseTitle" class="fs-5">
+          <p class="fs-5">{{FinalCheck.courseDes}}</p>
           <div class="input-group">
-            <span class="input-group-text">是否公開課程:</span>
+            <span class="input-group-text fs-5">是否公開課程:</span>
             <input type="text" disabled class="form-control" [value]="FinalCheck.isPublic? '公開':'不公開'" />
           </div>
           <div class="input-group">
-            <span class="input-group-text">課程價格: TWD$</span>
-            <input type="number" disabled class="form-control" [value]="FinalCheck.price" />
+            <span class="input-group-text fs-5">課程價格: TWD$</span>
+            <input type="number" disabled class="form-control fs-5" [value]="FinalCheck.price" />
           </div>
           <img [src]='"https://localhost:7274/"+FinalCheck.coverImagePath' class="img-thumbnail mt-2"
             style="max-width: 300px;">
-          <form [formGroup]="CourseFinalGroup">
+          <form [formGroup]="CourseFinalGroup" class="mt-3">
             <!-- 部門選擇 -->
             <div class="mb-3 ">
-              <label for="departments">請選擇課程權限: </label> &nbsp;&nbsp;
+              <label for="departments" class="fs-5">請選擇課程權限: </label> &nbsp;&nbsp;
               <p-multiSelect inputId="departments" [options]="departmentOptions" optionLabel="depName"
                 optionValue="depId" formControlName="DepFormControl" placeholder="請選擇部門" display="chip"
                 panelStyleClass="custom-multiselect-panel" class="custom-chip-limit">
               </p-multiSelect>
               <div
                 *ngIf="CourseFinalGroup.get('DepFormControl')?.invalid && CourseFinalGroup.get('DepFormControl')?.touched"
-                class="text-danger">
+                class="text-danger fs-5">
                 至少選擇一個部門
               </div>
             </div>
             <!-- Hashtag 選擇 -->
             <div class="mb-3">
-              <label for="hashtags">請選擇課程標籤: </label>&nbsp;&nbsp;&nbsp;
+              <label for="hashtags" class="fs-5">請選擇課程標籤: </label>&nbsp;&nbsp;&nbsp;
               <p-multiSelect inputId="hashtags" [options]="hashtagOptions" optionLabel="hashTagName"
                 optionValue="hashTagId" formControlName="HasTagFormControl" placeholder="請選擇 Hashtag" display="chip"
                 panelStyleClass="custom-multiselect-panel" class="custom-chip-limit">
               </p-multiSelect>
               <div
                 *ngIf="CourseFinalGroup.get('HasTagFormControl')?.invalid && CourseFinalGroup.get('HasTagFormControl')?.touched"
-                class="text-danger">
+                class="text-danger fs-5">
                 至少選擇一個 Hashtag
               </div>
             </div>

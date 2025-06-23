@@ -4,7 +4,11 @@ import { LocationStrategy, HashLocationStrategy } from '@angular/common';
 import { LoginComponent } from './pages/login/login.component';
 import { ResetPasswordComponent } from './pages/reset-password/reset-password.component';
 import { ForgotComponent } from './pages/forgot/forgot.component';
-import { guardsChildGuard, guardsGuard, loginGuard } from './Share/Guards/guards.guard';
+import {
+  guardsChildGuard,
+  guardsGuard,
+  loginGuard,
+} from './Share/Guards/guards.guard';
 import { InitPasswordComponent } from './pages/init-password/init-password.component';
 import { PaymentConfirmComponent } from './pages/payment-confirm/payment-confirm.component';
 import { PaymentSuccessComponent } from './pages/payment-success/payment-success.component';
@@ -13,7 +17,7 @@ import { PaymentFailComponent } from './pages/payment-fail/payment-fail.componen
 const routes: Routes = [
   {
     path: 'back-system',
-    // canActivate: [guardsGuard],
+    canActivate: [guardsGuard],
     loadChildren: () =>
       import('./back-system/back-system.module').then(
         (m) => m.BackSystemModule
@@ -21,39 +25,39 @@ const routes: Routes = [
   },
   {
     path: 'home',
-    // canActivateChild: [guardsChildGuard],
+    canActivateChild: [guardsChildGuard],
     loadChildren: () =>
       import('./pages/home/home.module').then((m) => m.HomeModule),
   },
   {
     path: 'login',
     canActivate: [loginGuard],
-    component: LoginComponent
+    component: LoginComponent,
   },
   {
     path: 'reset-password',
-    component: ResetPasswordComponent
+    component: ResetPasswordComponent,
   },
   {
     path: 'init-password',
-    component: InitPasswordComponent
+    component: InitPasswordComponent,
   },
   {
     path: 'forgot',
-    component: ForgotComponent
+    component: ForgotComponent,
   },
   {
     path: 'payment',
     children: [
       {
         path: 'success',
-        component: PaymentSuccessComponent
+        component: PaymentSuccessComponent,
       },
       {
         path: 'fail',
-        component: PaymentFailComponent
-      }
-    ]
+        component: PaymentFailComponent,
+      },
+    ],
   },
   {
     path: '',
@@ -70,10 +74,10 @@ const routes: Routes = [
       // 如果有 #fragment，也會自動捲到對應 element
       anchorScrolling: 'enabled',
       // 如有需要，可調整偏移量
-      scrollOffset: [0, 0]
-    })
+      scrollOffset: [0, 0],
+    }),
   ],
   exports: [RouterModule],
   providers: [{ provide: LocationStrategy, useClass: HashLocationStrategy }],
 })
-export class AppRoutingModule { }
+export class AppRoutingModule {}

@@ -82,6 +82,8 @@ export class InterceptorService implements HttpInterceptor {
       this.router.navigate(['/login']);
     }
     return throwError(() => {
+      console.log('經過攔截器');
+
       console.log(error);
       return error;
     });

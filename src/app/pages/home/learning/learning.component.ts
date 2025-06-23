@@ -3,7 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { MenuItem } from 'primeng/api';
 import { ActivatedRoute } from '@angular/router';
 import { ResultService } from 'src/app/Share/result.service';
-import { ResCourseAllDetailsDTO } from "../../../Interface/createCourseDTO";
+import { ResCourseAllDetailsDTO } from '../../../Interface/createCourseDTO';
 import { MessageService } from 'primeng/api';
 @Component({
   selector: 'app-learning',
@@ -32,11 +32,14 @@ export class LearningComponent implements OnInit {
   ];
   // 假資料
   courseData: any; // 或明確型別
-  constructor(private route: ActivatedRoute, private result: ResultService,
-    private messageService: MessageService) { }
+  constructor(
+    private route: ActivatedRoute,
+    private result: ResultService,
+    private messageService: MessageService
+  ) {}
   ngOnInit(): void {
     this.courseId = +this.route.snapshot.paramMap.get('id')!;
-    this.getCourseAPI(this.courseId).subscribe(res => {
+    this.getCourseAPI(this.courseId).subscribe((res) => {
       this.courseData = res;
       this.buildSteps();
     });
@@ -53,6 +56,7 @@ export class LearningComponent implements OnInit {
   isLoading = false;
   summaryList: string[] = [];
   CallVideoAPI() {
+    this.summaryList = [];
     this.isCallAI = true;
     this.isLoading = true; // 進入載入狀態
     const videoId = this.flattenedSteps[this.currentStepIndex].data.videoId;
@@ -60,28 +64,28 @@ export class LearningComponent implements OnInit {
     this.result.getResult<string>(url).subscribe({
       next: (res: string) => {
         const cleaned = res
-          .replace(/^"/, '')      // 去除開頭的雙引號（"）
-          .replace(/"$/, '')      // 去除結尾的雙引號
+          .replace(/^"/, '') // 去除開頭的雙引號（"）
+          .replace(/"$/, '') // 去除結尾的雙引號
           .replace(/\\n/g, '\n'); // 處理 \n 換行
 
         this.summaryList = cleaned
           .split('\n')
-          .map(line => line.replace(/^\d+\.\s*/, '').trim()) // 移除開頭的數字點與空格
-          .filter(line => !!line);
+          .map((line) => line.replace(/^\d+\.\s*/, '').trim()) // 移除開頭的數字點與空格
+          .filter((line) => !!line);
         this.isLoading = false;
       },
       error: (err) => {
         this.summaryList = [];
         this.isLoading = false; // ❗很重要：讓錯誤 UI 能顯示
         this.ShowMessage('error', '錯誤', 'AI 分析失敗，請稍後再試');
-      }
+      },
     });
   }
   copyResultToClipboard() {
     // 將 AIResult 中的 \n 轉成真正的換行符號
 
     navigator.clipboard.writeText(this.summaryList.join('\n')).then(() => {
-      this.ShowMessage('success', '成功', "已複製摘要到剪貼簿")
+      this.ShowMessage('success', '成功', '已複製摘要到剪貼簿');
     });
   }
   ShowMessage(type: string, summary: string, detail: any) {
@@ -89,8 +93,8 @@ export class LearningComponent implements OnInit {
       key: 'tc',
       severity: type,
       summary: summary,
-      detail: detail
-    })
+      detail: detail,
+    });
   }
   getCourseAPI(courseId: number): Observable<any> {
     const url = `https://localhost:7274/api/CreateCourse/learn/${courseId}`;
@@ -108,19 +112,19 @@ export class LearningComponent implements OnInit {
         data: {
           chapterTitle: chapter.chapterTitle,
           chapterDes: chapter.chapterDes,
-        }
+        },
       });
 
       // 章節底下影片步驟
       chapter.videos.forEach((video: any, vidx: number) => {
-        this.steps.push({ label: `章節 ${idx + 1}-影片 ${vidx + 1}` });  // 改這裡，加上章節編號
+        this.steps.push({ label: `章節 ${idx + 1}-影片 ${vidx + 1}` }); // 改這裡，加上章節編號
         this.flattenedSteps.push({
           type: 'video',
           data: {
             videoId: video.videoId,
             videoTitle: video.videoTitle,
             videoFile: `https://localhost:7274/videos/${video.videoFile}`, // 保留原始檔名，供 getVideoUrl 用
-          }
+          },
         });
       });
     });
