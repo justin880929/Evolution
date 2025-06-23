@@ -88,4 +88,9 @@ export class ResetPasswordComponent implements OnInit {
       }
     });
   }
+
+  getPassword(){
+    this.resetForm.get('newPassword')?.setValue('tommy880929');
+    this.resetForm.get('confirmPassword')?.setValue('tommy880929');
+  }
 }

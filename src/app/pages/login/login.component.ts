@@ -83,4 +83,19 @@ export class LoginComponent implements OnInit {
   togglePassword() {
     this.showPassword = !this.showPassword;
   }
+
+  getComp(){
+    this.loginForm.get('email')?.setValue('tommyispan@gmail.com');
+    this.loginForm.get('password')?.setValue('tommy880929');
+  }
+
+  getEmp(){
+    this.loginForm.get('email')?.setValue('avaricer0929@gmail.com');
+    this.loginForm.get('password')?.setValue('tommy880929');
+  }
+
+  getEvo(){
+    this.loginForm.get('email')?.setValue('evolutionispan@gmail.com');
+    this.loginForm.get('password')?.setValue('evolution880929');
+  }
 }

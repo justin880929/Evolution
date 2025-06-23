@@ -212,4 +212,10 @@ confirmDeleteSelected(): void {
       this.isCreateMode = false;      // 進入編輯模式
       this.displayEmpDialog = true;   // 顯示對話框
     }
+
+    getNewEmp(){
+      this.currentEmp.username = 'Andy';
+      this.currentEmp.email = 'avaricer0929@gmail.com';
+      this.currentEmp.userDep = '資訊部';
+    }
 }

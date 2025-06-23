@@ -196,4 +196,9 @@ export class ClientComponent implements OnInit {
     this.isCreateMode = false;      // 進入編輯模式
     this.displayComDialog = true;   // 顯示對話框
   }
+
+  getNewClient(){
+    this.currentCom.companyName = '米月偷偷股份有限公司';
+    this.currentCom.companyEmail = 'tommyispan@gmail.com';
+  }
 }
