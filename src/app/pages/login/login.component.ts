@@ -83,18 +83,35 @@ export class LoginComponent implements OnInit {
   togglePassword() {
     this.showPassword = !this.showPassword;
   }
+  isCompCreate = false
+  isEmpCreate = false
+  getComp() {
+    if (this.isCompCreate) {
+      this.loginForm.get('email')?.setValue('justinispan@gmail.com');
+      this.loginForm.get('password')?.setValue('tommy880929');
+      this.isCompCreate = false
+    } else {
+      this.loginForm.get('email')?.setValue('tommyispan@gmail.com');
+      this.loginForm.get('password')?.setValue('tommy880929');
+      this.isCompCreate = true
+    }
 
-  getComp(){
-    this.loginForm.get('email')?.setValue('tommyispan@gmail.com');
-    this.loginForm.get('password')?.setValue('tommy880929');
   }
 
-  getEmp(){
-    this.loginForm.get('email')?.setValue('avaricer0929@gmail.com');
-    this.loginForm.get('password')?.setValue('tommy880929');
+  getEmp() {
+    if (this.isEmpCreate) {
+      this.loginForm.get('email')?.setValue('alexispan@gmail.com');
+      this.loginForm.get('password')?.setValue('tommy880929');
+      this.isEmpCreate = false
+    } else {
+      this.loginForm.get('email')?.setValue('avaricer0929@gmail.com');
+      this.loginForm.get('password')?.setValue('tommy880929');
+      this.isEmpCreate = true
+    }
+
   }
 
-  getEvo(){
+  getEvo() {
     this.loginForm.get('email')?.setValue('evolutionispan@gmail.com');
     this.loginForm.get('password')?.setValue('evolution880929');
   }

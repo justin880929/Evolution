@@ -145,6 +145,7 @@
           (click)="onPrev()">上一步</button>
       </div>
       <div class="d-flex gap-2">
+        <button class="btn btn-light" (click)="Demo()">Demo</button>
         <button *ngIf="showEditButton" class="btn btn-warning" (click)="EditSteps()" [disabled]="lockButton">
           儲存資料修改
         </button>

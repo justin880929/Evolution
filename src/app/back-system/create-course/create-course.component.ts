@@ -80,6 +80,83 @@ export class CreateCourseComponent {
     coverImagePath: '',
     chapterWithVideos: []
   }
+  //Demo資料
+
+  Demo() {
+
+    const label = this.steps[this.currentStep].label
+    switch (label) {
+      case "建立課程":
+        this.courseForm.get("CourseTitle")?.setValue("打造 AI 影片摘要系統：從語音辨識到摘要呈現的實戰教學")
+        this.courseForm.get("CourseDes")?.setValue("在知識密集的學習平台與企業培訓環境中，如何快速掌握影片內容成為一項關鍵需求。本課程將帶你從零開始，實作一套可主動觸發的「AI 影片摘要系統」。透過整合 OpenAI Whisper 語音辨識與 GPT 語意摘要模型，實現從影片語音到可複製摘要的完整流程。你將學會後端處理的邏輯設計、前端觸發流程、以及介面整合技術，打造出真正提升學習效率的智慧化功能。課程以實作導向為主，適合有基礎的前後端開發者進一步掌握 AI 分析在真實產品中的應用。")
+        this.courseForm.get("Price")?.setValue(6500)
+        break;
+      case "新增章節":
+        const chrandom = Math.floor(Math.random() * 3) + 1;
+        switch (chrandom) {
+          case 1:
+            this.chapterForm.get("ChapterTitle")?.setValue("AI 影片處理技術與流程設計")
+            this.chapterForm.get("ChapterDes")?.setValue("本章將建立整體系統的技術架構概念，說明如何從 MP4 影片切割、音訊預處理，到 Whisper 語音辨識與 GPT 摘要生成的完整流程。你將了解系統設計的模組劃分與 API 串接原理，為實作做好架構上的鋪陳。")
+            break;
+          case 2:
+            this.chapterForm.get("ChapterTitle")?.setValue("影片轉文字與摘要產出實作")
+            this.chapterForm.get("ChapterDes")?.setValue("本章將實作從影片切割到語音轉文字、再到摘要產生的完整流程。你將學會如何使用 Whisper API 對影片進行語音辨識，並將結果餵給 GPT 模型提取內容摘要。課程中也會處理 API 回應格式、錯誤處理與資料彙整技巧。")
+            break;
+          case 3:
+            this.chapterForm.get("ChapterTitle")?.setValue("播放中觸發 AI 分析與摘要呈現")
+            this.chapterForm.get("ChapterDes")?.setValue("本章將專注於前端整合，實作使用者觀看影片時手動觸發 AI 分析的流程。你將學會如何設計播放頁上的「AI 分析」按鈕，如何等待回傳並呈現摘要結果，以及如何優化 UX 讓摘要資訊清楚易讀、可複製，強化學習效果。")
+            break;
+        }
+        break;
+      case "新增影片":
+        const chCount = this.steps.slice(0, this.currentStep + 1).filter(step => step.label === '新增章節').length;
+        const virandom = Math.floor(Math.random() * 3) + 1;
+        switch (chCount) {
+          case 1:
+            switch (virandom) {
+              case 1:
+                this.videoForm.get("Title")?.setValue("影片摘要系統概觀與應用情境")
+                break;
+              case 2:
+                this.videoForm.get("Title")?.setValue("Whisper 與 GPT 模型簡介與 API 使用說明")
+                break;
+              case 3:
+                this.videoForm.get("Title")?.setValue("系統架構規劃：從上層需求到技術落地")
+                break;
+            }
+            break;
+          case 2:
+            switch (virandom) {
+              case 1:
+                this.videoForm.get("Title")?.setValue("切割 MP4 並處理音訊格式")
+                break;
+              case 2:
+                this.videoForm.get("Title")?.setValue("使用 Whisper API 進行語音辨識")
+                break;
+              case 3:
+                this.videoForm.get("Title")?.setValue("使用 GPT 產生影片重點摘要")
+                break;
+            }
+            break;
+          case 3:
+            switch (virandom) {
+              case 1:
+                this.videoForm.get("Title")?.setValue("Angular 播放頁設計與分析按鈕實作")
+                break;
+              case 2:
+                this.videoForm.get("Title")?.setValue("呼叫 AI 分析 API 並接收摘要結果")
+                break;
+              case 3:
+                this.videoForm.get("Title")?.setValue("呈現摘要內容與 UX 優化技巧")
+                break;
+            }
+            break;
+        }
+        break;
+      default:
+        break;
+    }
+  }
   //初始化課程表單
   InitCourseForm() {
     this.courseForm.reset()
@@ -773,7 +850,7 @@ export class CreateCourseComponent {
         console.log("cover from api", course.coverImage);
         this.originalCoverImageUrl$.next(course.coverImage);
       });
-      this.coverPreviewUrl = `https://localhost:7073/images/${course.coverImage}`; // ⚠️ 請依實際網址修改
+      this.coverPreviewUrl = `https://localhost:7274/${course.coverImage}`; // ⚠️ 請依實際網址修改
     } catch (error) {
       console.log(error);
       this.ShowMessage("error", "取得課程失敗", "無法載入課程資料");
