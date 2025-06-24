@@ -597,6 +597,7 @@ export class CreateCourseComponent {
   StepsRemoveLast() {
     this.steps.pop()
   }
+  isfirstSignalR = true
   //打API
   ///-------------------
   clientRequestId = ""; // ✅ 產生唯一 ID
@@ -621,7 +622,10 @@ export class CreateCourseComponent {
       if (update && update.step && steps.includes(update.step)) {
         const percent = update.data?.percent ?? 0;
         this.progressPercent = percent;
-
+        if (this.isfirstSignalR && percent == 60) {
+          debugger
+          this.isfirstSignalR = false
+        }
         if (percent === 100) {
           clearTimeout(timeout);
           sub.unsubscribe?.();
