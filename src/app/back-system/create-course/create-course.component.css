@@ -18,3 +18,9 @@
   background: #d3fae7;
   color: #000;
 }
+::ng-deep .p-progressbar .p-progressbar-value {
+  background-color: #d3fae7 !important;
+}
+::ng-deep .p-progressbar .p-progressbar-label {
+  color: #34c67f !important;
+}
